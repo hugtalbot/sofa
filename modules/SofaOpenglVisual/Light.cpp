@@ -460,11 +460,14 @@ void SpotLight::drawLight()
 void SpotLight::draw(const core::visual::VisualParams* vparams)
 {
     float zNear, zFar;
+    Vector3 dir = d_direction.getValue();
+    if (d_lookat.getValue())
+       dir -= d_position.getValue();
 
     computeClippingPlane(vparams, zNear, zFar);
 
     computeOpenGLProjectionMatrix(m_lightMatProj, m_shadowTexWidth, m_shadowTexHeight, 2 * d_cutoff.getValue(), zNear, zFar);
-    computeOpenGLModelViewMatrix(m_lightMatModelview, d_position.getValue(), d_direction.getValue());
+    computeOpenGLModelViewMatrix(m_lightMatModelview, d_position.getValue(), dir);
 
     if (d_drawSource.getValue() && vparams->displayFlags().getShowVisualModels())
     {
@@ -472,7 +475,11 @@ void SpotLight::draw(const core::visual::VisualParams* vparams)
         float tipLength = (baseLength*0.5) * (zNear/ zFar);
         const Vector3& col = d_color.getValue();
         sofa::defaulttype::Vec4f color4(col[0], col[1], col[2], 1.0);
-        Vector3 direction = this->d_direction.getValue();
+        Vector3 direction;
+        if(d_lookat.getValue())
+            direction = this->d_direction.getValue() - this->d_position.getValue();
+        else
+            direction = this->d_direction.getValue();
         direction.normalize();
         Vector3 base = this->getPosition() + direction*zFar;
         Vector3 tip = this->getPosition() + direction*zNear;
