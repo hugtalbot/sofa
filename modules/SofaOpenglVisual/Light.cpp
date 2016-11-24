@@ -37,6 +37,7 @@
 #include <SofaOpenglVisual/Light.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <SofaOpenglVisual/LightManager.h>
+#include <SofaOpenglVisual/LightManagerPass.h>
 #include <sofa/helper/system/glu.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/simulation/Simulation.h>
@@ -112,6 +113,7 @@ void Light::init()
 {
     sofa::core::objectmodel::BaseContext* context = this->getContext();
     LightManager* lm = context->core::objectmodel::BaseContext::get<LightManager>();
+    LightManagerPass* lmp = context->core::objectmodel::BaseContext::get<LightManagerPass>();
 
     if(lm)
     {
@@ -122,6 +124,17 @@ void Light::init()
     else
     {
         serr << "No LightManager found" << sendl;
+    }
+    if(lmp)
+    {
+        std::cout<<"LightManagerPass found"<<std::endl;
+        lmp->putLight(this);
+        d_softShadows.setParent(&(lmp->softShadowsEnabled));
+        //softShadows = lmp->softShadowsEnabled.getValue();
+    }
+    else
+    {
+        serr << "No LightManagerPass found" << sendl;
     }
 
 }

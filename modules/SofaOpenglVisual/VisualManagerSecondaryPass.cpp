@@ -235,7 +235,7 @@ void VisualManagerSecondaryPass::bindInput(core::visual::VisualParams* /*vp*/)
             {
                 if (!currentSecondaryPass->hasFilledFbo())
                 {
-                    std::cerr << "Error: SecondaryPass \"" << this->getName() << "\" cannot access input pass \""<< currentSecondaryPass->getName() <<"\". Please make sure you declared this input pass first in the scn file." << std::endl;
+                    std::cerr << "Error: 11111SecondaryPass \"" << this->getName() << "\" cannot access input pass \""<< currentSecondaryPass->getName() <<"\". Please make sure you declared this input pass first in the scn file." << std::endl;
                     return;
                 }
                 //std::cout<<"***"<< this->getName() <<"*** GL_TEXTURE"<<nbFbo<<" color from "<<currentSecondaryPass->getName()<<std::endl;

@@ -95,9 +95,10 @@ void CompositingVisualLoop::drawStep(sofa::core::visual::VisualParams* vparams)
     const sofa::core::visual::DisplayFlags &backupFlags = vparams->displayFlags();
     const sofa::core::visual::DisplayFlags &currentFlags = visualStyle->displayFlags.getValue();
     vparams->displayFlags() = sofa::core::visual::merge_displayFlags(backupFlags, currentFlags);
-    renderingState = vparams->displayFlags().getShowRendering();
-
-    if (!(vparams->displayFlags().getShowRendering()))
+    //renderingState = vparams->displayFlags().getShowRendering();
+    renderingState = sofa::core::visual::tristate::true_value;
+//    if (!(vparams->displayFlags().getShowRendering()))
+      if (!renderingState)
     {
 #ifdef DEBUG_DRAW
         std::cout << "Advanced Rendering is OFF" << std::endl;
@@ -121,7 +122,8 @@ void CompositingVisualLoop::drawStep(sofa::core::visual::VisualParams* vparams)
     else
     {
 #ifdef SOFA_HAVE_GLEW
-        if (renderingState == sofa::core::visual::tristate::false_value || renderingState == sofa::core::visual::tristate::neutral_value) return;
+        //RESET HACK
+        //if (renderingState == sofa::core::visual::tristate::false_value || renderingState == sofa::core::visual::tristate::neutral_value) return;
 
         sofa::simulation::Node::Sequence<core::visual::VisualManager>::iterator begin = gRoot->visualManager.begin(), end = gRoot->visualManager.end(), it;
         //preDraw sequence

@@ -39,6 +39,7 @@
 #include <sofa/helper/system/FileRepository.h>
 
 #include <SofaOpenglVisual/LightManager.h>
+#include <SofaOpenglVisual/LightManagerPass.h>
 
 namespace sofa
 {
@@ -87,7 +88,9 @@ void OglShadowShader::init()
     OglShader::init();
 
     std::ostringstream oss;
+    //RESET HACK
     oss << LightManager::MAX_NUMBER_OF_LIGHTS;
+    //oss << LightManagerPass::MAX_NUMBER_OF_LIGHTS;
 
     addDefineMacro(0,std::string("MAX_NUMBER_OF_LIGHTS"), oss.str());
     addDefineMacro(0,std::string("ENABLE_SHADOW"), "0");
