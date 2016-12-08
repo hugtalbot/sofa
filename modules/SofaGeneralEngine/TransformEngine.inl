@@ -47,6 +47,7 @@ TransformEngine<DataTypes>::TransformEngine()
     , f_outputX( initData (&f_outputX, "output_position", "output array of 3d points") )
     , translation(initData(&translation, defaulttype::Vector3(0,0,0),"translation", "translation vector ") )
     , rotation(initData(&rotation, defaulttype::Vector3(0,0,0), "rotation", "rotation vector ") )
+    , ry(initData(&ry, float(0), "ry", "rotation vector ") )
     , quaternion(initData(&quaternion, defaulttype::Quaternion(0,0,0,1), "quaternion", "rotation quaternion ") )
     , scale(initData(&scale, defaulttype::Vector3(1,1,1),"scale", "scale factor") )
     , inverse(initData(&inverse, false, "inverse", "true to apply inverse transformation"))
@@ -54,6 +55,7 @@ TransformEngine<DataTypes>::TransformEngine()
     addInput(&f_inputX);
     addInput(&translation);
     addInput(&rotation);
+    addInput(&ry);
     addInput(&quaternion);
     addInput(&scale);
     addInput(&inverse);
@@ -277,6 +279,7 @@ void TransformEngine<DataTypes>::update()
 {
     const defaulttype::Vector3 &s=scale.getValue();
     const defaulttype::Vector3 &r=rotation.getValue();
+    const float &y=ry.getValue();
     const defaulttype::Vector3 &t=translation.getValue();
     const defaulttype::Quaternion &q=quaternion.getValue();
 
@@ -289,6 +292,12 @@ void TransformEngine<DataTypes>::update()
     if (r != defaulttype::Vector3(0,0,0))
         transformation.add(new Rotation<DataTypes>, inv)->configure(r, inv);
 
+    if (y != 0){
+        std::cout << "y : "<<y<<std::endl;
+        defaulttype::Vector3 vecy = defaulttype::Vector3(0,y,0);
+        std::cout << "vecy : "<<vecy<<std::endl;
+        transformation.add(new Rotation<DataTypes>, inv)->configure(vecy, inv);
+    }
     if (q != defaulttype::Quaternion(0,0,0,1))
         transformation.add(new Rotation<DataTypes>, inv)->configure(q, inv, this);
 
