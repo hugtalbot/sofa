@@ -3,7 +3,7 @@
 usage() {
     echo "Usage: licenseUpdater.sh <src-dir> <license> <year> <version>"
     echo "  src-dir: all files in this folder will be affected"
-    echo "  license: choose in ['auto', 'LGPL', 'GPL']"
+    echo "  license: choose in ['auto', 'LGPL', 'GPL', 'proprietary']"
     echo "  year: YYYY formatted year for the copyright"
     echo "  version: SOFA version"
 }
