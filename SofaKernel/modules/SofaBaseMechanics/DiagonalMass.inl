@@ -46,7 +46,7 @@ namespace mass
 
 template <class DataTypes, class MassType>
 DiagonalMass<DataTypes, MassType>::DiagonalMass()
-    : d_mass( initData(&d_mass, "mass", "values of the particles masses") )
+    : d_mass( initData(&d_mass, "vertexMass", "values of the particles masses") )
     , m_pointHandler(NULL)
     , d_massDensity( initData(&d_massDensity, (Real)1.0,"massDensity", "mass density that allows to compute the  particles masses from a mesh topology and geometry.\nOnly used if > 0") )
     , d_computeMassOnRest(initData(&d_computeMassOnRest, false, "computeMassOnRest", "if true, the mass of every element is computed based on the rest position rather than the position"))
