@@ -175,34 +175,43 @@ void UniformMass<DataTypes, MassType>::reinit()
         m_doesTopoChangeAffect = true;
     }
 
-    //Mass is considered from the most accurate info (vertexMass) to the most global one (totalMass)
-    //If user defines the vertexMass
+
+    //Select mass information
+    bool useDefault = true;
+    //If user defines the vertexMass, use this as the mass
     if (d_mass.isSet())
     {
-        //Check that value is positive
-        if(d_mass.getValue() <= 0.0 )
-        {
-            msg_warning(this) << "vertexMass data can not have a negative value." << msgendl
-                              << "Switching back to default values:" << msgendl
-                              << "totalMass = 1.0" << msgendl
-                              << "vertexMass = 1.0 / nb_dofs" << msgendl
-                              << "To remove this warning, you need to set a positive values to the vertexMass data";
-
-            d_totalMass.setValue(1.0) ;
-            d_mass.setValue(0.0) ;
-            MassType *m = d_mass.beginEdit();
-            *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / indices.size() );
-            d_mass.endEdit();
-        }
         //Check double definition : both totalMass and vertexMass are user-defined
         if (d_totalMass.isSet())
         {
-            msg_warning(this) << "totalmass value overriding the value of the attribute vertexMass.\n" << msgendl
+            msg_warning(this) << "totalMass value overriding the value of the attribute vertexMass.\n" << msgendl
                               << "vertexMass = totalMass / nb_dofs. \n" << msgendl
                               << "To remove this warning you need to set either totalMass or vertexMass data field, but not both.";
-            MassType *m = d_mass.beginEdit();
-            *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / indices.size() );
-            d_mass.endEdit();
+            if(d_totalMass.getValue() <= 0.0)
+            {
+                msg_warning(this) << "totalMass data can not have a negative value." << msgendl
+                                  << "Switching back to default values: totalMass = 1.0" << msgendl
+                                  << "To remove this warning, you need to set a positive values to the totalMass data";
+                d_totalMass.setValue(1.0) ;
+            }
+            useDefault = true;
+        }
+        //Check that value is positive
+        else if(d_mass.getValue() <= 0.0 )
+        {
+            msg_warning(this) << "vertexMass data can not have a negative value." << msgendl
+                              << "Switching back to default values: totalMass = 1.0" << msgendl
+                              << "To remove this warning, you need to set a positive values to the vertexMass data";
+            d_totalMass.setValue(1.0) ;
+            useDefault = true;
+        }
+        //If no problem detected, then use the vertexMass
+        else
+        {
+            SReal totalMass = d_mass.getValue() * indices.size();
+            d_totalMass.setValue(totalMass);
+            useDefault = false;
+            msg_info() << "vertexMass information is used";
         }
     }
     //else totalMass is used
@@ -212,18 +221,25 @@ void UniformMass<DataTypes, MassType>::reinit()
         if(d_totalMass.getValue() <= 0.0)
         {
             msg_warning(this) << "totalMass data can not have a negative value." << msgendl
-                              << "Switching back to default values:" << msgendl
-                              << "totalMass = 1.0" << msgendl
-                              << "vertexMass = 1.0 / nb_dofs" << msgendl
+                              << "Switching back to default values: totalMass = 1.0" << msgendl
                               << "To remove this warning, you need to set a positive values to the totalMass data";
-
             d_totalMass.setValue(1.0) ;
-            d_mass.setValue(0.0) ;
         }
+        useDefault = true;
+    }
+
+    //If the mass is based on the totalMass information
+    if(useDefault)
+    {
         MassType *m = d_mass.beginEdit();
         *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / indices.size() );
         d_mass.endEdit();
+        msg_info() << "totalMass information is used";
     }
+
+    //Info post-reinit
+    msg_info() << "totalMass  = " << d_totalMass.getValue() << msgendl
+               << "vertexMass = " << d_mass.getValue();
 }
 
 

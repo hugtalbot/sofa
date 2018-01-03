@@ -48,9 +48,9 @@ template <class DataTypes, class MassType>
 DiagonalMass<DataTypes, MassType>::DiagonalMass()
     : d_mass( initData(&d_mass, "vertexMass", "values of the particles masses") )
     , m_pointHandler(NULL)
-    , d_massDensity( initData(&d_massDensity, (Real)1.0,"massDensity", "mass density that allows to compute the  particles masses from a mesh topology and geometry.\nOnly used if > 0") )
+    , d_massDensity( initData(&d_massDensity, (Real)0.0,"massDensity", "mass density that allows to compute the  particles masses from a mesh topology and geometry.\nOnly used if > 0") )
     , d_computeMassOnRest(initData(&d_computeMassOnRest, false, "computeMassOnRest", "if true, the mass of every element is computed based on the rest position rather than the position"))
-    , d_totalMass(initData(&d_totalMass, (Real)-1.0, "totalMass", "Total mass of the object, if set, the massDensity is overwritten"))
+    , d_totalMass(initData(&d_totalMass, (Real)1.0, "totalMass", "Total mass of the object, if set, the massDensity is overwritten"))
     , d_showCenterOfGravity( initData(&d_showCenterOfGravity, false, "showGravityCenter", "display the center of gravity of the system" ) )
     , d_showAxisSize( initData(&d_showAxisSize, 1.0f, "showAxisSizeFactor", "factor length of the axis displayed (only used for rigids)" ) )
     , d_fileMass( initData(&d_fileMass,  "fileMass", "an Xsp3.0 file to specify the mass parameters" ) )
@@ -754,15 +754,19 @@ void DiagonalMass<DataTypes, MassType>::init()
     if (_topology)
     {
         if (_topology->getNbTetrahedra() > 0 && !tetraGeo)
-            serr << "Tetrahedron topology but no geometry algorithms found. Add the component TetrahedronSetGeometryAlgorithms." << sendl;
+            msg_error() << "Tetrahedron topology but no geometry algorithms found. Add the component TetrahedronSetGeometryAlgorithms.";
         else if (_topology->getNbTriangles() > 0 && !triangleGeo)
-            serr << "Triangle topology but no geometry algorithms found. Add the component TriangleSetGeometryAlgorithms." << sendl;
+            msg_error() << "Triangle topology but no geometry algorithms found. Add the component TriangleSetGeometryAlgorithms.";
         else if (_topology->getNbHexahedra() > 0 && !hexaGeo)
-            serr << "Hexahedron topology but no geometry algorithms found. Add the component HexahedronSetGeometryAlgorithms." << sendl;
-       else if (_topology->getNbQuads() > 0 && !quadGeo)
-           serr << "Quad topology but no geometry algorithms found. Add the component QuadSetGeometryAlgorithms." << sendl;
+            msg_error() << "Hexahedron topology but no geometry algorithms found. Add the component HexahedronSetGeometryAlgorithms.";
+        else if (_topology->getNbQuads() > 0 && !quadGeo)
+            msg_error() << "Quad topology but no geometry algorithms found. Add the component QuadSetGeometryAlgorithms.";
         else if (_topology->getNbEdges() > 0 && !edgeGeo)
-            serr << "Edge topology but no geometry algorithms found. Add the component EdgeSetGeometryAlgorithms." << sendl;
+            msg_error() << "Edge topology but no geometry algorithms found. Add the component EdgeSetGeometryAlgorithms.";
+    }
+    else
+    {
+        msg_error() << "Topology not found.";
     }
 
     Inherited::init();
@@ -780,22 +784,134 @@ void DiagonalMass<DataTypes, MassType>::init()
         d_mass.endEdit();
     }
 
-    if (d_totalMass.isSet())
+
+    //Select mass information
+    bool useDefault = true;
+    //If user defines the vertexMass, use this as the mass
+    if(d_mass.isSet())
     {
-        if(d_massDensity.isSet())
+        //Check double definition : both totalMass and vertexMass are user-defined
+        if (d_totalMass.isSet())
         {
-            msg_warning("DiagonalMass") << "both massDensity and totalMass are set, totalMass will be applied (recomputes the density)";
+            msg_warning(this) << "totalMass value overriding the value of the attribute vertexMass.\n" << msgendl
+                              << "To remove this warning you need to set either vertexMass or totalMass data field, but not both.";
+            if(d_totalMass.getValue() <= 0.0)
+            {
+                msg_warning(this) << "totalMass data can not have a negative value." << msgendl
+                                  << "Switching back to default values: totalMass = 1.0" << msgendl
+                                  << "To remove this warning, you need to set a positive values to the totalMass data";
+                d_totalMass.setValue(1.0) ;
+            }
+            useDefault = true;
         }
+        //Check double definition : both massDensity and vertexMass are user-defined
+        else if(d_massDensity.isSet())
+        {
+            msg_warning(this) << "massDensity value overriding the value of the attribute vertexMass.\n" << msgendl
+                              << "To remove this warning you need to set either vertexMass or massDensity data field, but not both.";
+            if(d_massDensity.getValue() <= 0.0)
+            {
+                msg_warning(this) << "totalMass data can not have a negative value." << msgendl
+                                  << "Switching back to default values: totalMass = 1.0" << msgendl
+                                  << "To remove this warning, you need to set a positive values to the totalMass data";
+                d_totalMass.setValue(1.0) ;
+                useDefault = true;
+            }
+            else
+            {
+                reinit();
+                useDefault = false;
+                msg_info() << "massDensity information is used";
+            }
+        }
+        //If no problem detected, then use the vertexMass
+        else
+        {
+            const sofa::helper::vector<Real> &vertexMass = d_mass.getValue();
+            //Check size
+            if (vertexMass.size() != (unsigned)this->mstate->getSize())
+            {
+                msg_error() << "Inconsistent size of vertexMass vector compared to the DOFs size." << msgendl
+                             "Reinit called, but the input data vertexMass / MechanicalObject should be checked";
+                reinit();
+            }
+            else
+            {
+                //Check that value is positive
+                for(size_t i=0; i<vertexMass.size(); i++)
+                {
+                    if(vertexMass[i]<=0)
+                    {
+                        msg_warning() << "Negative value of vertexMass vector: vertexMass[" << i << "] = " << vertexMass[i];
+                    }
+                }
+                useDefault = false;
+                msg_info() << "vertexMass information is used";
+            }
+        }
+    }
+    //If user defines the massDensity, use it to compute the mass at each vertex
+    else if(d_massDensity.isSet())
+    {
+        //Check double definition : both massDensity and totalMass are user-defined
+        if(d_totalMass.isSet())
+        {
+            msg_warning(this) << "totalMass value overriding the value of the attribute massDensity.\n" << msgendl
+                              << "To remove this warning you need to set either massDensity or totalMass data field, but not both.";
+            if(d_totalMass.getValue() <= 0.0)
+            {
+                msg_warning(this) << "totalMass data can not have a negative value." << msgendl
+                                  << "Switching back to default values: totalMass = 1.0" << msgendl
+                                  << "To remove this warning, you need to set a positive values to the totalMass data";
+                d_totalMass.setValue(1.0) ;
+            }
+            useDefault = true;
+        }
+        //Check that value is positive
+        else if(d_massDensity.getValue() <= 0.0)
+        {
+            msg_warning(this) << "totalMass data can not have a negative value." << msgendl
+                              << "Switching back to default values: totalMass = 1.0" << msgendl
+                              << "To remove this warning, you need to set a positive values to the totalMass data";
+            d_totalMass.setValue(1.0) ;
+            useDefault = true;
+        }
+        //If no problem detected, then use the massDensity
+        else
+        {
+            reinit();
+            useDefault = false;
+            msg_info() << "massDensity information is used";
+        }
+    }
+    //else totalMass is used
+    else
+    {
+        //Check that value is positive
+        if(d_totalMass.getValue() <= 0.0)
+        {
+            msg_warning(this) << "totalMass data can not have a negative value." << msgendl
+                              << "Switching back to default values: totalMass = 1.0" << msgendl
+                              << "To remove this warning, you need to set a positive values to the totalMass data";
+            d_totalMass.setValue(1.0) ;
+        }
+        useDefault = true;
+    }
+
+    //If the mass is based on the totalMass information
+    if(useDefault)
+    {
+        msg_info() << "totalMass information is used";
         Real totalMassTemp = d_totalMass.getValue();
         reinit();
         d_massDensity.setValue(totalMassTemp/d_totalMass.getValue());
         reinit();
     }
 
-    if ((d_mass.getValue().size()==0) && (_topology!=0))
-    {
-        reinit();
-    }
+    //Info post-reinit
+    msg_info() << "totalMass   = " << d_totalMass.getValue() << msgendl
+               << "massDensity = " << d_massDensity.getValue() << msgendl
+               << "vertexMass  = " << d_mass.getValue();
 }
 
 template <class DataTypes, class MassType>
