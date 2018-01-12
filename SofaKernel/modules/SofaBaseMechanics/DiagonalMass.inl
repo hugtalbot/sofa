@@ -46,11 +46,16 @@ namespace mass
 
 template <class DataTypes, class MassType>
 DiagonalMass<DataTypes, MassType>::DiagonalMass()
-    : d_mass( initData(&d_mass, "vertexMass", "values of the particles masses") )
+    : d_mass( initData(&d_mass, "vertexMass", "Vector giving the mass of each vertex."
+                                              "If a single value is given, the same value will be applied to all vertices."
+                                              "If vertexMass is set, the totalMass is computed from it.         "
+                                              "If vertexMass is not properly set, the totalMass is used instead.") )
     , m_pointHandler(NULL)
-    , d_massDensity( initData(&d_massDensity, (Real)0.0,"massDensity", "mass density that allows to compute the  particles masses from a mesh topology and geometry.\nOnly used if > 0") )
+    , d_massDensity( initData(&d_massDensity, (Real)0.0,"massDensity", "Mass density that allows to compute the vertex masses from a mesh topology and geometry."
+                                                                       "If massDensity is set, the vertexMass and totalMass are computed from it.                "
+                                                                       "If massDensity is not properly set, the totalMass is used instead.") )
     , d_computeMassOnRest(initData(&d_computeMassOnRest, false, "computeMassOnRest", "if true, the mass of every element is computed based on the rest position rather than the position"))
-    , d_totalMass(initData(&d_totalMass, (Real)1.0, "totalMass", "Total mass of the object, if set, the massDensity is overwritten"))
+    , d_totalMass(initData(&d_totalMass, (Real)1.0, "totalMass", "Total mass of the object, used by default with totalMass=1.0") )
     , d_showCenterOfGravity( initData(&d_showCenterOfGravity, false, "showGravityCenter", "display the center of gravity of the system" ) )
     , d_showAxisSize( initData(&d_showAxisSize, 1.0f, "showAxisSizeFactor", "factor length of the axis displayed (only used for rigids)" ) )
     , d_fileMass( initData(&d_fileMass,  "fileMass", "an Xsp3.0 file to specify the mass parameters" ) )
@@ -887,6 +892,11 @@ void DiagonalMass<DataTypes, MassType>::init()
     //else totalMass is used
     else
     {
+        if(!d_totalMass.isSet())
+        {
+            msg_info() << "No information about the mass is given." << msgendl
+                          "Default : totalMass = 1.0";
+        }
         //Check that value is positive
         if(d_totalMass.getValue() <= 0.0)
         {

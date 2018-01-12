@@ -98,9 +98,9 @@ void UniformMass<DataTypes, MassType>::reinitDefaultImpl()
     }
 
     if(d_totalMass.getValue() < 0.0 || d_mass.getValue() < 0.0){
-        msg_warning(this) << "The mass or totalmass data field cannot have negative values.\n"
-                             "Thus we will use the default value  that are mass = 1.0 and totalmass = mass * num_position. \n"
-                             "To remove this warning you need to use positive values in 'totalmass' and 'mass' data field";
+        msg_warning(this) << "The vertexMass or totalMass data field cannot have negative values.\n"
+                             "Thus we will use the default value  that are mass = 1.0 and totalMass = mass * num_position. \n"
+                             "To remove this warning you need to use positive values in 'totalMass' and 'vertexMass' data field";
 
         d_totalMass.setValue(0.0) ;
         d_mass.setValue(1.0) ;

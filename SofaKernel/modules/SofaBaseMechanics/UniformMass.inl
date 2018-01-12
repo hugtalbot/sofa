@@ -75,15 +75,15 @@ using defaulttype::BaseMatrix;
 template <class DataTypes, class MassType>
 UniformMass<DataTypes, MassType>::UniformMass()
     : d_mass ( initData ( &d_mass, MassType ( 0.0f ), "vertexMass",
-                          "Specify a unique mass for all the particles.                      "
-                          "If the mass attribute is set then totalmass is deduced from it     "
-                          "using the following formula: totalmass = mass * number of particules"
-                          "The default value is {1.0}" ) )
+                          "Specify a unique mass (one single real value) for all the particles.      "
+                          "If the mass attribute is set then totalMass is deduced from it            "
+                          "using the following formula: totalMass = vertexMass * number of particules"
+                          "If not set, the totalMass information is used." ) )
     , d_totalMass ( initData ( &d_totalMass, (SReal)1.0, "totalMass",
-                               "Specify a unique mass for all the particles.                        "
-                               "If the totalmass attribute is set then the mass is deduced from it   "
-                               "using the following formula: mass = totalmass / number of particules "
-                               "If unspecified the default value is totalmass = mass * number of particules."
+                               "Specify the total mass resulting from all particles.                       "
+                               "If the totalMass attribute is set then the vertexMass is deduced from it   "
+                               "using the following formula: vertexMass = totalMass / number of particules "
+                               "If unspecified the default value is totalMass = 1.0"
                                 ) )
     , d_filenameMass ( initData ( &d_filenameMass, "filename",
                                   "rigid file to load the mass parameters" ) )
@@ -108,7 +108,6 @@ UniformMass<DataTypes, MassType>::UniformMass()
     , d_preserveTotalMass( initData ( &d_preserveTotalMass, false, "preserveTotalMass",
                                       "Prevent totalMass from decreasing when removing particles."))
 {
-    this->addAlias(&d_totalMass,"totalMass");
     constructor_message();
 }
 
@@ -217,6 +216,11 @@ void UniformMass<DataTypes, MassType>::reinit()
     //else totalMass is used
     else
     {
+        if(!d_totalMass.isSet())
+        {
+            msg_info() << "No information about the mass is given." << msgendl
+                          "Default : totalMass = 1.0";
+        }
         //Check that value is positive
         if(d_totalMass.getValue() <= 0.0)
         {

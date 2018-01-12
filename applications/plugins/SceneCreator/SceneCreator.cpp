@@ -352,7 +352,7 @@ void addTetraFEM(simulation::Node::SPtr parent, const std::string& objectName,
 {
     simpleapi::createObject(parent, "UniformMass", {
                                 {"name",objectName + "_mass"},
-                                {"totalmass", str(totalMass)},
+                                {"totalMass", str(totalMass)},
                             });
 
     simpleapi::createObject(parent, "TetrahedronFEMForceField", {
@@ -369,7 +369,7 @@ void addTriangleFEM(simulation::Node::SPtr node, const std::string& objectName,
 {
     simpleapi::createObject(node, "UniformMass", {
                                 {"name", objectName+"_mass"},
-                                {"totalmass", str(totalMass)}});
+                                {"totalMass", str(totalMass)}});
 
     simpleapi::createObject(node, "TriangularFEMForceField", {
                                 {"name", objectName+"_FEM"},
@@ -676,7 +676,7 @@ Node::SPtr massSpringString(Node::SPtr parent,
 
     simpleapi::createObject(node, "UniformMass", {
                                 {"name",oss.str()+"_mass"},
-                                {"mass", str(totalMass/numParticles)}});
+                                {"vertexMass", str(totalMass/numParticles)}});
 
     simpleapi::createObject(node, "StiffSpringForceField", {
                                 {"name", oss.str()+"_spring"},

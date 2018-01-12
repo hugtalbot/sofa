@@ -99,8 +99,8 @@ struct UniformMassTest :  public ::testing::Test
         m_mass = New< TheUniformMass >() ;
         m_node->addObject(m_mass) ;
 
-        EXPECT_TRUE( m_mass->findData("mass") != nullptr ) ;
-        EXPECT_TRUE( m_mass->findData("totalmass") != nullptr ) ;
+        EXPECT_TRUE( m_mass->findData("vertexMass") != nullptr ) ;
+        EXPECT_TRUE( m_mass->findData("totalMass") != nullptr ) ;
         EXPECT_TRUE( m_mass->findData("filename") != nullptr ) ;
         EXPECT_TRUE( m_mass->findData("localRange") != nullptr ) ;
 
@@ -113,7 +113,6 @@ struct UniformMassTest :  public ::testing::Test
         EXPECT_TRUE( m_mass->findData("preserveTotalMass") != nullptr ) ;
 
         EXPECT_TRUE( m_mass->findData("compute_mapping_inertia") != nullptr ) ;
-        EXPECT_TRUE( m_mass->findData("totalMass") != nullptr ) ;
         return ;
     }
 
@@ -138,8 +137,8 @@ struct UniformMassTest :  public ::testing::Test
         EXPECT_TRUE( mass != nullptr ) ;
 
         if(mass!=nullptr){
-            EXPECT_EQ( mass->getMass(), 1.0 ) ;
-            EXPECT_EQ( mass->getTotalMass(), 2.0 ) ;
+            EXPECT_EQ( mass->getMass(), 0.5 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 1.0 ) ;
         }
     }
 
@@ -149,7 +148,7 @@ struct UniformMassTest :  public ::testing::Test
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' mass='4.0' />                 "
+                "   <UniformMass name='m_mass' vertexMass='4.0' />                 "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -173,7 +172,7 @@ struct UniformMassTest :  public ::testing::Test
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' totalmass='4.0' />            "
+                "   <UniformMass name='m_mass' totalMass='4.0' />            "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -197,7 +196,7 @@ struct UniformMassTest :  public ::testing::Test
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' totalmass='91.0' mass=2.0/>   "
+                "   <UniformMass name='m_mass' totalMass='91.0' vertexMass=2.0/>   "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -221,7 +220,7 @@ struct UniformMassTest :  public ::testing::Test
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' totalmass='-1.0' mass=-3.0/>   "
+                "   <UniformMass name='m_mass' totalMass='-1.0' vertexMass=-3.0/>   "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -234,8 +233,8 @@ struct UniformMassTest :  public ::testing::Test
         EXPECT_TRUE( mass != nullptr ) ;
 
         if(mass!=nullptr){
-            EXPECT_EQ( mass->getMass(), 1.0 ) ;
-            EXPECT_EQ( mass->getTotalMass(), 2.0 ) ;
+            EXPECT_EQ( mass->getMass(), 0.5 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 1.0 ) ;
         }
     }
 
