@@ -117,9 +117,8 @@ struct UniformMassTest :  public ::testing::Test
     }
 
     /// totalMass, mass and localRange..
-    /// totalMass & mass are exclusive.
-    /// si mass and total mass set c'est total mass le plus fort.
-    void checkDefaultValuesForAttributes(){
+    /// case where NO mass info give, default totalMass = 1.0
+    void checkNoAttributes(){
         string scene =
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
@@ -137,13 +136,39 @@ struct UniformMassTest :  public ::testing::Test
         EXPECT_TRUE( mass != nullptr ) ;
 
         if(mass!=nullptr){
-            EXPECT_EQ( mass->getMass(), 0.5 ) ;
             EXPECT_EQ( mass->getTotalMass(), 1.0 ) ;
+            EXPECT_EQ( mass->getMass(), 0.5 ) ;
         }
     }
 
-    /// totalMass, mass and localRange..
-    void checkMassTotalFromMass(){
+    /// totalMass is well defined
+    /// vertexMass will be computed from it using the formulat :  vertexMass = totalMass / number of particules
+    void checkVertexMassFromTotalMass(){
+        string scene =
+                "<?xml version='1.0'?>"
+                "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
+                "   <MechanicalObject position='0 0 0 4 5 6'/>               "
+                "   <UniformMass name='m_mass' totalMass='8.0'/>                             "
+                "</Node>                                                     " ;
+
+        Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
+                                                          scene.c_str(),
+                                                          scene.size()) ;
+
+        root->init(ExecParams::defaultInstance()) ;
+
+        TheUniformMass* mass = root->getTreeObject<TheUniformMass>() ;
+        EXPECT_TRUE( mass != nullptr ) ;
+
+        if(mass!=nullptr){
+            EXPECT_EQ( mass->getMass(), 4.0 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 8.0 ) ;
+        }
+    }
+
+    /// vertexMass is well defined
+    /// totalMass will be computed from it using the formulat : totalMass = vertexMass * number of particules
+    void checkTotalMassFromVertexMass(){
         string scene =
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
@@ -166,13 +191,14 @@ struct UniformMassTest :  public ::testing::Test
         }
     }
 
-    /// totalMass, mass and localRange..
-    void checkMassFromMassTotal(){
+    /// totalMass is defined but negative
+    /// Ignore value and use default value of totalMass = 1.0
+    void checkNegativeTotalMass(){
         string scene =
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' totalMass='4.0' />            "
+                "   <UniformMass name='m_mass' totalMass='-8.0' />                 "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -185,18 +211,19 @@ struct UniformMassTest :  public ::testing::Test
         EXPECT_TRUE( mass != nullptr ) ;
 
         if(mass!=nullptr){
-            EXPECT_EQ( mass->getMass(), 2.0 ) ;
-            EXPECT_EQ( mass->getTotalMass(), 4.0 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 1.0 ) ;
+            EXPECT_EQ( mass->getMass(), 0.5 ) ;
         }
     }
 
-    /// totalMass, mass and localRange..
-    void checkMassAndMassTotal(){
+    /// vertexMass is defined but negative
+    /// Ignore value and use default value of totalMass = 1.0
+    void checkNegativeVertexMass(){
         string scene =
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' totalMass='91.0' vertexMass=2.0/>   "
+                "   <UniformMass name='m_mass' vertexMass='-4.0' />                 "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -209,18 +236,96 @@ struct UniformMassTest :  public ::testing::Test
         EXPECT_TRUE( mass != nullptr ) ;
 
         if(mass!=nullptr){
-            EXPECT_EQ( mass->getMass(), 45.5 ) ;
-            EXPECT_EQ( mass->getTotalMass(), 91.0 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 1.0 ) ;
+            EXPECT_EQ( mass->getMass(), 0.5 ) ;
         }
     }
 
-    /// if masses are negative we refuse them and use the default values.
-    void checkNegativeMassNotAllowed(){
+    /// totalMass & mass are exclusive.
+    /// if both totalMass and vertexMass are user-defined, by default use the totalMass
+    void checkDoubleDeclarationVertexAndTotalMass(){
         string scene =
                 "<?xml version='1.0'?>"
                 "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
                 "   <MechanicalObject position='0 0 0 4 5 6'/>               "
-                "   <UniformMass name='m_mass' totalMass='-1.0' vertexMass=-3.0/>   "
+                "   <UniformMass name='m_mass' vertexMass='10.0' totalMass='8.0'/>                 "
+                "</Node>                                                     " ;
+
+        Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
+                                                          scene.c_str(),
+                                                          (int)scene.size()) ;
+
+        root->init(ExecParams::defaultInstance()) ;
+
+        TheUniformMass* mass = root->getTreeObject<TheUniformMass>() ;
+        EXPECT_TRUE( mass != nullptr ) ;
+
+        if(mass!=nullptr){
+            EXPECT_EQ( mass->getMass(), 4.0 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 8.0 ) ;
+        }
+    }
+
+
+    /// Both vertexMass and totalMass information are defined but totalMass is negative
+    /// Due to double declaration, by default the totalMass is used
+    /// Due to negative value, the default value of totalMass overwrites totalMass = 1.0
+    void checkDoubleDeclarationNegativeTotalMass(){
+        string scene =
+                "<?xml version='1.0'?>"
+                "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
+                "   <MechanicalObject position='0 0 0 4 5 6'/>               "
+                "   <UniformMass name='m_mass' vertexMass='4.0' totalMass='-8.0'/>                 "
+                "</Node>                                                     " ;
+
+        Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
+                                                          scene.c_str(),
+                                                          (int)scene.size()) ;
+
+        root->init(ExecParams::defaultInstance()) ;
+
+        TheUniformMass* mass = root->getTreeObject<TheUniformMass>() ;
+        EXPECT_TRUE( mass != nullptr ) ;
+
+        if(mass!=nullptr){
+            EXPECT_EQ( mass->getTotalMass(), 1.0 ) ;
+            EXPECT_EQ( mass->getMass(), 0.5 ) ;
+        }
+    }
+
+    /// Both vertexMass and totalMass information are defined but vertexMass is negative
+    /// By default use the totalMass
+    void checkDoubleDeclarationNegativeVertexMass(){
+        string scene =
+                "<?xml version='1.0'?>"
+                "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
+                "   <MechanicalObject position='0 0 0 4 5 6'/>               "
+                "   <UniformMass name='m_mass' vertexMass='-4.0' totalMass='8.0'/>                 "
+                "</Node>                                                     " ;
+
+        Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
+                                                          scene.c_str(),
+                                                          (int)scene.size()) ;
+
+        root->init(ExecParams::defaultInstance()) ;
+
+        TheUniformMass* mass = root->getTreeObject<TheUniformMass>() ;
+        EXPECT_TRUE( mass != nullptr ) ;
+
+        if(mass!=nullptr){
+            EXPECT_EQ( mass->getMass(), 4.0 ) ;
+            EXPECT_EQ( mass->getTotalMass(), 8.0 ) ;
+        }
+    }
+
+    /// Both vertexMass and totalMass information are negative
+    /// Ignore them and use default value of totalMass = 1.0
+    void checkDoubleDeclarationBothNegative(){
+        string scene =
+                "<?xml version='1.0'?>"
+                "<Node 	name='Root' gravity='0 0 0' time='0' animate='0'   > "
+                "   <MechanicalObject position='0 0 0 4 5 6'/>               "
+                "   <UniformMass name='m_mass' totalMass='-8.0' vertexMass=-4.0/>   "
                 "</Node>                                                     " ;
 
         Node::SPtr root = SceneLoaderXML::loadFromMemory ("loadWithNoParam",
@@ -238,6 +343,7 @@ struct UniformMassTest :  public ::testing::Test
         }
     }
 
+    /// check mass initialization for rigids
     void loadFromAFileForRigid(){
         string scene =
                 "<?xml version='1.0'?>"
@@ -329,28 +435,49 @@ TYPED_TEST(UniformMassTest, attributesTests) {
     ASSERT_NO_THROW(this->attributesTests()) ;
 }
 
-TYPED_TEST(UniformMassTest, checkMassTotalFromMass)
+TYPED_TEST(UniformMassTest, checkNoAttributes)
 {
-    ASSERT_NO_THROW(this->checkMassTotalFromMass()) ;
+    ASSERT_NO_THROW(this->checkNoAttributes()) ;
 }
 
-TYPED_TEST(UniformMassTest, checkMassFromMassTotal)
+TYPED_TEST(UniformMassTest, checkVertexMassFromTotalMass)
 {
-    ASSERT_NO_THROW(this->checkMassFromMassTotal()) ;
+    ASSERT_NO_THROW(this->checkVertexMassFromTotalMass()) ;
 }
 
-TYPED_TEST(UniformMassTest, checkMassAndMassTotal)
+TYPED_TEST(UniformMassTest, checkTotalMassFromVertexMass)
 {
-    ASSERT_NO_THROW(this->checkMassAndMassTotal()) ;
+    ASSERT_NO_THROW(this->checkTotalMassFromVertexMass()) ;
 }
 
-TYPED_TEST(UniformMassTest, checkNegativeMassNotAllowed)
+TYPED_TEST(UniformMassTest, checkNegativeVertexMass)
 {
-    ASSERT_NO_THROW(this->checkNegativeMassNotAllowed()) ;
+    ASSERT_NO_THROW(this->checkNegativeVertexMass()) ;
 }
 
-TYPED_TEST(UniformMassTest, checkDefaultValuesForAttributes) {
-    ASSERT_NO_THROW(this->checkDefaultValuesForAttributes()) ;
+TYPED_TEST(UniformMassTest, checkNegativeTotalMass)
+{
+    ASSERT_NO_THROW(this->checkNegativeTotalMass()) ;
+}
+
+TYPED_TEST(UniformMassTest, checkDoubleDeclarationVertexAndTotalMass)
+{
+    ASSERT_NO_THROW(this->checkDoubleDeclarationVertexAndTotalMass()) ;
+}
+
+TYPED_TEST(UniformMassTest, checkDoubleDeclarationNegativeTotalMass)
+{
+    ASSERT_NO_THROW(this->checkDoubleDeclarationNegativeTotalMass()) ;
+}
+
+TYPED_TEST(UniformMassTest, checkDoubleDeclarationNegativeVertexMass)
+{
+    ASSERT_NO_THROW(this->checkDoubleDeclarationNegativeVertexMass()) ;
+}
+
+TYPED_TEST(UniformMassTest, checkDoubleDeclarationBothNegative)
+{
+    ASSERT_NO_THROW(this->checkDoubleDeclarationBothNegative()) ;
 }
 
 TYPED_TEST(UniformMassTest, loadFromAFileForNonRigid) {

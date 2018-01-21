@@ -75,16 +75,11 @@ using defaulttype::BaseMatrix;
 template <class DataTypes, class MassType>
 UniformMass<DataTypes, MassType>::UniformMass()
     : d_mass ( initData ( &d_mass, MassType ( 0.0f ), "vertexMass",
-                          "Specify a unique mass (one single real value) for all the particles.      "
-                          "If the mass attribute is set then totalMass is deduced from it            "
-                          "using the following formula: totalMass = vertexMass * number of particules"
-                          "If not set, the totalMass information is used." ) )
+                          "Specify one single, positive, real value for the mass of each particle. \n"
+                          "If unspecified or wrongly set, the totalMass information is used." ) )
     , d_totalMass ( initData ( &d_totalMass, (SReal)1.0, "totalMass",
-                               "Specify the total mass resulting from all particles.                       "
-                               "If the totalMass attribute is set then the vertexMass is deduced from it   "
-                               "using the following formula: vertexMass = totalMass / number of particules "
-                               "If unspecified the default value is totalMass = 1.0"
-                                ) )
+                               "Specify the total mass resulting from all particles. \n"
+                               "If unspecified or wrongly set, the default value is used: totalMass = 1.0") )
     , d_filenameMass ( initData ( &d_filenameMass, "filename",
                                   "rigid file to load the mass parameters" ) )
     , d_showCenterOfGravity ( initData ( &d_showCenterOfGravity, false, "showGravityCenter",
@@ -183,28 +178,35 @@ void UniformMass<DataTypes, MassType>::reinit()
         //Check double definition : both totalMass and vertexMass are user-defined
         if (d_totalMass.isSet())
         {
-            msg_warning(this) << "totalMass value overriding the value of the attribute vertexMass.\n" << msgendl
-                              << "vertexMass = totalMass / nb_dofs. \n" << msgendl
-                              << "To remove this warning you need to set either totalMass or vertexMass data field, but not both.";
+            msg_warning(this) << "totalMass value overriding the value of the attribute vertexMass. \n"
+                                 "vertexMass = totalMass / nb_dofs. \n"
+                                 "To remove this warning you need to set either totalMass or vertexMass data field, but not both.";
             if(d_totalMass.getValue() <= 0.0)
             {
-                msg_warning(this) << "totalMass data can not have a negative value." << msgendl
-                                  << "Switching back to default values: totalMass = 1.0" << msgendl
-                                  << "To remove this warning, you need to set a positive values to the totalMass data";
+                msg_warning(this) << "totalMass data can not have a negative value. \n"
+                                     "Switching back to default value: totalMass = 1.0 \n"
+                                     "To remove this warning, you need to set a positive value to the totalMass data";
                 d_totalMass.setValue(1.0) ;
             }
+            if(d_mass.getValue() <= 0.0 )
+            {
+                msg_warning(this) << "vertexMass data can not have a negative value. \n"
+                                     "To remove this warning, you need to set one single and positive value to the vertexMass data";
+            }
+            //By default use the totalMass
             useDefault = true;
         }
-        //Check that value is positive
+        //Check for negative or null value, by default use the totalMass
         else if(d_mass.getValue() <= 0.0 )
         {
-            msg_warning(this) << "vertexMass data can not have a negative value." << msgendl
-                              << "Switching back to default values: totalMass = 1.0" << msgendl
-                              << "To remove this warning, you need to set a positive values to the vertexMass data";
+            msg_warning(this) << "vertexMass data can not have a negative value. \n"
+                                 "Switching back to default value: totalMass = 1.0 \n"
+                                 "To remove this warning, you need to set one single and positive value to the vertexMass data";
             d_totalMass.setValue(1.0) ;
             useDefault = true;
         }
-        //If no problem detected, then use the vertexMass
+        //If no problem detected, then use the vertexMass information
+        //totalMass will be computed from it using the formulat : totalMass = vertexMass * number of particules
         else
         {
             SReal totalMass = d_mass.getValue() * indices.size();
@@ -218,17 +220,19 @@ void UniformMass<DataTypes, MassType>::reinit()
     {
         if(!d_totalMass.isSet())
         {
-            msg_info() << "No information about the mass is given." << msgendl
-                          "Default : totalMass = 1.0";
+            msg_info() << "No information about the mass is given. Default totatMass is used as reference.";
         }
-        //Check that value is positive
+        //Check for negative or null value, by default use totalMass = 1.0
         if(d_totalMass.getValue() <= 0.0)
         {
-            msg_warning(this) << "totalMass data can not have a negative value." << msgendl
-                              << "Switching back to default values: totalMass = 1.0" << msgendl
-                              << "To remove this warning, you need to set a positive values to the totalMass data";
+            msg_warning(this) << "totalMass data can not have a negative value. \n"
+                                 "Switching back to default value: totalMass = 1.0 \n"
+                                 "To remove this warning, you need to set a positive value to the totalMass data";
             d_totalMass.setValue(1.0) ;
         }
+
+        //If the totalMass attribute is set then the vertexMass is computed from it
+        //using the following formula: vertexMass = totalMass / number of particules
         useDefault = true;
     }
 
@@ -238,12 +242,11 @@ void UniformMass<DataTypes, MassType>::reinit()
         MassType *m = d_mass.beginEdit();
         *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / indices.size() );
         d_mass.endEdit();
-        msg_info() << "totalMass information is used";
     }
 
     //Info post-reinit
-    msg_info() << "totalMass  = " << d_totalMass.getValue() << msgendl
-               << "vertexMass = " << d_mass.getValue();
+    msg_info() << "totalMass  = " << d_totalMass.getValue() << " \n"
+                  "vertexMass = " << d_mass.getValue();
 }
 
 

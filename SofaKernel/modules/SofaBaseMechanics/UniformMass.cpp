@@ -63,60 +63,6 @@ Mat3x3d MatrixFromEulerXYZ(double thetaX, double thetaY, double thetaZ)
     return m;
 }
 
-template <class DataTypes, class MassType>
-template<class T>
-void UniformMass<DataTypes, MassType>::reinitDefaultImpl()
-{
-    WriteAccessor<Data<vector<int> > > indices = d_indices;
-    m_doesTopoChangeAffect = false;
-
-    if(mstate==NULL){
-        msg_warning(this) << "Missing mechanical state. \n"
-                             "UniformMass need to be used with an object also having a MechanicalState. \n"
-                             "To remove this warning: add a <MechanicalObject/> to the parent node of the one \n"
-                             " containing this <UniformMass/>";
-        return;
-    }
-
-    //If localRange is set, update indices
-    if (d_localRange.getValue()[0] >= 0
-        && d_localRange.getValue()[1] > 0
-        && d_localRange.getValue()[1] + 1 < (int)mstate->getSize())
-    {
-        indices.clear();
-        for(int i=d_localRange.getValue()[0]; i<=d_localRange.getValue()[1]; i++)
-            indices.push_back(i);
-    }
-
-    //If no given indices
-    if(indices.size()==0)
-    {
-        indices.clear();
-        for(int i=0; i<(int)mstate->getSize(); i++)
-            indices.push_back(i);
-        m_doesTopoChangeAffect = true;
-    }
-
-    if(d_totalMass.getValue() < 0.0 || d_mass.getValue() < 0.0){
-        msg_warning(this) << "The vertexMass or totalMass data field cannot have negative values.\n"
-                             "Thus we will use the default value  that are mass = 1.0 and totalMass = mass * num_position. \n"
-                             "To remove this warning you need to use positive values in 'totalMass' and 'vertexMass' data field";
-
-        d_totalMass.setValue(0.0) ;
-        d_mass.setValue(1.0) ;
-    }
-
-    //Update mass and totalMass
-    if (d_totalMass.getValue() > 0)
-    {
-        MassType *m = d_mass.beginEdit();
-        *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / indices.size() );
-        d_mass.endEdit();
-    }
-    else
-        d_totalMass.setValue ( indices.size() * (Real)d_mass.getValue() );
-
-}
 
 template <class RigidTypes, class MassType>
 template <class T>
@@ -126,12 +72,13 @@ void UniformMass<RigidTypes, MassType>::reinitRigidImpl()
         loadRigidMass(d_filenameMass.getFullPath()) ;
     }
 
-    reinitDefaultImpl<RigidTypes>() ;
+    this->reinit();
+
+    /*reinitDefaultImpl<RigidTypes>() ;
 
     d_mass.beginEdit()->recalc();
-    d_mass.endEdit();
+    d_mass.endEdit();*/
 }
-
 
 
 template <class RigidTypes, class MassType>
@@ -184,7 +131,7 @@ void UniformMass<RigidTypes, MassType>::loadFromFileRigidImpl(const string& file
                                 }
                             }
                         }
-                        else if (!strcmp(cmd,"mass"))
+                        else if (!strcmp(cmd,"vertexMass"))
                         {
                             double mass;
                             if( fscanf(file, "%lf", &mass) > 0 )
@@ -504,7 +451,7 @@ void UniformMass<Rigid3dTypes, Rigid3dMass>::constructor_message()
 template<> SOFA_BASE_MECHANICS_API
 void UniformMass<Rigid3dTypes, Rigid3dMass>::reinit()
 {
-    reinitRigidImpl<Rigid3dTypes>() ;
+    this->reinit();
 }
 
 
@@ -586,7 +533,7 @@ void UniformMass<Rigid3fTypes, Rigid3fMass>::constructor_message()
 template<> SOFA_BASE_MECHANICS_API
 void UniformMass<Rigid3fTypes, Rigid3fMass>::reinit()
 {
-    reinitRigidImpl<Rigid3fTypes>();
+    this->reinit();
 }
 
 template<> SOFA_BASE_MECHANICS_API
