@@ -456,9 +456,12 @@ Node* GNode::findCommonParent( simulation::Node* node2 )
     gnodeGroup2=static_cast<GNode*>(gnodeGroup2->parent());
     while (gnodeGroup2)
     {
+        std::cout << "--- " << gnodeGroup2->getName() << std::endl;
         helper::vector<GNode*>::iterator it=std::find(hierarchyParent.begin(), hierarchyParent.end(), gnodeGroup2);
         if (it != hierarchyParent.end())
         {
+            std::cout << "--->>>> " << gnodeGroup2->getName() << std::endl;
+
             return gnodeGroup2;
         }
         gnodeGroup2=static_cast<GNode*>(gnodeGroup2->parent());

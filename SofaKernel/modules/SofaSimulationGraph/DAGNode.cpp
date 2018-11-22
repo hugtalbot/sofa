@@ -777,9 +777,11 @@ Node* DAGNode::findCommonParent( simulation::Node* node2 )
 DAGNode* DAGNode::findCommonParent( DAGNode* node1, DAGNode* node2 )
 {
     updateDescendancy();
+    std::cout <<"++++++ "<<std::endl;
 
     for(unsigned int i = 0; i<child.size(); ++i)
     {
+        std::cout <<"child = "<<child[i]->getName()<<std::endl;
         DAGNode* childcommon = static_cast<DAGNode*>(child[i].get())->findCommonParent( node1, node2 );
 
         if( childcommon ) return childcommon;

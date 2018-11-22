@@ -26,7 +26,7 @@
 #include <sofa/simulation/Node.h>
 #include <sofa/simulation/Simulation.h>
 #include <sofa/core/ObjectFactory.h>
-
+#include <SofaSimulationTree/GNode.h>
 namespace sofa
 {
 
@@ -45,7 +45,6 @@ int DefaultCollisionGroupManagerClass = core::RegisterObject("Responsible for ga
         .add< DefaultCollisionGroupManager >()
         .addAlias( "CollisionGroupManager" )
         .addAlias( "CollisionGroup" )
-        .addAlias( "TreeCollisionGroupManager" ) // for backward compatibility with old scene files but could be removed
         ;
 
 
@@ -64,16 +63,20 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
     int groupIndex = 1;
 
     // Map storing group merging history
-    std::map<simulation::Node*, simulation::Node::SPtr > mergedGroups;
-    sofa::helper::vector< simulation::Node::SPtr > contactGroup;
-    sofa::helper::vector< simulation::Node::SPtr > removedGroup;
+    std::map<simulation::Node*, simulation::Node* > mergedGroups;
+    sofa::helper::vector< simulation::Node* > contactGroup;
+    sofa::helper::vector< simulation::Node* > removedGroup;
     contactGroup.reserve(contacts.size());
     for(sofa::helper::vector<Contact::SPtr>::const_iterator cit = contacts.begin(); cit != contacts.end(); ++cit)
     {
         Contact* contact = cit->get();
         simulation::Node* group1 = getIntegrationNode(contact->getCollisionModels().first);
         simulation::Node* group2 = getIntegrationNode(contact->getCollisionModels().second);
-        simulation::Node::SPtr group = NULL;
+        simulation::Node* group = NULL;
+
+        std::cout << "Node 1 =" << group1->getName()<< std::endl;
+        std::cout << "Node 2 =" << group2->getName()<< std::endl;
+
         if (group1==NULL || group2==NULL)
         {
         }
@@ -84,6 +87,8 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
         }
         else if (simulation::Node* parent=group1->findCommonParent(group2))
         {
+            std::cout << "parent =" << parent->getName()<< std::endl;
+
             // we can merge the groups
             // if solvers are compatible...
             bool mergeSolvers = (!group1->solver.empty() || !group2->solver.empty());
@@ -96,16 +101,28 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
             {
                 bool group1IsColl = groupSet.find(group1)!=groupSet.end();
                 bool group2IsColl = groupSet.find(group2)!=groupSet.end();
+
+                std::cout << "group1IsColl (" << group1->getName() <<") = " << group1IsColl << std::endl;
+                std::cout << "group2IsColl (" << group2->getName() <<") = " << group2IsColl << std::endl;
+
+                for (std::set<simulation::Node*>::iterator it = groupSet.begin(); it!=groupSet.end(); ++it)
+                    std::cout << "groupSet = " << *it << " " << (*it)->getName() << std::endl;
+
                 if (!group1IsColl && !group2IsColl)
                 {
+                    std::cout << "**CASE** No group"<< std::endl;
+
                     char groupName[32];
                     snprintf(groupName,sizeof(groupName),"collision%d",groupIndex++);
                     // create a new group
-                    group = parent->createChild(groupName);
+                    group = parent->createChild(groupName).get();
 
                     group->moveChild((simulation::Node*)group1);
                     group->moveChild((simulation::Node*)group2);
-                    groupSet.insert(group.get());
+
+
+
+                    groupSet.insert(group);
                 }
                 else if (group1IsColl)
                 {
@@ -113,10 +130,13 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
                     // merge group2 in group1
                     if (!group2IsColl)
                     {
+                        std::cout << "**CASE** group1 = 1     group2 = 0"<< std::endl;
                         group->moveChild(group2);
                     }
                     else
                     {
+                        std::cout << "**CASE** group1 = 1     group2 = 1"<< std::endl;
+
                         // merge groups and remove group2
                         SolverSet solver2;
                         if (mergeSolvers)
@@ -151,6 +171,8 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
                 }
                 else
                 {
+                    std::cout << "**CASE** group1 = 0     group2 = 1"<< std::endl;
+
                     // group1 is not a collision group while group2 is
                     group = group2;
                     group->moveChild(group1);
@@ -196,6 +218,8 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
                     solver.constraintSolver->init();
                 }
             }
+           for (std::set<simulation::Node*>::iterator it = groupSet.begin(); it!=groupSet.end(); ++it)
+                std::cout << "groupSet Prout = " << *it << " " << (*it)->getName() << std::endl;
         }
         contactGroup.push_back(group);
     }
@@ -204,35 +228,34 @@ void DefaultCollisionGroupManager::createGroups(core::objectmodel::BaseContext* 
     for(unsigned int i=0; i<contacts.size(); i++)
     {
         Contact* contact = contacts[i].get();
-        simulation::Node::SPtr group = contactGroup[i];
-        while (group!=NULL && mergedGroups.find(group.get())!=mergedGroups.end())
-            group = mergedGroups[group.get()];
+        simulation::Node* group = contactGroup[i];
+        while (group!=NULL && mergedGroups.find(group)!=mergedGroups.end())
+            group = mergedGroups[group];
         if (group!=NULL)
-            contact->createResponse(group.get());
+            contact->createResponse(group);
         else
             contact->createResponse(scene);
     }
 
     // delete removed groups
-    for (sofa::helper::vector<simulation::Node::SPtr>::iterator it = removedGroup.begin(); it!=removedGroup.end(); ++it)
+    for (sofa::helper::vector<simulation::Node*>::iterator it = removedGroup.begin(); it!=removedGroup.end(); ++it)
     {
-        simulation::Node::SPtr node = *it;
+        simulation::Node* node = *it;
         node->detachFromGraph();
         node->execute<simulation::DeleteVisitor>(sofa::core::ExecParams::defaultInstance());
-        it->reset();
     }
     removedGroup.clear();
 
     // finally recreate group vector
     groups.clear();
-    for (std::set<simulation::Node::SPtr>::iterator it = groupSet.begin(); it!=groupSet.end(); ++it)
+    for (std::set<simulation::Node*>::iterator it = groupSet.begin(); it!=groupSet.end(); ++it)
         groups.push_back(*it);
 }
 
 
 void DefaultCollisionGroupManager::clearGroups(core::objectmodel::BaseContext* /*scene*/)
 {
-    for (std::set<simulation::Node::SPtr>::iterator it = groupSet.begin(); it!=groupSet.end(); ++it)
+    for (std::set<simulation::Node*>::iterator it = groupSet.begin(); it!=groupSet.end(); ++it)
     {
         if (*it) clearGroup( (*it)->getParents(), *it );
     }
@@ -246,8 +269,25 @@ void DefaultCollisionGroupManager::clearGroups(core::objectmodel::BaseContext* /
 simulation::Node* DefaultCollisionGroupManager::getIntegrationNode(core::CollisionModel* model)
 {
     simulation::Node* node = static_cast<simulation::Node*>(model->getContext());
+
     helper::vector< core::behavior::OdeSolver *> listSolver;
-    node->get< core::behavior::OdeSolver >(&listSolver);
+    helper::vector< sofa::core::objectmodel::BaseObject *> listObject;
+
+    node->get< core::behavior::OdeSolver >(&listSolver, sofa::core::objectmodel::BaseContext::SearchUp);
+    node->get< sofa::core::objectmodel::BaseObject >(&listObject, sofa::core::objectmodel::BaseContext::SearchUp);
+
+    std::cout<<"listSolver----"<<std::endl;
+    for (auto l:listSolver)
+        std::cout<<"listSolver = "<<l->getName()<<std::endl;
+
+    std::cout<<"listObject----"<<std::endl;
+    for (auto l:listObject)
+        std::cout<<"listObject = "<<l->getName()<<std::endl;
+
+    std::cout<<"listNodes----"<<std::endl;
+    for (auto ll:node->getParents())
+        for (auto l:ll->getParents())
+            std::cout<<"listNodes = "<<l->getName()<<std::endl;
 
     if (listSolver.empty())
         return NULL;
