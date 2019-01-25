@@ -24,13 +24,13 @@
 
 #include <SofaBaseMechanics/UniformMass.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/core/topology/Topology.h>
 #include <sofa/core/objectmodel/Context.h>
 #include <sofa/helper/accessor.h>
 #include <sofa/defaulttype/RigidTypes.h>
 #include <sofa/defaulttype/DataTypeInfo.h>
 #include <SofaBaseMechanics/AddMToMatrixFunctor.h>
 #include <sofa/simulation/Simulation.h>
+#include <SofaBaseTopology/TopologyData.inl>
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <iostream>
 #include <string.h>
@@ -100,13 +100,18 @@ UniformMass<DataTypes, MassType>::UniformMass()
                                       "The mass and totalMass are recomputed on particles add/remove." ) )
     , d_preserveTotalMass( initData ( &d_preserveTotalMass, false, "preserveTotalMass",
                                       "Prevent totalMass from decreasing when removing particles."))
+    , m_pointHandler(NULL)
+    , m_meshTopology(NULL)
 {
     constructor_message();
 }
 
 template <class DataTypes, class MassType>
 UniformMass<DataTypes, MassType>::~UniformMass()
-{}
+{
+    if (m_pointHandler)
+        delete m_pointHandler;
+}
 
 template <class DataTypes, class MassType>
 void UniformMass<DataTypes, MassType>::constructor_message()
@@ -160,7 +165,6 @@ void UniformMass<DataTypes, MassType>::initDefaultImpl()
     m_dataTrackerTotal.trackData(d_totalMass);
 
     WriteAccessor<Data<vector<int> > > indices = d_indices;
-    m_doesTopoChangeAffect = false;
 
     if(mstate==NULL)
     {
@@ -192,7 +196,22 @@ void UniformMass<DataTypes, MassType>::initDefaultImpl()
         indices.clear();
         for(int i=0; i<(int)mstate->getSize(); i++)
             indices.push_back(i);
-        m_doesTopoChangeAffect = true;
+
+        initTopologyHandlers();
+    }
+    else
+    {
+        // no support for topology change, if local indices active
+        d_handleTopoChange.setValue(false);
+    }
+
+    m_meshTopology = getContext()->getMeshTopology();
+    if( m_meshTopology==nullptr )
+    {
+        // no support for topology change, without topology
+        d_handleTopoChange.setValue(false);
+
+        std::cout<<"NO topoloy found, therefore no topological change possible"<<std::endl;
     }
 
 
@@ -279,6 +298,16 @@ bool UniformMass<DataTypes, MassType>::update()
 
 
 template <class DataTypes, class MassType>
+void UniformMass<DataTypes, MassType>::initTopologyHandlers()
+{
+    // add the functions to handle topology changes.
+    m_pointHandler = new DMassPointHandler(this, &d_indices);
+    d_indices.createTopologicalEngine(m_meshTopology, m_pointHandler);
+    d_indices.registerTopologicalData();
+}
+
+
+template <class DataTypes, class MassType>
 bool UniformMass<DataTypes, MassType>::checkVertexMass()
 {
     if(d_vertexMass.getValue() <= 0.0 )
@@ -299,7 +328,7 @@ void UniformMass<DataTypes, MassType>::initFromVertexMass()
 {
     //If the vertexMass attribute is set then the totalMass is computed from it
     //using the following formula: totalMass = vertexMass * number of particules
-    int size = d_indices.getValue().size();
+    size_t size = d_indices.getValue().size();
     SReal vertexMass = (SReal) d_vertexMass.getValue();
     SReal totalMass = vertexMass * (SReal)size;
     d_totalMass.setValue(totalMass);
@@ -342,10 +371,11 @@ void UniformMass<DataTypes, MassType>::initFromTotalMass()
     //If the totalMass attribute is set then the vertexMass is computed from it
     //using the following formula: vertexMass = totalMass / number of particules
 
-    if(d_indices.getValue().size() > 0)
+    size_t sizeIndices = d_indices.getValue().size();
+    if( sizeIndices>0 )
     {
         MassType *m = d_vertexMass.beginEdit();
-        *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / d_indices.getValue().size() );
+        *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / (( typename DataTypes::Real )sizeIndices) );
         d_vertexMass.endEdit();
         msg_info() << "totalMass information is used";
     }
@@ -357,55 +387,157 @@ void UniformMass<DataTypes, MassType>::initFromTotalMass()
 
 
 template <class DataTypes, class MassType>
-void UniformMass<DataTypes, MassType>::handleTopologyChange()
+void UniformMass<DataTypes,MassType>::DMassPointHandler::ApplyTopologyChange(const core::topology::PointsAdded* e)
 {
-    BaseMeshTopology *meshTopology = getContext()->getMeshTopology();
-    WriteAccessor<Data<vector<int> > > indices = d_indices;
+    std::cout<<"ApplyTopologyChange - PointsAdded !"<<std::endl;
 
-    if(m_doesTopoChangeAffect)
+    const sofa::helper::vector< unsigned int >& pointsAdded = e->getIndexArray();
+    this->applyPointCreation(pointsAdded);
+}
+
+
+template <class DataTypes, class MassType>
+void UniformMass<DataTypes,MassType>::DMassPointHandler::ApplyTopologyChange(const core::topology::PointsRemoved* e)
+{
+    std::cout<<"ApplyTopologyChange - PointsRemoved !"<<std::endl;
+
+    const sofa::helper::vector<unsigned int> & pointsRemoved = e->getArray();
+    this->applyPointDestruction(pointsRemoved);
+}
+
+
+template <class DataTypes, class MassType>
+void UniformMass<DataTypes,MassType>::DMassPointHandler::applyPointCreation(const sofa::helper::vector<unsigned int> pointsAdded)
+{
+    std::cout<<"applyCreateFunction !"<<std::endl;
+
+    if ( dm->d_handleTopoChange.getValue() )
     {
-        indices.clear();
-        for(size_t i=0; i<mstate->getSize(); i++)
-            indices.push_back((int)i);
-    }
-
-    if ( meshTopology != 0 && mstate->getSize()>0 )
-    {
-        list< const TopologyChange * >::const_iterator it = meshTopology->beginChange();
-        list< const TopologyChange * >::const_iterator itEnd = meshTopology->endChange();
-
-        while ( it != itEnd )
-        {
-            switch ( ( *it )->getChangeType() )
-            {
-            case core::topology::POINTSADDED:
-                if ( d_handleTopoChange.getValue() && m_doesTopoChangeAffect)
-                {
-                    MassType* m = d_vertexMass.beginEdit();
-                    *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / mstate->getSize() );
-                    d_vertexMass.endEdit();
-                }
-                break;
-
-            case core::topology::POINTSREMOVED:
-                if ( d_handleTopoChange.getValue() && m_doesTopoChangeAffect)
-                {
-                    if (!d_preserveTotalMass.getValue())
-                        d_totalMass.setValue (mstate->getSize() * (Real)d_vertexMass.getValue() );
-                    else
-                        d_vertexMass.setValue( static_cast< MassType >( ( typename DataTypes::Real ) d_totalMass.getValue() / mstate->getSize()) );
-                }
-                break;
-
-            default:
-                break;
-            }
-
-            ++it;
-        }
+        std::cout<<"applyCreateFunction !"<<std::endl;
+        int nbPointsAdded = (int)pointsAdded.size();
+        dm->updateMassFromTopology(nbPointsAdded);
     }
 }
 
+/// Topology event: deletion elements (Point)
+template <class DataTypes, class MassType>
+void UniformMass<DataTypes,MassType>::DMassPointHandler::applyPointDestruction(const sofa::helper::vector<unsigned int> pointsRemoved)
+{
+    std::cout<<"applyDestroyFunction !"<<std::endl;
+
+    if ( dm->d_handleTopoChange.getValue() )
+    {
+        std::cout<<"applyDestroyFunction !"<<std::endl;
+        int nbPointsRemoved = (int)pointsRemoved.size();
+        dm->updateMassFromTopology(-1*nbPointsRemoved);
+    }
+}
+
+/// Update mass from topology change (points added or removed)
+template <class DataTypes, class MassType>
+void UniformMass<DataTypes, MassType>::updateMassFromTopology(int indiceChange)
+{
+    // indiceChange = nb of points added or removed
+    if (d_preserveTotalMass.getValue())
+    {
+        d_vertexMass.setValue( static_cast< MassType >( ( typename DataTypes::Real ) d_totalMass.getValue() / (mstate->getSize() + (Real)indiceChange)) );
+    }
+    else
+    {
+        SReal& totalMass = *d_totalMass.beginEdit();
+        SReal previousTotalMass = totalMass;
+        totalMass = previousTotalMass + (Real)indiceChange*(Real)d_vertexMass.getValue();
+        d_totalMass.endEdit();
+    }
+
+    std::cout<<"vertexMass = "<<d_vertexMass.getValue()<<std::endl;
+    std::cout<<"totalMass  = "<<d_totalMass.getValue()<<std::endl;
+}
+
+
+//template <class DataTypes, class MassType>
+//void UniformMass<DataTypes,MassType>::DMassPointHandler::applyCreateFunction(const sofa::helper::vector< unsigned int >& pointAdded,
+//        const sofa::helper::vector< sofa::helper::vector< unsigned int > >& /*ancestors*/,
+//        const sofa::helper::vector< sofa::helper::vector< double > >& /*coefs*/)
+//{
+
+//}
+
+//template <class DataTypes, class MassType>
+//void UniformMass<DataTypes,MassType>::DMassPointHandler::applyPointDestruction(const sofa::helper::vector<unsigned int> & pointRemoved)
+//{
+
+//}
+
+/*
+template <class DataTypes, class MassType>
+void UniformMass<DataTypes, MassType>::handleTopologyChange()
+{
+    if ( d_handleTopoChange.getValue() )
+    {
+
+//        WriteAccessor<Data<vector<int> > > indices = d_indices;
+
+        std::cout<< "indice size = "<<d_indices.getValue().size()<<std::endl;
+        std::cout<< "test - 1"<<std::endl;
+
+//        indices.clear();
+//        for(size_t i=0; i<mstate->getSize(); i++)
+//            indices.push_back((int)i);
+
+
+        std::cout<< "test - 3"<<std::endl;
+
+        if ( mstate->getSize()>0 )
+        {
+            std::cout<< "test - 5"<<std::endl;
+
+            list< const TopologyChange * >::const_iterator it = m_meshTopology->beginChange();
+            list< const TopologyChange * >::const_iterator itEnd = m_meshTopology->endChange();
+
+            std::cout<< "mstate size = "<<mstate->getSize()<<std::endl;
+
+            while ( it != itEnd )
+            {
+                switch ( ( *it )->getChangeType() )
+                {
+                case core::topology::POINTSADDED:
+                    {
+                        std::cout<< "test - POINTSADDED 1 ===="<<std::endl;
+                        std::cout<< "test - vertexMass (bef) = "<<d_vertexMass.getValue()<<std::endl;
+                        MassType* m = d_vertexMass.beginEdit();
+                        *m = ( ( typename DataTypes::Real ) d_totalMass.getValue() / mstate->getSize() );
+                        d_vertexMass.endEdit();
+                        std::cout<< "test - vertexMass (after)= "<<d_vertexMass.getValue()<<std::endl;
+                    }
+                    break;
+
+                case core::topology::POINTSREMOVED:
+                    {
+                        std::cout<< "test - POINTSREMOVED 1 ===="<<std::endl;
+                        std::cout<< "test - vertexMass (bef) = "<<d_vertexMass.getValue()<<std::endl;
+                        if (!d_preserveTotalMass.getValue())
+                            d_totalMass.setValue (mstate->getSize() * (Real)d_vertexMass.getValue() );
+                        else
+                            d_vertexMass.setValue( static_cast< MassType >( ( typename DataTypes::Real ) d_totalMass.getValue() / mstate->getSize()) );
+                        std::cout<< "test - vertexMass (after)= "<<d_vertexMass.getValue()<<std::endl;
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+
+                ++it;
+            }
+        }
+    }
+    std::cout<< "indice size (after) = "<<d_indices.getValue().size()<<std::endl;
+
+    std::cout<< "OUT UniformMass"<<std::endl;
+    std::cout<< "======================="<<std::endl;
+}
+*/
 
 // -- Mass interface
 template <class DataTypes, class MassType>
@@ -418,6 +550,8 @@ void UniformMass<DataTypes, MassType>::addMDx ( const core::MechanicalParams*,
     helper::ReadAccessor<DataVecDeriv> dx = vdx;
 
     WriteAccessor<Data<vector<int> > > indices = d_indices;
+
+    std::cout<<"indice size = "<<indices.size()<<std::endl;
 
     MassType m = d_vertexMass.getValue();
     if ( factor != 1.0 )

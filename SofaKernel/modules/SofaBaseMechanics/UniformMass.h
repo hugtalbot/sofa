@@ -29,6 +29,8 @@
 #include <sofa/defaulttype/BaseVector.h>
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <sofa/core/DataTracker.h>
+#include <sofa/core/topology/Topology.h>
+#include <SofaBaseTopology/TopologyData.h>
 
 namespace sofa
 {
@@ -56,6 +58,9 @@ public:
     typedef core::objectmodel::Data<VecDeriv> DataVecDeriv;
     typedef TMassType MassType;
 
+    typedef core::topology::BaseMeshTopology::Point Point;
+    typedef sofa::component::topology::PointData< helper::vector<int> > PointInt;
+
     Data<MassType>                        d_vertexMass;   ///< single value defining the mass of each particle
     Data<SReal>                           d_totalMass;    ///< if >0 : total mass of this body
     sofa::core::objectmodel::DataFileName d_filenameMass; ///< a .rigid file to automatically load the inertia matrix and other parameters
@@ -72,7 +77,7 @@ public:
     /// indices outside of this range are discarded (useful for parallelization
     /// using mesh partitionning)
     Data< defaulttype::Vec<2,int> > d_localRange;
-    Data< helper::vector<int> >     d_indices; ///< optional local DOF indices. Any computation involving only indices outside of this list are discarded
+    PointInt d_indices; ///< optional local DOF indices. Any computation involving only indices outside of this list are discarded
 
     Data<bool> d_handleTopoChange; ///< The mass and totalMass are recomputed on particles add/remove.
     Data<bool> d_preserveTotalMass; ///< Prevent totalMass from decreasing when removing particles.
@@ -86,8 +91,6 @@ public:
     using core::objectmodel::BaseObject::getContext;
     ////////////////////////////////////////////////////////////////////////////
 
-    bool m_doesTopoChangeAffect;
-
 
 protected:
     UniformMass();
@@ -97,7 +100,7 @@ protected:
     /// @internal fonction called in the constructor that can be specialized
     void constructor_message() ;
 
-    /// Data tracker
+    /// Data trackers
     sofa::core::DataTracker m_dataTrackerVertex;
     sofa::core::DataTracker m_dataTrackerTotal;
 
@@ -124,6 +127,7 @@ public:
     bool update();
     virtual void handleEvent(sofa::core::objectmodel::Event */*event*/) override;
 
+
     /// @name Check and standard initialization functions from mass information
     /// @{
     virtual bool checkVertexMass();
@@ -134,7 +138,44 @@ public:
     virtual void initFromTotalMass();
     /// @}
 
-    void handleTopologyChange() override;
+
+    /// @name Topology (topology change) related declaration
+    /// /// @{
+
+    class DMassPointHandler : public topology::TopologyDataHandler<Point, helper::vector<int> >
+    {
+    public:
+        DMassPointHandler(UniformMass<DataTypes,TMassType>* _dm, sofa::component::topology::PointData< helper::vector<int> >* _data)
+            : topology::TopologyDataHandler<Point, helper::vector<int> >(_data), dm(_dm)
+        {}
+        /// Topology management: create elements (Point)
+        void applyPointCreation(const sofa::helper::vector<unsigned int> pointsAdded);
+
+        /// Topology management: deletion elements (Point)
+        void applyPointDestruction(const sofa::helper::vector<unsigned int> pointsRemoved);
+
+        using topology::TopologyDataHandler<Point, helper::vector<int> >::ApplyTopologyChange;
+
+        /// Callback to add edges elements.
+        virtual void ApplyTopologyChange(const core::topology::PointsAdded* event);
+        /// Callback to remove edges elements.
+        virtual void ApplyTopologyChange(const core::topology::PointsRemoved* event);
+
+
+    protected:
+        UniformMass<DataTypes,TMassType>* dm;
+    };
+
+//    void handleTopologyChange() override;
+    void initTopologyHandlers();
+    void updateMassFromTopology(int indiceChange);
+
+
+    DMassPointHandler* m_pointHandler;
+    sofa::core::topology::BaseMeshTopology*  m_meshTopology;
+
+    /// @}
+
 
     void addMDx(const core::MechanicalParams* mparams, DataVecDeriv& f, const DataVecDeriv& dx, SReal factor) override;
     void accFromF(const core::MechanicalParams* mparams, DataVecDeriv& a, const DataVecDeriv& f) override;
