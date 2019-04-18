@@ -1,0 +1,54 @@
+<Node name="root" dt="0.001" gravity="0 0 0" >
+    <VisualStyle displayFlags="hideBehaviorModels"/>
+
+    <MeshGmshLoader name="meshLoader" filename="mesh/square3.msh" createSubelements="true" />
+    <MeshObjLoader name="potentialLoader" filename="mesh/square3Temperature.obj" />
+
+    <Node name="mechanics" >
+        <EulerImplicitSolver name="cg_odesolver" />
+        <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
+        <include href="Objects/TriangleSetTopology.xml" src="@../meshLoader" />
+        <MechanicalObject template="Vec3d" name="squareDOFs"/>
+        <DiagonalMass massDensity="1" />
+        <FixedConstraint indices="0 1" />
+        <TriangularFEMForceField name="FEM" youngModulus="60" poissonRatio="0.3" method="large" />
+        <TriangularBendingSprings name="FEM-Bend" stiffness="3000" damping="1.0" />
+        <TTriangleModel />
+        <Gravity gravity="0 -10 0" />
+
+        <BoxROI name="box-hot" box="-0.01 -0.1 -0.05 1.01 0.1 0.05" drawBoxes="1" drawPoints="1" doUpdate="0" position="@squareDOFs.position"/>
+    </Node>
+
+
+
+    <!-- <Node name="geometry" > -->
+<!--         <MechanicalObject name="DOFs" template="Vec3d" position="@../mechanics/squareDOFs.position" rest_position="@../mechanics/squareDOFs.rest_position" />
+        <TriangleSetTopologyContainer name="Container" src="@../meshLoader" />
+        <TriangleSetTopologyModifier name="Modifier" />
+        <TriangleSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+        <TriangleSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" recomputeTrianglesOrientation="1"  drawEdges="1" />
+        <IdentityMapping input="@../mechanics/squareDOFs" output="@DOFs" />
+ -->
+        <Node name="heat">
+            <EulerImplicitSolver name="Euler" firstOrder="1" />
+            <CGLinearSolver name="CG" iterations="1000" tolerance="1.0e-6" threshold="1.0e-9" />
+            <MechanicalObject template="Vec1d" position="@../potentialLoader.position"  name="gridTemperature" />
+
+            <TriangleDiffusionFEMForceField template="Vec1d" name="DiffusionForceField" scalarDiffusion="0" printLog="1" diffusivity="1"
+                mechanicalObject3d="@../mechanics/squareDOFs"
+                topology="@../mechanics/Container"/> 
+
+            <MeshMatrixMass template="Vec1d" name="Mass" lumping="1" massDensity="1"
+                topology="@../mechanics/Container"/>
+
+            <LinearMovementConstraint template="Vec1d" keyTimes="1 20 40 50 9999" movements="0 1 1 1 1" indices="@../mechanics/box-hot.indices" />
+
+            <Node name="Visu">
+                <TextureInterpolation template="Vec1d" name="EngineInterpolation"  input_states="@../gridTemperature.position"  input_coordinates="@../../mechanics/squareDOFs.position"  min_value="-2.0"  max_value="2.0"  manual_scale="1"  drawPotentiels="0"  showIndicesScale="5e-05" />
+                <OglModel template="ExtVec3d" name="oglPotentiel" edges="@../../meshLoader.edges" triangles="@../../meshLoader.triangles" texcoords="@EngineInterpolation.output_coordinates" texturename="textures/heatColor.bmp"  useVBO="0" scale3d="1000 1000 1000"  material="Default Diffuse 1 1 1 1 0.5 Ambient 1 1 1 1 0.3 Specular 0 0.5 0.5 0.5 1 Emissive 0 0.5 0.5 0.5 1 Shininess 0 45 No texture linked to the material No bump texture linked to the material "/>
+                <IdentityMapping input="@../../mechanics/squareDOFs" output="@oglPotentiel" />
+            </Node>
+        </Node>
+    <!-- </Node> -->
+
+</Node>
