@@ -8,6 +8,8 @@ set(HEADER_FILES
     TetrahedronFEMForceField.inl
     TetrahedronDiffusionFEMForceField.h
     TetrahedronDiffusionFEMForceField.inl
+    TriangleDiffusionFEMForceField.h
+    TriangleDiffusionFEMForceField.inl
     config.h
     initSimpleFEM.h
 )
@@ -16,6 +18,7 @@ set(SOURCE_FILES
     initSimpleFEM.cpp
     HexahedronFEMForceField.cpp
     TetrahedronFEMForceField.cpp
+    TriangleDiffusionFEMForceField.cpp
     TetrahedronDiffusionFEMForceField.cpp
 )
 
