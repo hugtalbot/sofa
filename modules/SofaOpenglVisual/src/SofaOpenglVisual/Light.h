@@ -23,11 +23,11 @@
 #define SOFA_COMPONENT_LIGHT
 #include "config.h"
 
+#include <SofaBaseVisual/BaseLight.h>
 #include <sofa/core/visual/VisualModel.h>
 #include <sofa/core/objectmodel/BaseObject.h>
 #include <sofa/defaulttype/VecTypes.h>
 #include <sofa/defaulttype/RGBAColor.h>
-#include <sofa/helper/gl/template.h>
 #include <sofa/core/visual/VisualModel.h>
 
 #include <sofa/helper/gl/FrameBufferObject.h>
@@ -53,12 +53,11 @@ namespace visualmodel
  *   - Spot light (position, direction, cutoff...).
  *
  */
-class SOFA_OPENGL_VISUAL_API Light : public sofa::core::visual::VisualModel
+class SOFA_OPENGL_VISUAL_API Light : public BaseLight
 {
 public:
-    enum LightType { DIRECTIONAL = 0, POSITIONAL = 1, SPOTLIGHT = 2 };
+    SOFA_CLASS(Light, BaseLight);
 
-    SOFA_CLASS(Light, core::visual::VisualModel);
 protected:
     GLint m_lightID;
     GLuint m_shadowTexWidth, m_shadowTexHeight;
@@ -127,7 +126,6 @@ public:
     virtual float getShadowFactor() { return d_shadowFactor.getValue(); }
     virtual float getVSMLightBleeding() { return d_VSMLightBleeding.getValue(); }
     virtual float getVSMMinVariance() { return d_VSMMinVariance.getValue(); }
-    virtual LightType getLightType() = 0;
 
 protected:
     bool b_needUpdate;
