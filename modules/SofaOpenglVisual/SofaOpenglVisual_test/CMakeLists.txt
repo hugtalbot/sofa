@@ -8,6 +8,7 @@ set(HEADER_FILES)
 
 set(SOURCE_FILES
     OglLabel_test.cpp
+    VisualCreatorWithSofaOpenglVisual_test.cpp
     )
 
 ## MAC-OS crash when we are testing opengl feature.
