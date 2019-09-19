@@ -3,20 +3,24 @@ project(SofaBaseVisual)
 
 set(HEADER_FILES
     BaseCamera.h
+    BaseLight.h
     BackgroundSetting.h
     Camera.h
     InteractiveCamera.h
     VisualModelImpl.h
     VisualStyle.h
+    VisualCreator.h
     config.h
     initBaseVisual.h
 )
 
 set(SOURCE_FILES
     BaseCamera.cpp
+    BaseLight.cpp
     BackgroundSetting.cpp
     Camera.cpp
     InteractiveCamera.cpp
+    VisualCreator.cpp
     VisualModelImpl.cpp
     VisualStyle.cpp
     initBaseVisual.cpp
