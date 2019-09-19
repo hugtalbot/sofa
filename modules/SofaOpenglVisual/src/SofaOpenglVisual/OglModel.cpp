@@ -30,6 +30,7 @@
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <cstring>
 #include <sofa/helper/types/RGBAColor.h>
+#include <SofaBaseVisual/VisualCreator.h>
 
 //#define DEBUG_DRAW
 namespace sofa
@@ -46,6 +47,8 @@ using namespace sofa::core::loader;
 
 static int OglModelClass = core::RegisterObject("Generic visual model for OpenGL display")
     .add< sofa::component::visualmodel::OglModel >();
+
+bool success = sofa::component::visualmodel::VisualCreator::getInstance()->registerVisualModel("OglModel");
 
 template<class T>
 const T* getData(const sofa::helper::vector<T>& v) { return &v[0]; }
@@ -1065,10 +1068,11 @@ GLenum OglModel::getGLenum(const char* c ) const
     }
 }
 
-
 } // namespace visualmodel
 
 } // namespace component
 
 } // namespace sofa
+
+
 
