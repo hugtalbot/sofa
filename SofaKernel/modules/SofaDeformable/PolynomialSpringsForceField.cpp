@@ -30,17 +30,10 @@
 #include <sofa/core/ObjectFactory.h>
 
 
-namespace sofa
-{
-
-namespace component
-{
-
-namespace interactionforcefield
+namespace sofa::component::interactionforcefield
 {
 
 using namespace sofa::defaulttype;
-
 
 SOFA_DECL_CLASS(PolynomialSpringsForceField)
 
@@ -51,9 +44,4 @@ int PolynomialSpringsForceFieldClass = core::RegisterObject("Simple elastic spri
 
 template class SOFA_DEFORMABLE_API PolynomialSpringsForceField<Vec3Types>;
 
-} // namespace interactionforcefield
-
-} // namespace component
-
-} // namespace sofa
-
+} // namespace sofa::component::interactionforcefield

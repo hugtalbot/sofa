@@ -22,7 +22,7 @@
         <Node name="Weight" >
             <MechanicalObject template="Vec3d" name="myParticle" rest_position="0 0 0" position="0 0 0" />
             <UniformMass totalMass="30" />
-            <PolynomialSpringsForceField polynomialDegree="3" polynomialStiffness="20 10 50" object1='@.' firstObjectPoints='0' object2='@../dofs' secondObjectPoints='15' drawMode='0' showIndicesScale="1"/>
+            <PolynomialSpringsForceField polynomialDegree="3" polynomialStiffness="20 10 50" object1='@.' indices1='0' object2='@../dofs' indices2='15' drawMode='0' showIndicesScale="1"/>
         </Node>
     </Node>
 

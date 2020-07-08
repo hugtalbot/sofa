@@ -23,6 +23,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+
 #include "config.h"
 
 #include <sofa/core/behavior/PairInteractionForceField.h>
@@ -30,17 +31,9 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/helper/vector.h>
 #include <sofa/core/BaseMapping.h>
-
 #include <sofa/defaulttype/RGBAColor.h>
 
-
-namespace sofa
-{
-
-namespace component
-{
-
-namespace interactionforcefield
+namespace sofa::component::interactionforcefield
 {
 
 /**
@@ -69,8 +62,8 @@ public:
     typedef core::behavior::MechanicalState<DataTypes> MechanicalState;
 
     // connected objects indices
-    Data<VecIndex> d_firstObjectPoints;
-    Data<VecIndex> d_secondObjectPoints;
+    Data<VecIndex> d_indices1;
+    Data<VecIndex> d_indices2;
 
     // polynomial data
     /// Describe set of polynomial coefficients combines in one array.
@@ -178,9 +171,4 @@ extern template class SOFA_DEFORMABLE_API PolynomialSpringsForceField<defaulttyp
 
 #endif // defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_INTERACTIONFORCEFIELD_POLYNOMIAL_SPRINGS_FORCEFIELD_CPP)
 
-} // namespace interactionforcefield
-
-} // namespace component
-
-} // namespace sofa
-
+} // namespace sofa::component::interactionforcefield
