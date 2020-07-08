@@ -23,35 +23,24 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+
 #include "config.h"
 
 #include <sofa/core/behavior/ForceField.h>
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/helper/vector.h>
 #include <sofa/core/BaseMapping.h>
-
 #include <sofa/defaulttype/RGBAColor.h>
 
 
-namespace sofa
-{
-namespace core
-{
-namespace behavior
+namespace sofa::core::behavior
 {
 template< class T > class MechanicalState;
 
-} // namespace behavior
-} // namespace core
-} // namespace sofa
+} // namespace sofa::core::behavior
 
-namespace sofa
-{
 
-namespace component
-{
-
-namespace forcefield
+namespace sofa::component::forcefield
 {
 
 /**
@@ -103,7 +92,7 @@ public:
     Data<double> d_smoothScale;
 
     SingleLink<PolynomialRestShapeSpringsForceField<DataTypes>, sofa::core::behavior::MechanicalState<DataTypes>,
-        BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> d_restMState;
+    BaseLink::FLAG_STOREPATH|BaseLink::FLAG_STRONGLINK> l_restMState;
 
     // data to compute spring derivatives
     typedef defaulttype::Vec<Coord::total_size, Real> JacobianVector;
@@ -182,9 +171,4 @@ extern template class SOFA_DEFORMABLE_API PolynomialRestShapeSpringsForceField<V
 
 #endif // defined(SOFA_EXTERN_TEMPLATE) && !defined(SOFA_COMPONENT_FORCEFIELD_POLYNOMIAL_RESTSHAPESPRINGFORCEFIELD_CPP)
 
-} // namespace forcefield
-
-} // namespace component
-
-} // namespace sofa
-
+} // namespace sofa::component::forcefield

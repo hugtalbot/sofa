@@ -30,13 +30,7 @@
 #include <sofa/core/ObjectFactory.h>
 
 
-namespace sofa
-{
-
-namespace component
-{
-
-namespace forcefield
+namespace sofa::component::forcefield
 {
 
 using namespace sofa::defaulttype;
@@ -53,9 +47,4 @@ int PolynomialRestShapeSpringsForceFieldClass = core::RegisterObject("Simple ela
 template class SOFA_DEFORMABLE_API PolynomialRestShapeSpringsForceField<Vec3Types>;
 
 
-} // namespace forcefield
-
-} // namespace component
-
-} // namespace sofa
-
+} // namespace sofa::component::forcefield
