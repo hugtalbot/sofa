@@ -52,6 +52,8 @@ public:
 
     Data<MassType> d_vertexMass;   ///< single value defining the mass of each particle
     Data<SReal> d_totalMass;    ///< if >0 : total mass of this body
+    Data<bool> d_preserveTotalMass; ///< Prevent totalMass from decreasing when removing particles.
+
     sofa::core::objectmodel::DataFileName d_filenameMass; ///< a .rigid file to automatically load the inertia matrix and other parameters
 
     Data<bool>  d_showCenterOfGravity; ///< to display the center of gravity of the system
@@ -67,9 +69,7 @@ public:
     /// using mesh partitionning)
     Data< defaulttype::Vec<2,int> > d_localRange;
     Data< helper::vector<int> >     d_indices; ///< optional local DOF indices. Any computation involving only indices outside of this list are discarded
-
     Data<bool> d_handleTopologicalChanges; ///< The mass and totalMass are recomputed on particles add/remove.
-    Data<bool> d_preserveTotalMass; ///< Prevent totalMass from decreasing when removing particles.
 
     ////////////////////////// Inherited attributes ////////////////////////////
     /// https://gcc.gnu.org/onlinedocs/gcc/Name-lookup.html
@@ -111,7 +111,6 @@ public:
     void reinit() override;
     void init() override;
     void initDefaultImpl() ;
-    void doUpdateInternal() override;
     void handleEvent(sofa::core::objectmodel::Event *event) override;
 
     /// @name Check and standard initialization functions from mass information

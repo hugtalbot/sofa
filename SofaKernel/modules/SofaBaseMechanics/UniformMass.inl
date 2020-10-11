@@ -67,6 +67,7 @@ UniformMass<DataTypes, MassType>::UniformMass()
                                                                                 "If unspecified or wrongly set, the totalMass information is used." ) )
     , d_totalMass ( initData ( &d_totalMass, SReal(1.0), "totalMass", "Specify the total mass resulting from all particles. \n"
                                                                       "If unspecified or wrongly set, the default value is used: totalMass = 1.0") )
+    , d_preserveTotalMass( initData ( &d_preserveTotalMass, false, "preserveTotalMass", "Prevent totalMass from decreasing when removing particles."))
     , d_filenameMass ( initData ( &d_filenameMass, "filename", "rigid file to load the mass parameters" ) )
     , d_showCenterOfGravity ( initData ( &d_showCenterOfGravity, false, "showGravityCenter", "display the center of gravity of the system" ) )
     , d_showAxisSize ( initData ( &d_showAxisSize, 1.0f, "showAxisSizeFactor", "factor length of the axis displayed (only used for rigids)" ) )
@@ -78,10 +79,44 @@ UniformMass<DataTypes, MassType>::UniformMass()
                                                                                    "are discarded (useful for parallelization using mesh partitionning)" ) )
     , d_indices ( initData ( &d_indices, "indices", "optional local DOF indices. Any computation involving only indices outside of this list are discarded" ) )
     , d_handleTopologicalChanges ( initData ( &d_handleTopologicalChanges, false, "handleTopologicalChanges", "The mass and totalMass are recomputed on particles add/remove." ) )
-    , d_preserveTotalMass( initData ( &d_preserveTotalMass, false, "preserveTotalMass", "Prevent totalMass from decreasing when removing particles."))
     , l_topology(initLink("topology", "link to the topology container"))
 {
     constructor_message();
+
+    d_vertexMass.setGroup("Mass Info");
+    d_totalMass.setGroup("Mass Info");
+    d_preserveTotalMass.setGroup("Mass Info");
+
+    this->addUpdateCallback("updateMass", {&d_vertexMass, &d_totalMass}, [this](const sofa::core::DataTracker& massDataTracker)
+    {
+
+        if (massDataTracker.hasChanged(d_totalMass))
+        {
+            if(checkTotalMass())
+            {
+                initFromTotalMass();
+                return sofa::core::objectmodel::ComponentState::Valid;
+            }
+            else
+            {
+                msg_error() << "updateMass: incorrect update from totalMass";
+                return sofa::core::objectmodel::ComponentState::Invalid;
+            }
+        }
+        else if(massDataTracker.hasChanged(d_vertexMass))
+        {
+            if(checkVertexMass())
+            {
+                initFromVertexMass();
+                return sofa::core::objectmodel::ComponentState::Valid;
+            }
+            else
+            {
+                msg_error() << "updateMass: incorrect update from vertexMass";
+                return sofa::core::objectmodel::ComponentState::Invalid;
+            }
+        }
+    }, {&d_vertexMass, &d_totalMass});
 }
 
 template <class DataTypes, class MassType>
@@ -222,44 +257,8 @@ void UniformMass<DataTypes, MassType>::initDefaultImpl()
 template <class DataTypes, class MassType>
 void UniformMass<DataTypes, MassType>::reinit()
 {
-    // Now update is handled through the doUpdateInternal mechanism
-    // called at each begin of step through the UpdateInternalDataVisitor
-}
-
-
-template <class DataTypes, class MassType>
-void UniformMass<DataTypes, MassType>::doUpdateInternal()
-{
-    if (this->hasDataChanged(d_totalMass))
-    {
-        if(checkTotalMass())
-        {
-            initFromTotalMass();
-            this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Valid);
-        }
-        else
-        {
-            msg_error() << "doUpdateInternal: incorrect update from totalMass";
-            this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
-        }
-    }
-    else if(this->hasDataChanged(d_vertexMass))
-    {
-        if(checkVertexMass())
-        {
-            initFromVertexMass();
-            this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Valid);
-        }
-        else
-        {
-            msg_error() << "doUpdateInternal: incorrect update from vertexMass";
-            this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
-        }
-    }
-
-    //Info post-reinit
-    msg_info() << "totalMass  = " << d_totalMass.getValue() << " \n"
-                  "vertexMass = " << d_vertexMass.getValue();
+    // Call init function
+    init();
 }
 
 
