@@ -28,6 +28,7 @@
 #include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/defaulttype/BaseVector.h>
 #include <sofa/core/objectmodel/DataFileName.h>
+#include <sofa/core/objectmodel/DataCallback.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
 
 namespace sofa::component::mass
@@ -91,8 +92,10 @@ protected:
     /// @internal fonction called in the constructor that can be specialized
     void constructor_message() ;
 
-public:
+    /// @internal callback in charge of the update of the mass information
+    sofa::core::objectmodel::DataCallback m_updateMass;
 
+public:
     /// @name Read and write access functions in mass information
     /// @{
     void setMass(const MassType& d_vertexMass);

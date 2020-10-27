@@ -87,9 +87,40 @@ UniformMass<DataTypes, MassType>::UniformMass()
     d_totalMass.setGroup("Mass Info");
     d_preserveTotalMass.setGroup("Mass Info");
 
-    this->addUpdateCallback("updateMass", {&d_vertexMass, &d_totalMass}, [this](const sofa::core::DataTracker& massDataTracker)
-    {
+    m_updateMass.addInput(&d_totalMass);
+    m_updateMass.addInput(&d_vertexMass);
 
+    m_updateMass.addCallback([this](){
+        if (d_totalMass.isDirty())
+        {
+            if(checkTotalMass())
+            {
+                initFromTotalMass();
+                return sofa::core::objectmodel::ComponentState::Valid;
+            }
+            else
+            {
+                msg_error("UniformMass") << "updateMass: incorrect update from totalMass";
+                return sofa::core::objectmodel::ComponentState::Invalid;
+            }
+        }
+        else if(d_vertexMass.isDirty())
+        {
+            if(checkVertexMass())
+            {
+                initFromVertexMass();
+                return sofa::core::objectmodel::ComponentState::Valid;
+            }
+            else
+            {
+                msg_error("UniformMass") << "updateMass: incorrect update from vertexMass";
+                return sofa::core::objectmodel::ComponentState::Invalid;
+            }
+        }
+    });
+
+    /*this->addUpdateCallback("updateMass", {&d_vertexMass, &d_totalMass}, [this](const sofa::core::DataTracker& massDataTracker)
+    {
         if (massDataTracker.hasChanged(d_totalMass))
         {
             if(checkTotalMass())
@@ -116,7 +147,7 @@ UniformMass<DataTypes, MassType>::UniformMass()
                 return sofa::core::objectmodel::ComponentState::Invalid;
             }
         }
-    }, {&d_vertexMass, &d_totalMass});
+    }, {&d_vertexMass, &d_totalMass});*/
 }
 
 template <class DataTypes, class MassType>
@@ -207,7 +238,7 @@ void UniformMass<DataTypes, MassType>::initDefaultImpl()
             indices.push_back(i);
     }
 
-
+/*
     //If user defines the vertexMass, use this as the mass
     if (d_vertexMass.isSet())
     {
@@ -247,7 +278,7 @@ void UniformMass<DataTypes, MassType>::initDefaultImpl()
 
     this->trackInternalData(d_vertexMass);
     this->trackInternalData(d_totalMass);
-
+*/
     //Info post-init
     msg_info() << "totalMass  = " << d_totalMass.getValue() << " \n"
                   "vertexMass = " << d_vertexMass.getValue();
@@ -296,7 +327,7 @@ bool UniformMass<DataTypes, MassType>::checkTotalMass()
 {
     if(d_totalMass.getValue() <= 0.0)
     {
-        msg_warning(this) << "totalMass data can not have a negative value. \n"
+        msg_warning(this) << "totalMass data can not have a negative value("<<d_totalMass.getValue()<<"). \n"
                              "To remove this warning, you need to set a non-zero positive value to the totalMass data";
         return false;
     }
