@@ -25,6 +25,8 @@
 #include <sofa/core/visual/VisualParams.h>
 #include <utility>
 
+using sofa::core::objectmodel::ComponentState;
+
 
 namespace sofa::component::projectiveconstraintset
 {
@@ -33,10 +35,17 @@ namespace sofa::component::projectiveconstraintset
 template <class DataTypes>
 FixedRotationConstraint<DataTypes>::FixedRotationConstraint()
     : core::behavior::ProjectiveConstraintSet<DataTypes>(nullptr),
-      FixedXRotation( initData( &FixedXRotation, false, "FixedXRotation", "Prevent Rotation around X axis")),
-      FixedYRotation( initData( &FixedYRotation, false, "FixedYRotation", "Prevent Rotation around Y axis")),
-      FixedZRotation( initData( &FixedZRotation, false, "FixedZRotation", "Prevent Rotation around Z axis"))
+      d_fixedXRotation( initData( &d_fixedXRotation, false, "FixedXRotation", "Prevent Rotation around X axis")),
+      d_fixedYRotation( initData( &d_fixedYRotation, false, "FixedYRotation", "Prevent Rotation around Y axis")),
+      d_fixedZRotation( initData( &d_fixedZRotation, false, "FixedZRotation", "Prevent Rotation around Z axis")),
+      d_indices( initData( &d_indices, "indices", "Indices to be fixed (if none, all nodes are considered)"))
 {
+    this->addUpdateCallback("updateIndices", { &d_indices}, [this](const core::DataTracker& t)
+    {
+        SOFA_UNUSED(t);
+        checkIndices();
+        return sofa::core::objectmodel::ComponentState::Valid;
+    }, {});
 }
 
 
@@ -49,16 +58,55 @@ FixedRotationConstraint<DataTypes>::~FixedRotationConstraint()
 template <class DataTypes>
 void FixedRotationConstraint<DataTypes>::init()
 {
+    this->d_componentState.setValue(ComponentState::Invalid);
     this->core::behavior::ProjectiveConstraintSet<DataTypes>::init();
 
     // Retrieves mechanical state
     VecCoord x = this->mstate->read(core::ConstVecCoordId::position())->getValue();
 
     // Stores initial orientation for each vertex
-    previousOrientation.resize(x.size());
-    for (unsigned int i=0; i<previousOrientation.size(); i++)
+    m_previousOrientation.resize(x.size());
+    for (Size i=0; i<m_previousOrientation.size(); i++)
     {
-        previousOrientation[i] = x[i].getOrientation();
+        m_previousOrientation[i] = x[i].getOrientation();
+    }
+
+    this->d_componentState.setValue(ComponentState::Valid);
+
+    m_indices.clear();
+
+    if(d_indices.getValue().size() != 0)
+        checkIndices();
+    else
+    {
+        m_indices.resize(x.size());
+        for (Size i=0; i<x.size(); i++)
+            m_indices[i] = i;
+    }
+}
+
+template <class DataTypes>
+void FixedRotationConstraint<DataTypes>::checkIndices()
+{
+    // Check value of given indices
+    Index maxIndex=this->mstate->getSize();
+
+    const SetIndexArray & indices = d_indices.getValue();
+    m_indices.clear();
+    m_indices.resize(indices.size());
+
+    for (unsigned int i=0; i<indices.size(); ++i)
+    {
+        const Index index=indices[i];
+
+        if (index >= maxIndex)
+        {
+            msg_warning() << "Index " << index << " not valid, should be [0,"<< maxIndex <<"]. Constraint will be removed.";
+            this->d_componentState.setValue(ComponentState::Invalid);
+            return;
+        }
+
+        m_indices[i] = index;
     }
 }
 
@@ -83,13 +131,16 @@ void FixedRotationConstraint<DataTypes>::projectVelocity(const core::MechanicalP
 template <class DataTypes>
 void FixedRotationConstraint<DataTypes>::projectPosition(const core::MechanicalParams* /*mparams*/, DataVecCoord& xData)
 {
+    if (this->d_componentState.getValue() != ComponentState::Valid) return;
+
     helper::WriteAccessor<DataVecCoord> x = xData;
-    for (unsigned int i = 0; i < x.size(); ++i)
+
+    for (Size i = 0; i < m_indices.size(); ++i)
     {
         // Current orientations
-        sofa::defaulttype::Quat Q = x[i].getOrientation();
+        sofa::defaulttype::Quat Q = x[m_indices[i]].getOrientation();
         // Previous orientations
-        sofa::defaulttype::Quat Q_prev = previousOrientation[i];
+        sofa::defaulttype::Quat Q_prev = m_previousOrientation[m_indices[i]];
 
         auto project = [](const Vec3 a, const Vec3 b) -> Vec3 {
             return (a * b) * b;
@@ -120,17 +171,18 @@ void FixedRotationConstraint<DataTypes>::projectPosition(const core::MechanicalP
             to_keep = twist * to_keep;
         };
 
-        if (FixedXRotation.getValue() == true){
+        if (d_fixedXRotation.getValue() == true){
             remove_rotation(vx);
         }
-        if (FixedYRotation.getValue() == true){
+        if (d_fixedYRotation.getValue() == true){
             remove_rotation(vy);
         }
-        if (FixedZRotation.getValue() == true){
+        if (d_fixedZRotation.getValue() == true){
             remove_rotation(vz);
         }
-        x[i].getOrientation() = Q_remaining * to_keep;
+        x[m_indices[i]].getOrientation() = Q_remaining * to_keep;
     }
+
 }
 
 

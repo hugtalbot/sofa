@@ -24,6 +24,7 @@
 
 #include <sofa/core/behavior/ProjectiveConstraintSet.h>
 #include <sofa/defaulttype/Quat.h>
+#include <SofaBaseTopology/TopologySubsetData.h>
 
 namespace sofa::component::projectiveconstraintset
 {
@@ -48,11 +49,14 @@ public:
     typedef Data<VecDeriv> DataVecDeriv;
     typedef Data<MatrixDeriv> DataMatrixDeriv;
     typedef defaulttype::Vec<3,Real> Vec3;
-
+    typedef helper::vector<Index> SetIndexArray;
 
 protected:
     FixedRotationConstraint();
     ~FixedRotationConstraint() override;
+
+    void checkIndices();
+
 public:
     void init() override;
 
@@ -65,10 +69,13 @@ public:
 
 
 protected :
-    Data< bool > FixedXRotation; ///< Prevent Rotation around X axis
-    Data< bool > FixedYRotation; ///< Prevent Rotation around Y axis
-    Data< bool > FixedZRotation; ///< Prevent Rotation around Z axis
-    helper::vector<defaulttype::Quat> previousOrientation;
+    Data< bool > d_fixedXRotation; ///< Prevent Rotation around X axis
+    Data< bool > d_fixedYRotation; ///< Prevent Rotation around Y axis
+    Data< bool > d_fixedZRotation; ///< Prevent Rotation around Z axis
+    Data< SetIndexArray > d_indices; ///< Indices to be fixed
+
+    SetIndexArray m_indices; ///< Indices to be fixed
+    helper::vector<defaulttype::Quat> m_previousOrientation;
 };
 
 
