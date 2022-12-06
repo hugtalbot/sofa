@@ -1,0 +1,25 @@
+# .github/release.yml
+
+changelog:
+#  exclude:
+#    labels:
+#      - ignore-for-release
+#    authors:
+#      - octocat
+  categories:
+    - title: Highlight of the release
+      labels:
+        - pr: highlighted in next release
+    - title: Breaking
+      labels:
+        - pr: breaking
+    - title: Improvements
+      labels:
+        - pr: new feature
+        - enhancement
+    - title: Bug Fixes
+      labels:
+        - pr: fix
+    - title: Cleanings
+      labels:
+        - pr: clean
