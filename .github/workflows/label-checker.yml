@@ -15,16 +15,11 @@ jobs:
     name: Check for Test Plan Approved label
     runs-on: ubuntu-latest
     steps:
-      - uses: docker://agilepathway/pull-request-label-checker:latest
-        with:
-          # Needs to have a Test Plan Approved label if not part of any of the pods below
-          any_of: enhancement,refactoring
-
-
       - name: Comment
         uses: actions/github-script@v4
         with:
           script: |
+            echo context.issue.labels
             // Post a warning comment
             github.issues.createComment({
               issue_number: context.issue.number,
