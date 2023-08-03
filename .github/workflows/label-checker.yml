@@ -18,7 +18,8 @@ jobs:
       - name: Check
         uses: docker://agilepathway/pull-request-label-checker:latest
         with:
-          none_of: 'deprecated','enhancement','pr: clean','pr: breaking','pr: new feature','pr: fix','refactoring','pr: test'
+          prefix_mode: true
+          none_of: "deprecated","enhancement","pr:"
       - name: Comment
         uses: actions/github-script@v4
         with:
