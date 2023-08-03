@@ -2,24 +2,26 @@
 name: Label Checker
 on:
   pull_request:
+    branches: [release]
     types:
       - opened
       - synchronize
       - reopened
       - labeled
       - unlabeled
-
+    
 jobs:
 
   check_labels:
-    name: Check labels
+    name: Check for Test Plan Approved label
     runs-on: ubuntu-latest
     steps:
-      - name: Check
-        uses: docker://agilepathway/pull-request-label-checker:latest
+      - uses: docker://agilepathway/pull-request-label-checker:latest
         with:
-          prefix_mode: true
-          none_of: "deprecated","enhancement","pr:"
+          # Needs to have a Test Plan Approved label if not part of any of the pods below
+          any_of: enhancement,refactoring
+
+
       - name: Comment
         uses: actions/github-script@v4
         with:
