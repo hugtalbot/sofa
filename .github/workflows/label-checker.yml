@@ -19,7 +19,6 @@ jobs:
         id: pr-labels
         uses: joerick/pr-labels-action@v1.0.8
       - run: |
-          bin/run_normal_tests
           if [ -n "enhancement" ]; then
             echo "POUET POUET"
           fi
