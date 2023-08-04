@@ -25,7 +25,6 @@ jobs:
         with:
           script: |
             echo "labels=${{ github.issues.labels }}" >> "$GITHUB_ENV"
-            echo "$labels"
 
       - name: Set environment variable if valid label
         id: pr_set_variable
