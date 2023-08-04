@@ -27,6 +27,7 @@ jobs:
             valid=false
             echo "hasValidLabels=${valid}" >> ${{ env.hasValidLabels }}
             echo "POUET POUET : ${{ env.hasValidLabels }}"
+            hasValidLabels=false
           fi
 
       - name: Comment if missing labels
