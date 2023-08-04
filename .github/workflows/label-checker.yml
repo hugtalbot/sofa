@@ -16,13 +16,15 @@ jobs:
     name: Check labels
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      //- name: Checkout
+      //  uses: actions/checkout@v2
       - name: Get PR labels
         id: pr_get_labels
         run: |
-          env | grep GITHUB_PR_LABEL || true
-      - name: Set env varible if valid label
+          echo "labels=${{ context.issue.labels }}" >> "$GITHUB_ENV"
+          echo "$labels"
+
+      - name: Set environment variable if valid label
         id: pr_set_variable
         run: |
           echo "hasValidLabels=true" >> "$GITHUB_ENV"
@@ -38,7 +40,7 @@ jobs:
            contains(steps.pr_get_labels.outputs.labels, 'pr: test')
           )
 
-      - name: Comment if missing labels
+      - name: Comment if invalid label
         id: pr_comment
         if: (!${{ steps.pr_set_variable.outputs.hasValidLabels == true }})
         uses: actions/github-script@v4
