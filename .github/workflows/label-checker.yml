@@ -25,7 +25,8 @@ jobs:
           env | grep GITHUB_PR_LABEL || true
       - run: |
           echo "hasValidLabels=false" >> "$GITHUB_ENV"
-        if: ! contains(steps.pr-labels.outputs.labels, ' enhancement ')
+        if: |
+          (!contains(steps.pr-labels.outputs.labels, ' enhancement '))
 
       - name: Comment if missing labels
         id: pr_comment
