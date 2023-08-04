@@ -43,6 +43,6 @@ jobs:
                 body: ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any descriptive label :label:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.<br>:warning: :warning: :warning:'
               });
               pr_labels="${{ github.event.label.name }}"
-              echo "$pr_labels"
+              echo $pr_labels
               core.setFailed('Invalid PR label')
           github-token: ${{ secrets.GITHUB_TOKEN }}
