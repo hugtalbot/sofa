@@ -28,17 +28,15 @@ jobs:
 
       - name: Comment if missing labels
         id: pr_comment
+        if: ${{ steps.pr_check_label.outputs.hasValidLabels == 'false' }}
         uses: actions/github-script@v4
         with:
           script: |
-              echo "hasValidLabels = ${{ steps.pr_check_label.outputs.hasValidLabels }} "
-              if [ ${{ steps.pr_check_label.outputs.hasValidLabels }} = false ] ; then
-                // Post a warning comment
-                github.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
-                });
-              fi
+              // Post a warning comment
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
+              });
           github-token: ${{ secrets.GITHUB_TOKEN }}
