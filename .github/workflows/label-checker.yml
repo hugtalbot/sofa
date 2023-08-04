@@ -24,14 +24,14 @@ jobs:
       - run: |
           if [ -n "enhancement" ]; then
             echo "POUET POUET"
-            env.hasValidLabels = false
+            ${{ env.hasValidLabels }} = false
           fi
 
       - name: Comment if missing labels
         uses: actions/github-script@v4
         with:
           script: |
-            if [ ${{ env.MY_VARIABLE }} = false ] ; then
+            if [ ${{ env.hasValidLabels }} = false ] ; then
                 // Post a warning comment
                 github.issues.createComment({
                   issue_number: context.issue.number,
