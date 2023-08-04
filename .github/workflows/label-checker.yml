@@ -21,7 +21,7 @@ jobs:
 
       - name: Comment if invalid label
         id: pr_comment
-        if:  if: ${{ github.event.label.name == 'enhancement' }} || ${{ github.event.label.name == 'refactoring' }}
+        if: ${{ github.event.label.name == 'enhancement' }} || ${{ github.event.label.name == 'refactoring' }}
         uses: actions/github-script@v4
         with:
           script: |
