@@ -19,7 +19,6 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            echo context.issue.labels
             // Post a warning comment
             github.issues.createComment({
               issue_number: context.issue.number,
