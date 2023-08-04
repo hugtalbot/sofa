@@ -23,21 +23,21 @@ jobs:
         uses: joerick/pr-labels-action@v1.0.8
       - run: |
           if [ -n "enhancement" ]; then
-            echo "POUET POUET"
+            echo "POUET"
             ${{ env.hasValidLabels }} = false
+            echo "POUET POUET : ${{ env.hasValidLabels }}"
           fi
 
       - name: Comment if missing labels
         uses: actions/github-script@v4
+        if:  ${{ env.hasValidLabels == false }}
         with:
           script: |
-            if [ ${{ env.hasValidLabels }} = false ] ; then
-                // Post a warning comment
-                github.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
-                });
-            fi
+              // Post a warning comment
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
+              });
           github-token: ${{ secrets.GITHUB_TOKEN }}
