@@ -19,28 +19,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Get PR labels
-        id: pr_get_labels
-        uses: actions/github-script@v4
-        with:
-          script: |
-            labels = github.issues.labels
-            echo "labels=$labels" >> "$GITHUB_ENV"
-
       - name: Set environment variable if valid label
         id: pr_set_variable
         run: |
           echo "hasValidLabels=true" >> "$GITHUB_ENV"
           echo "valid labels"
         if: |
-          (contains(steps.pr_get_labels.outputs.labels, 'enhancement') ||
-           contains(steps.pr_get_labels.outputs.labels, 'deprecated') ||
-           contains(steps.pr_get_labels.outputs.labels, 'refactoring') ||
-           contains(steps.pr_get_labels.outputs.labels, 'pr: clean') ||
-           contains(steps.pr_get_labels.outputs.labels, 'pr: breaking') ||
-           contains(steps.pr_get_labels.outputs.labels, 'pr: new feature') ||
-           contains(steps.pr_get_labels.outputs.labels, 'pr: fix') ||
-           contains(steps.pr_get_labels.outputs.labels, 'pr: test')
+          (
+            ${{ github.event.label.name == 'enhancement' }} ||
+            ${{ github.event.label.name == 'deprecated' }} ||
+            ${{ github.event.label.name == 'refactoring' }} ||
+            ${{ github.event.label.name == 'pr: breaking' }} ||
+            ${{ github.event.label.name == 'pr: clean' }} ||
+            ${{ github.event.label.name == 'pr: fix' }} ||
+            ${{ github.event.label.name == 'pr: new feature' }} ||
+            ${{ github.event.label.name == 'pr: test' }}
           )
 
       - name: Comment if invalid label
@@ -56,4 +49,5 @@ jobs:
                 repo: context.repo.repo,
                 body: ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any descriptive label :label:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.<br>:warning: :warning: :warning:'
               });
+              exit 1
           github-token: ${{ secrets.GITHUB_TOKEN }}
