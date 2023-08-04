@@ -24,7 +24,8 @@ jobs:
       - run: |
           if [ -n "enhancement" ]; then
             echo "POUET"
-            ${{ env.hasValidLabels }} = false
+            valid=false
+            echo "hasValidLabels=${valid}" >> $GITHUB_ENV
             echo "POUET POUET : ${{ env.hasValidLabels }}"
           fi
 
