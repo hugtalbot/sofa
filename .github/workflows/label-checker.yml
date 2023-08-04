@@ -23,13 +23,21 @@ jobs:
         run: |
           env | grep GITHUB_PR_LABEL || true
       - run: |
-          echo "hasValidLabels=false" >> "$GITHUB_ENV"
+          echo "hasValidLabels=true" >> "$GITHUB_ENV"
         if: |
-          (!contains(steps.pr-labels.outputs.labels, ' enhancement '))
+          (contains(steps.pr-labels.outputs.labels, 'enhancement') ||
+           contains(steps.pr-labels.outputs.labels, 'deprecated') ||
+           contains(steps.pr-labels.outputs.labels, 'refactoring') ||
+           contains(steps.pr-labels.outputs.labels, 'pr: clean') ||
+           contains(steps.pr-labels.outputs.labels, 'pr: breaking') ||
+           contains(steps.pr-labels.outputs.labels, 'pr: new feature') ||
+           contains(steps.pr-labels.outputs.labels, 'pr: fix') ||
+           contains(steps.pr-labels.outputs.labels, 'pr: test') ||
+          )
 
       - name: Comment if missing labels
         id: pr_comment
-        if: ${{ steps.pr_check_label.outputs.hasValidLabels == false }}
+        if: (!${{ steps.pr_check_label.outputs.hasValidLabels == true }})
         uses: actions/github-script@v4
         with:
           script: |
