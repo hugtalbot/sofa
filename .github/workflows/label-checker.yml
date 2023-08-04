@@ -31,6 +31,7 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
+              echo "hasValidLabels = ${{ steps.pr_check_label.outputs.hasValidLabels }} "
               if [ ${{ steps.pr_check_label.outputs.hasValidLabels }} = false ] ; then
                 // Post a warning comment
                 github.issues.createComment({
