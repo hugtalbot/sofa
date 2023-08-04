@@ -24,10 +24,8 @@ jobs:
       - run: |
           if [ -n "enhancement" ]; then
             echo "POUET"
-            valid=false
-            echo "hasValidLabels=${valid}" >> ${{ env.hasValidLabels }}
+            echo "false" >> ${{ env.hasValidLabels }}
             echo "POUET POUET : ${{ env.hasValidLabels }}"
-            hasValidLabels=false
           fi
 
       - name: Comment if missing labels
