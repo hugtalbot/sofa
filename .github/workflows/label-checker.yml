@@ -22,7 +22,8 @@ jobs:
         id: pr_get_labels
         run: |
           env | grep GITHUB_PR_LABEL || true
-      - id: pr_set_variable
+      - name: Set env varible if valid label
+        id: pr_set_variable
         run: |
           echo "hasValidLabels=true" >> "$GITHUB_ENV"
           echo "valid labels"
