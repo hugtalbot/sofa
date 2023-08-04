@@ -19,26 +19,23 @@ jobs:
         id: pr-labels
         uses: joerick/pr-labels-action@v1.0.8
       - run: |
+          labelCheck = true
           if [ -n "enhancement" ]; then
             echo "POUET POUET"
-            // Post a warning comment
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
-            });
+            labelCheck = false
           fi
 
       - name: Comment
         uses: actions/github-script@v4
         with:
           script: |
-            // Post a warning comment
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
-            });
+            if [ "$labelCheck" = false ] ; then
+                // Post a warning comment
+                github.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
+                });
+            fi
           github-token: ${{ secrets.GITHUB_TOKEN }}
