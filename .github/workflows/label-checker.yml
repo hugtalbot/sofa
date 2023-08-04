@@ -12,9 +12,14 @@ on:
 jobs:
 
   check_labels:
-    name: Check for Test Plan Approved label
+    name: Check labels
     runs-on: ubuntu-latest
     steps:
+      - name: Check
+        uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          none_of: enhancement
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Comment
         uses: actions/github-script@v4
         with:
@@ -24,6 +29,6 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: ':warning: @'+context.repo.owner+': your PR does not include any descriptive label :warning:'
+              body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
             });
           github-token: ${{ secrets.GITHUB_TOKEN }}
