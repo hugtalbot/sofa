@@ -16,12 +16,21 @@ jobs:
     name: Check labels
     runs-on: ubuntu-latest
     steps:
-      - name: Comment if missing descriptive labels
-        id: pr_labels
-        uses: actions/github-script@v4
-        if: ! contains(steps.pr_labels.outputs.labels, 'enhancement')
-        - run: |
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get PR labels
+        id: pr-labels
+        uses: ./ # Uses an action in the root directory
+      - run: |
           env | grep GITHUB_PR_LABEL || true
+      - run: |
+          echo "hasValidLabels=false" >> "$GITHUB_ENV"
+        if: ! contains(steps.pr-labels.outputs.labels, ' enhancement ')
+
+      - name: Comment if missing labels
+        id: pr_comment
+        if: ${{ steps.pr_check_label.outputs.hasValidLabels == false }}
+        uses: actions/github-script@v4
         with:
           script: |
               // Post a warning comment
