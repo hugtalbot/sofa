@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        
+
       - name: Get PR labels
         id: pr_get_labels
         run: |
@@ -26,6 +26,7 @@ jobs:
           echo "$labels"
 
       - name: Set environment variable if valid label
+        uses: actions/github-script@v4
         id: pr_set_variable
         run: |
           echo "hasValidLabels=true" >> "$GITHUB_ENV"
