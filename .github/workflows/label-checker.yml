@@ -42,7 +42,9 @@ jobs:
                 repo: context.repo.repo,
                 body: ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any descriptive label :label:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.<br>:warning: :warning: :warning:'
               });
-              pr_labels="${{ github.event.label.name }}"
-              echo "${pr_labels}"
+
+              pr_number="${{ github.event.pull_request.number }}"
+              labels=$(curl -s "https://api.github.com/repos/${{ github.repository }}/pulls/${pr_number}/labels" | jq -r '.[].name')
+              echo "Pull Request Labels: $labels"
               core.setFailed('Invalid PR label')
           github-token: ${{ secrets.GITHUB_TOKEN }}
