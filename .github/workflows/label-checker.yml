@@ -15,8 +15,6 @@ jobs:
   check_labels:
     name: Check labels
     runs-on: ubuntu-latest
-    env:
-      hasValidLabels: true
     steps:
       - name: Get and check PR labels
         id: pr_check_label
