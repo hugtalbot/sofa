@@ -32,7 +32,7 @@ jobs:
            contains(steps.pr-labels.outputs.labels, 'pr: breaking') ||
            contains(steps.pr-labels.outputs.labels, 'pr: new feature') ||
            contains(steps.pr-labels.outputs.labels, 'pr: fix') ||
-           contains(steps.pr-labels.outputs.labels, 'pr: test') ||
+           contains(steps.pr-labels.outputs.labels, 'pr: test')
           )
 
       - name: Comment if missing labels
