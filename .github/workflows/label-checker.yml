@@ -19,25 +19,28 @@ jobs:
       hasValidLabels: true
     steps:
       - name: Get and check PR labels
-        id: pr-labels
+        id: pr_check_label
         uses: joerick/pr-labels-action@v1.0.8
       - run: |
+          echo "isValid" >> $GITHUB_ENV
           if [ -n "enhancement" ]; then
-            echo "POUET"
-            echo "false" >> ${{ env.hasValidLabels }}
-            echo "POUET POUET : ${{ env.hasValidLabels }}"
+            echo "No descriptive label given"
+            echo "isNOTValid" >> $GITHUB_ENV
           fi
 
       - name: Comment if missing labels
+        id: pr_comment
         uses: actions/github-script@v4
-        if:  ${{ env.hasValidLabels == false }}
         with:
           script: |
-              // Post a warning comment
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
-              });
+              VALIDITY=$(cat ${{ steps.pr_check_label.outputs.env_file }})
+              if [ "$VALIDITY" = "isNOTValid" ] ; then
+                // Post a warning comment
+                github.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: ':x: @'+context.repo.owner+' your PR does not include any descriptive label :x:<br>:warning: :warning: :warning:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.'
+                });
+              fi
           github-token: ${{ secrets.GITHUB_TOKEN }}
