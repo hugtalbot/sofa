@@ -21,7 +21,7 @@ jobs:
 
       - name: Comment if invalid label
         id: pr_comment
-        if: (  (${{ github.event.label.name != 'enhancement' }}) && (${{ github.event.label.name != 'deprecated' }}) && (${{ github.event.label.name != 'refactoring' }}) && (${{ github.event.label.name != 'pr: breaking' }}) && (${{ github.event.label.name != 'pr: clean' }}) && (${{ github.event.label.name != 'pr: fix' }}) && (${{ github.event.label.name != 'pr: new feature' }}) && (${{ github.event.label.name != 'pr: test' }})   )
+        if: (  ${{ github.event.label.name != 'enhancement' }} && ${{ github.event.label.name != 'deprecated' }} && ${{ github.event.label.name != 'refactoring' }} && ${{ github.event.label.name != 'pr: breaking' }} && ${{ github.event.label.name != 'pr: clean' }} && ${{ github.event.label.name != 'pr: fix' }} && ${{ github.event.label.name != 'pr: new feature' }} && ${{ github.event.label.name != 'pr: test' }}   )
         uses: actions/github-script@v4
         with:
           script: |
