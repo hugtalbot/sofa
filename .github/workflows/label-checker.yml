@@ -8,28 +8,30 @@ on:
       - reopened
       - labeled
       - unlabeled
-    
+
+
 jobs:
 
   check_labels:
     name: Check labels
     runs-on: ubuntu-latest
+    env:
+      hasValidLabels: true
     steps:
-      - name: Get PR labels
+      - name: Get and check PR labels
         id: pr-labels
         uses: joerick/pr-labels-action@v1.0.8
       - run: |
-          labelCheck = true
           if [ -n "enhancement" ]; then
             echo "POUET POUET"
-            labelCheck = false
+            env.hasValidLabels = false
           fi
 
-      - name: Comment
+      - name: Comment if missing labels
         uses: actions/github-script@v4
         with:
           script: |
-            if [ "$labelCheck" = false ] ; then
+            if [ ${{ env.MY_VARIABLE }} = false ] ; then
                 // Post a warning comment
                 github.issues.createComment({
                   issue_number: context.issue.number,
