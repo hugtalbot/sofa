@@ -24,7 +24,7 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            echo "labels=${{ context.issue.labels }}" >> "$GITHUB_ENV"
+            echo "labels=${{ github.issues.labels }}" >> "$GITHUB_ENV"
             echo "$labels"
 
       - name: Set environment variable if valid label
