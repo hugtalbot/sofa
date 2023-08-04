@@ -20,10 +20,10 @@ jobs:
         id: pr_check_label
         uses: joerick/pr-labels-action@v1.0.8
       - run: |
-          echo "isValid" >> $GITHUB_ENV
+          echo "hasValidLabels=true" >> "$GITHUB_ENV"
           if [ -n "enhancement" ]; then
             echo "No descriptive label given"
-            echo "isNOTValid" >> $GITHUB_ENV
+            echo "hasValidLabels=false" >> "$GITHUB_ENV"
           fi
 
       - name: Comment if missing labels
@@ -31,8 +31,7 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-              VALIDITY=$(cat ${{ steps.pr_check_label.outputs.env_file }})
-              if [ "$VALIDITY" = "isNOTValid" ] ; then
+              if [ ${{ steps.pr_check_label.outputs.hasValidLabels }} = false ] ; then
                 // Post a warning comment
                 github.issues.createComment({
                   issue_number: context.issue.number,
