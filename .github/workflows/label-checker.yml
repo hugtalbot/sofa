@@ -28,7 +28,7 @@ jobs:
 
       - name: Comment if missing labels
         id: pr_comment
-        if: ${{ steps.pr_check_label.outputs.hasValidLabels == 'false' }}
+        if: ${{ steps.pr_check_label.outputs.hasValidLabels == false }}
         uses: actions/github-script@v4
         with:
           script: |
