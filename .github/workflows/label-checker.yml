@@ -27,3 +27,4 @@ jobs:
               repo: context.repo.repo,
               body: ':warning: @'+context.repo.owner+': your PR does not include any descriptive label :warning:'
             });
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
