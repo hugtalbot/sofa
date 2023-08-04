@@ -30,8 +30,8 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-          echo "hasValidLabels=true" >> "$GITHUB_ENV"
-          echo "valid labels"
+            echo "hasValidLabels=true" >> "$GITHUB_ENV"
+            echo "valid labels"
         if: |
           (contains(steps.pr_get_labels.outputs.labels, 'enhancement') ||
            contains(steps.pr_get_labels.outputs.labels, 'deprecated') ||
