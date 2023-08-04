@@ -19,25 +19,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Get PR labels
-        id: pr-labels
+        id: pr_get_labels
         run: |
           env | grep GITHUB_PR_LABEL || true
-      - run: |
+      - id: pr_set_variable
+        run: |
           echo "hasValidLabels=true" >> "$GITHUB_ENV"
+          echo "valid labels"
         if: |
-          (contains(steps.pr-labels.outputs.labels, 'enhancement') ||
-           contains(steps.pr-labels.outputs.labels, 'deprecated') ||
-           contains(steps.pr-labels.outputs.labels, 'refactoring') ||
-           contains(steps.pr-labels.outputs.labels, 'pr: clean') ||
-           contains(steps.pr-labels.outputs.labels, 'pr: breaking') ||
-           contains(steps.pr-labels.outputs.labels, 'pr: new feature') ||
-           contains(steps.pr-labels.outputs.labels, 'pr: fix') ||
-           contains(steps.pr-labels.outputs.labels, 'pr: test')
+          (contains(steps.pr_get_labels.outputs.labels, 'enhancement') ||
+           contains(steps.pr_get_labels.outputs.labels, 'deprecated') ||
+           contains(steps.pr_get_labels.outputs.labels, 'refactoring') ||
+           contains(steps.pr_get_labels.outputs.labels, 'pr: clean') ||
+           contains(steps.pr_get_labels.outputs.labels, 'pr: breaking') ||
+           contains(steps.pr_get_labels.outputs.labels, 'pr: new feature') ||
+           contains(steps.pr_get_labels.outputs.labels, 'pr: fix') ||
+           contains(steps.pr_get_labels.outputs.labels, 'pr: test')
           )
 
       - name: Comment if missing labels
         id: pr_comment
-        if: (!${{ steps.pr_check_label.outputs.hasValidLabels == true }})
+        if: (!${{ steps.pr_set_variable.outputs.hasValidLabels == true }})
         uses: actions/github-script@v4
         with:
           script: |
