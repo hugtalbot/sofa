@@ -25,7 +25,7 @@ jobs:
             const prNumber = context.payload.pull_request.number;
             const labels = context.payload.pull_request.labels.map(label => label.name);
 
-            if (!labels.includes('enhancement') && !labels.includes('duplicate')) {
+            if (!labels.includes('enhancement') && !labels.includes('deprecated')) && !labels.includes('refactoring')) && !labels.includes('pr: breaking')) && !labels.includes('pr: clean')) && !labels.includes('pr: fix')) && !labels.includes('pr: new feature')) && !labels.includes('pr: test')) {
               const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any descriptive label :label:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.<br>:warning: :warning: :warning:';
               github.issues.createComment({
                 issue_number: prNumber,
