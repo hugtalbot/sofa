@@ -16,21 +16,27 @@ jobs:
     name: Check labels
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - name: Check if the PR has the "enhancement" label
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const labels = await github.rest.issues.listLabelsOnIssue({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number
+          });
+          const hasEnhancementLabel = labels.data.some(label => label.name === 'enhancement');
+          core.setOutput('has_enhancement_label', hasEnhancementLabel);
 
-      - name: Comment if invalid label
-        id: pr_comment
-        if: ${{ github.event.label.name != 'enhancement' }}
-        uses: actions/github-script@v4
-        with:
-          script: |
-              // Post a warning comment
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any descriptive label :label:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.<br>:warning: :warning: :warning:'
-              });
-              core.setFailed('Invalid PR label')
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Add "foo" comment if PR has "enhancement" label
+      if: ${{ steps.add_comment.outputs.has_enhancement_label == 'true' }}
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const newComment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any descriptive label :label:<br> Make sure to add an appropriate [PR label](https://github.com/sofa-framework/sofa/labels) before merge.<br>:warning: :warning: :warning:';
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+            body: newComment
+          });
