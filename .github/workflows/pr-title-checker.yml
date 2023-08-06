@@ -35,7 +35,7 @@ jobs:
 
           // Add comment in the PR to warn the author
           if (!valid) {
-            const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR title is not following the required format :pencil2:<br>It should be structured as follows: "[Scope] Description" (e.g. [MechanicalLoad] Implementation of a new method")<br>Please read the details of the failing check for more info.';
+            const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR title is not following the required format :pencil2:<br>It should be structured as follows: "[Namespace/scope] PR description" (e.g. "*[MechanicalLoad] Implementation of a new method*")<br>Please read the details of the failing check for more info.';
             github.issues.createComment({
               issue_number: prNumber,
               owner: context.repo.owner,
