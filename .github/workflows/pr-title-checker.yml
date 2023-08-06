@@ -1,7 +1,7 @@
 name: Pull Request Title Check
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, edited, reopened]
 
 jobs:
   check_title:
@@ -23,13 +23,13 @@ jobs:
 
           // Check if the PR does starts with a prefix []
           if (!prefixPattern.test(title)) {
-            core.setFailed('Pull request title does provide a prefix scope, e.g. [MechanicalLoad]');
+            core.setFailed('Pull request title should provide a prefix scope, e.g. [MechanicalLoad]');
             valid = false;
           }
 
           // Check if a "." is closing the title
           if (endPattern.test(title)) {
-            core.setFailed('Pull request title ends with a "."');
+            core.setFailed('Pull request title should not end with a "."');
             valid = false;
           }
 
