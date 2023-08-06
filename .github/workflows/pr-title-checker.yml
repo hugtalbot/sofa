@@ -25,14 +25,14 @@ jobs:
           // Check if the PR does starts with a prefix []
           if (!prefixPattern.test(title)) {
             core.setFailed('Pull request title should provide a prefix scope, e.g. [MechanicalLoad]');
-            commentExplain = commentExplain + "Pull request title should provide a prefix scope, e.g. [MechanicalLoad]<br>"
+            commentExplain = commentExplain + "- Pull-request title should provide a prefix scope, e.g. [MechanicalLoad]<br>"
             valid = false;
           }
 
           // Check if a "." is closing the title
           if (endPattern.test(title)) {
             core.setFailed('Pull request title should not end with a "."');
-            commentExplain = commentExplain + "Pull request title should not end with a '.'<br>"
+            commentExplain = commentExplain + "- Pull-request title should not end with a '.'<br>"
             valid = false;
           }
 
