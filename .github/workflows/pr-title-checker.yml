@@ -20,22 +20,25 @@ jobs:
           const endPattern = /\.$/;
 
           valid = true;
+          commentExplain = "";
 
           // Check if the PR does starts with a prefix []
           if (!prefixPattern.test(title)) {
             core.setFailed('Pull request title should provide a prefix scope, e.g. [MechanicalLoad]');
+            commentExplain = commentExplain + "Pull request title should provide a prefix scope, e.g. [MechanicalLoad]<br>"
             valid = false;
           }
 
           // Check if a "." is closing the title
           if (endPattern.test(title)) {
             core.setFailed('Pull request title should not end with a "."');
+            commentExplain = commentExplain + "Pull request title should not end with a '.'<br>"
             valid = false;
           }
 
           // Add comment in the PR to warn the author
           if (!valid) {
-            const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR title is not following the required format :pencil2:<br>It should follow: "*[Namespace/scope] PR description*" (e.g. "*[MechanicalLoad] Implementation of a new method*")<br>Please read the details of the failing check for more info.<br>:warning: :warning: :warning:';
+            const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR title is not following the required format :pencil2:<br>'+commentExplainPlease+':warning: :warning: :warning:';
             github.issues.createComment({
               issue_number: prNumber,
               owner: context.repo.owner,
