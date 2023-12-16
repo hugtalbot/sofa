@@ -1,0 +1,31 @@
+name: Check PR Age
+on:
+  pull_request:
+    types:
+      - synchronize
+      - opened
+      - reopened
+
+jobs:
+  check-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check PR Age and Label fast merge
+        run: |
+          PR_DATE=$(date -d "$(echo ${{ github.event.pull_request.created_at }})" +%s)
+          CURRENT_DATE=$(date +%s)
+          AGE_IN_SECONDS=$((CURRENT_DATE - PR_DATE))
+          AGE_IN_DAYS=$((AGE_IN_SECONDS / 86400))
+          
+          if [ $AGE_IN_DAYS -lt 7 ]; then
+            if [[ $(echo "${{ github.event.pull_request.labels.*.name }}" | grep -c 'fast-merge') -eq 0 ]]; then
+              echo "Error: PR is less than 7 days old and does not have the 'fast-merge' label."
+              exit 1
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
