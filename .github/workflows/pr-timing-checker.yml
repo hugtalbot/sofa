@@ -23,10 +23,14 @@ jobs:
           AGE_IN_SECONDS=$((CURRENT_DATE - PR_DATE))
           AGE_IN_DAYS=$((AGE_IN_SECONDS / 86400))
           
+          echo "PR Labels:"
+          for label in ${{ github.event.pull_request.labels.*.name }}; do
+            echo "- $label"
+          done
+          
           if [ $AGE_IN_DAYS -lt 7 ]; then
             if [[ $(echo "${{ github.event.pull_request.labels.*.name }}" | grep -c 'pr: fast merge') -eq 0 ]]; then
-              echo "PR is less than 7 days old ($AGE_IN_DAYS) and does not have the 'pr: fast merge' label."
-              echo "${{ github.event.pull_request.labels.*.name }}"
+              echo "PR is less than 7 days old ($AGE_IN_DAYS) and does not have the 'pr: fast merge' label"
               exit 1
             fi
           fi
