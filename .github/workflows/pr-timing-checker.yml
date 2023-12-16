@@ -31,7 +31,8 @@ jobs:
             const isFastMerge = labels.some(label => fastMergeFlag.includes(label));
 
             // If regular PR (not fast merge), check PR age
-            if (!isFastMerge) {            
+            if (!isFastMerge) {
+              console.log('is NOT fast merge');
               const creationDate = new Date(context.payload.pull_request.created_at);
               const currentDate = new Date();
               
