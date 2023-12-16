@@ -32,7 +32,6 @@ jobs:
 
             // If regular PR (not fast merge), check PR age
             if (!isFastMerge) {
-              console.log('is NOT fast merge');
               const creationDate = new Date(context.payload.pull_request.created_at);
               const currentDate = new Date();
               
@@ -40,8 +39,7 @@ jobs:
               const daysDiff = Math.floor((currentDate - creationDate) / (1000 * 60 * 60 * 24));
               
               if (daysDiff < 7) {
-                console.log('is NOT 7');
-                core.setFailed('Invalid PR label');
+                core.setFailed("PR is less than 7 days old and it is not flagged as 'pr: fast merge'");
               }
             }
             // Add all PR labels in log
