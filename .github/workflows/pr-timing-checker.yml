@@ -41,10 +41,8 @@ jobs:
               if (daysDiff < 7) {
                 core.setFailed("PR is less than 7 days old and it is not flagged as 'pr: fast merge'");
               }
-              else {
+              else
                 console.log('PR is more than 7 days old');
-              }
             }
-            else {
+            else
               console.log('PR is flagged as 'pr: fast merge');
-            }
