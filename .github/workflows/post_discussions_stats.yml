@@ -1,0 +1,32 @@
+name: Post GitHub Discussions Statistics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1' # Every Monday at 7:00 AM UTC (9:00 AM CET)
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10' # Use the desired Python version
+
+      - name: Install dependencies
+        run: |
+          pip install python-graphql-client
+          pip install python-dateutil
+        working-directory: ${{ github.workspace }}
+
+      - name: Run script post-discussions-stats.py
+        run: |
+          python scripts/post-discussions-stats.py
+        working-directory: ${{ github.workspace }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
