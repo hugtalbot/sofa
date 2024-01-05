@@ -3,11 +3,6 @@
 
 import os
 from python_graphql_client import GraphqlClient
-import requests
-from importlib import util
-import asyncio
-from nio import (AsyncClient, SyncResponse, RoomMessageText)
-
 
 client = GraphqlClient(endpoint="https://api.github.com/graphql")
 github_token = os.environ['GITHUB_TOKEN']
@@ -51,6 +46,7 @@ def computeListOfOpenDiscussionsPerCategory():
         after_cursor = data["data"]["repository"]["discussions"]["pageInfo"]["endCursor"]
   return categories, discussions_numbers
 
+
 def printDiscussionsPerCategory(categories, discussions_numbers):
     Message = "*****************\n#### GHD weekly report\n"
     categoryDone = []
@@ -72,56 +68,10 @@ def printDiscussionsPerCategory(categories, discussions_numbers):
         categoryDone.append(category)
 
     Message = Message + "*****************\n"
-
-
-    asyncio.run(sendMessageToGitter(Message))
-
+    print(Message)
     return
 
 
-async def sendMessageToGitter(Message):
-
-    # async_client = AsyncClient(
-    #     "https://app.gitter.im", "hugtalbot"
-    # )
-    #
-    # token = os.getenv('GITHUB_TOKEN')
-    #
-    # response = await async_client.login(token)
-    # print(response)
-    #
-    #
-    # content = {
-    #     "body": "Good matin!",
-    #     "msgtype": "m.text"
-    # }
-    #
-    # room_id = "!XWVzIQpwOMjHkyTsNE:gitter.im"
-    #
-    # await async_client.room_send(room_id, 'm.room.message', content)
-
-
-
-    api_url = f'https://api.gitter.im/v1/rooms/!XWVzIQpwOMjHkyTsNE:gitter.im/chatMessages'
-    token = os.getenv('GITHUB_TOKEN')
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer '+str(token)
-    }
-    body = {
-        'text': 'good morning!',
-    }
-
-    response = requests.post(api_url, headers=headers, json=body)
-
-    if response.status_code == 200:
-        print('Message sent successfully!')
-    else:
-        print(f'Error sending message. Status code: {response.status_code}')
-        print(response.text)
-
-    return
 
 # Query to access all discussions
 def make_query_discussions(owner, name, after_cursor=None):

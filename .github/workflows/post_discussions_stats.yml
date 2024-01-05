@@ -25,8 +25,18 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Run script post-discussions-stats.py
+        id: create_message
         run: |
-          python scripts/post-discussions-stats.py
+          echo "::set-output name=output_var::$(python scripts/post-discussions-stats.py)"
         working-directory: ${{ github.workspace }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send message to SOFA channel
+        uses: fadenb/matrix-chat-message@v0.0.6
+        with:
+          homeserver: 'gitter.im'
+          token: ${{ secrets.MATRIX_TOKEN }}
+          channel: '!XWVzIQpwOMjHkyTsNE:gitter.im'
+          message: ${{ steps.create_message.outputs.output_var }}
+
