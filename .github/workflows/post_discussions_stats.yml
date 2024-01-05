@@ -41,7 +41,7 @@ jobs:
       - name: Send message to SOFA channel
         uses: fadenb/matrix-chat-message@v0.0.6
         with:
-          homeserver: 'gitter.im'
+          homeserver: 'https://gitter.ems.host/'
           token: ${{ secrets.MATRIX_TOKEN }}
           channel: '!XWVzIQpwOMjHkyTsNE:gitter.im'
           message: ${{ steps.create_message.outputs.output_var }}
