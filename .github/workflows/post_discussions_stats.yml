@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 7 * * 1' # Every Monday at 7:00 AM UTC (9:00 AM CET)
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - labeled
+      - unlabeled
 
 jobs:
   run:
