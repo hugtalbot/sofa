@@ -41,7 +41,7 @@ jobs:
       - name: Send message to SOFA channel using Cake
         uses: cake-build/cake-action@v1
         with:
-          script-path: script/send-gitter-message.cake
+          script-path: scripts/send-gitter-message.cake
         env:
           Gitter_token: "syt_c29mYWJvdC01YTg0MDU0OGQ3MzQwOGNlNGY4ZDE1Njk_SjdArMIDLUbnoqPigtAS_2QBfb0"
           Gitter_message: ${{ steps.create_message.outputs.output_var }}
