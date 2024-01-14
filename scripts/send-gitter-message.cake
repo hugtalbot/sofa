@@ -1,3 +1,5 @@
+#addin "nuget:https://www.nuget.org/api/v2?package=Cake.Gitter&version=0.1.0"
+
 Information("This is a 'normal' message...");
 
 var token = EnvironmentVariable("Gitter_token");
