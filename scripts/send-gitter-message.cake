@@ -1,4 +1,4 @@
-#addin "nuget:https://www.nuget.org/api/v2?package=Cake.Gitter&version=0.1.0"
+#addin "nuget:https://www.nuget.org/api/v2?package=Cake.Gitter&version=2.0.0
 
 Information("This is a 'normal' message...");
 
