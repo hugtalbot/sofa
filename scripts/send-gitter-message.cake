@@ -3,7 +3,7 @@ Information("This is a 'normal' message...");
 var token = EnvironmentVariable("Gitter_token");
 var message = EnvironmentVariable("Gitter_message");
 
-var postMessageResult = Gitter.Chat.PostMessage(message:"${message}, messageSettings:new GitterChatMessageSettings {
+var postMessageResult = Gitter.Chat.PostMessage(message:"${message}", messageSettings:new GitterChatMessageSettings {
                                     Token              = "{token}",
                                     RoomId             = "!XWVzIQpwOMjHkyTsNE:gitter.im"
                                     });
