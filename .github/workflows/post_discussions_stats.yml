@@ -30,19 +30,27 @@ jobs:
           pip install python-dateutil
         working-directory: ${{ github.workspace }}
 
-      - name: Run script post-discussions-stats.py
+      - name: Run script get-weekly-discussions-stats.py
         id: create_message
         run: |
-          echo "::set-output name=output_var::$(python scripts/post-discussions-stats.py)"
+          echo "::set-output name=output_var::$(python scripts/get-weekly-discussions-stats.py)"
         working-directory: ${{ github.workspace }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Send message to SOFA channel
-        uses: fadenb/matrix-chat-message@v0.0.6
+      - name: Send message to SOFA channel using Cake
+        uses: cake-build/cake-action@v1
         with:
-          homeserver: 'https://gitter.ems.host/'
-          token: ${{ secrets.MATRIX_TOKEN }}
-          channel: '!XWVzIQpwOMjHkyTsNE:gitter.im'
-          message: ${{ steps.create_message.outputs.output_var }}
+          target: Gitter.Chat.PostMessage(message:"${{ steps.create_message.outputs.output_var }}, messageSettings:new GitterChatMessageSettings {
+            Token              = ${{ secrets.MATRIX_TOKEN }},
+            RoomId             = "!XWVzIQpwOMjHkyTsNE:gitter.im"
+            });
+
+#      - name: Send message to SOFA channel
+#        uses: fadenb/matrix-chat-message@v0.0.6
+#        with:
+#          homeserver: 'https://gitter.ems.host/'
+#          token: ${{ secrets.MATRIX_TOKEN }}
+#          channel: '!XWVzIQpwOMjHkyTsNE:gitter.im'
+#          message: ${{ steps.create_message.outputs.output_var }}
 
