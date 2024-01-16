@@ -38,10 +38,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_MAIN_ROOM_WEBHOOK}}
-        uses: Ilshidur/action-discord@master
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
         with:
-          args: '${{ steps.create_message.outputs.output_var }}'
+          webhook-url: ${{ secrets.DISCORD_MAIN_ROOM_WEBHOOK }}
+          content: '${{ steps.create_message.outputs.output_var }}'
 
