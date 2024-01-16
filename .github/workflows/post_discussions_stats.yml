@@ -42,5 +42,5 @@ jobs:
         uses: tsickert/discord-webhook@v5.3.0
         with:
           webhook-url: 'https://discord.com/api/webhooks/1196926587615059988/4I5uKA5ItYKefKrYWRBuoCU7KPVYtmGEKApwoU4xwEAohUebQ66y-Q-r7RKW-XnzgfI6'
-          content: 'My message : \n ${{ steps.create_message.outputs.output_var }}'
+          content: 'My message : ${{ secrets.DISCORD_MAIN_ROOM_WEBHOOK }} ${ secrets.DISCORD_MAIN_ROOM_WEBHOOK } ${{ steps.create_message.outputs.output_var }}'
 
