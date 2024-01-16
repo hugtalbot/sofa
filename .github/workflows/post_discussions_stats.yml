@@ -38,10 +38,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - - name: Discord notification
-          env:
-            DISCORD_WEBHOOK: ${{ secrets.DISCORD_MAIN_ROOM_WEBHOOK}}
-          uses: Ilshidur/action-discord@master
-          with:
-            args: '${{ steps.create_message.outputs.output_var }}'
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_MAIN_ROOM_WEBHOOK}}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: '${{ steps.create_message.outputs.output_var }}'
 
