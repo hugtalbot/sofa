@@ -38,19 +38,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Send message to SOFA channel using Cake
-        uses: cake-build/cake-action@v1
-        with:
-          script-path: scripts/send-gitter-message.cake
-        env:
-          Gitter_token: "syt_c29mYWJvdC01YTg0MDU0OGQ3MzQwOGNlNGY4ZDE1Njk_SjdArMIDLUbnoqPigtAS_2QBfb0"
-          Gitter_message: ${{ steps.create_message.outputs.output_var }}
-
-#      - name: Send message to SOFA channel
-#        uses: fadenb/matrix-chat-message@v0.0.6
-#        with:
-#          homeserver: 'https://gitter.ems.host/'
-#          token: ${{ secrets.MATRIX_TOKEN }}
-#          channel: '!XWVzIQpwOMjHkyTsNE:gitter.im'
-#          message: ${{ steps.create_message.outputs.output_var }}
+      - - name: Discord notification
+          env:
+            DISCORD_WEBHOOK: ${{ secrets.DISCORD_MAIN_ROOM_WEBHOOK}}
+          uses: Ilshidur/action-discord@master
+          with:
+            args: '${{ steps.create_message.outputs.output_var }}'
 
