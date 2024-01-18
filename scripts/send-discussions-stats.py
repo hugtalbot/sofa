@@ -78,7 +78,7 @@ def printDiscussionsPerCategory(categories, discussions_numbers):
 # Function posting a message on Discord
 def postOnDiscord(message):
     payload = {'content': '${message}'}
-    response = requests.post(DISCORD_WEBHOOK_URL, json=payload)
+    response = requests.post(discord_token, json=payload)
     return
 
 
