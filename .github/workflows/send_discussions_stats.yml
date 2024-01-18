@@ -33,15 +33,9 @@ jobs:
       - name: Run script get-weekly-discussions-stats.py
         id: create_message
         run: |
-          echo "::set-output name=output_var::$(python scripts/get-weekly-discussions-stats.py)"
-          echo "$output_var"
+          python scripts/send-weekly-discussions-stats.py
         working-directory: ${{ github.workspace }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Discord Webhook Action
-        uses: tsickert/discord-webhook@v5.3.0
-        with:
-          webhook-url: ${{ secrets.WEBHOOK_URL }}
-          content: 'My message : ${{ steps.create_message.outputs.output_var }}'
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
 

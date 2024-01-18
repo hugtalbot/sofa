@@ -6,6 +6,7 @@ from python_graphql_client import GraphqlClient
 
 client = GraphqlClient(endpoint="https://api.github.com/graphql")
 github_token = os.environ['GITHUB_TOKEN']
+discord_token = os.environ['WEBHOOK_URL']
 
 # List of the repository to scan
 repos=[['sofa-framework','sofa']]
@@ -69,6 +70,15 @@ def printDiscussionsPerCategory(categories, discussions_numbers):
 
     Message = Message + "*****************\n"
     print(Message)
+    postOnDiscord(Message)
+
+    return
+
+
+# Function posting a message on Discord
+def postOnDiscord(message):
+    payload = {'content': '${message}'}
+    response = requests.post(DISCORD_WEBHOOK_URL, json=payload)
     return
 
 
