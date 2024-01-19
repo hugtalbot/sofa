@@ -7,7 +7,7 @@ from python_graphql_client import GraphqlClient
 
 client = GraphqlClient(endpoint="https://api.github.com/graphql")
 github_token = os.environ['GITHUB_TOKEN']
-discord_token = os.environ['WEBHOOK_URL']
+discord_token = os.environ['DISCORD_MAIN_WEBHOOK_URL']
 
 # List of the repository to scan
 repos=[['sofa-framework','sofa']]
