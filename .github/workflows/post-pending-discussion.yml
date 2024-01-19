@@ -1,15 +1,9 @@
-name: Post GitHub Discussions Statistics
+name: Post pending GitHub discussions
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 7 * * 1' # Every Monday at 7:00 AM UTC (9:00 AM CET)
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - labeled
-      - unlabeled
+    - cron: '0 6 * * 2,5'  # 8 pm CET on Tuesday and Friday
 
 jobs:
   run:
@@ -28,12 +22,12 @@ jobs:
         run: |
           pip install python-graphql-client
           pip install python-dateutil
+          pip install requests
         working-directory: ${{ github.workspace }}
 
-      - name: Run script get-weekly-discussions-stats.py
-        id: create_message
+      - name: Run script post-pending-discussions.py
         run: |
-          python scripts/send-discussions-stats.py
+          python scripts/post-pending-discussions.py
         working-directory: ${{ github.workspace }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
