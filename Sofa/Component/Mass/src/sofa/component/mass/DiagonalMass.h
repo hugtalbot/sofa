@@ -265,10 +265,6 @@ public:
     /// Print key mass informations (totalMass, vertexMass and massDensity)
     void printMass();
 
-    /// Compute the mass from input values
-    SOFA_ATTRIBUTE_DISABLED("v21.06", "v21.12", "ComputeMass should not be called from outside. Changing one of the Data: density, totalMass or vertexMass will recompute the mass.")
-    void computeMass() = delete;
-
     /// @name Read and write access functions in mass information
     /// @{
     virtual const Real &getMassDensity();
@@ -315,7 +311,9 @@ public:
 
     /// Add Mass contribution to global Matrix assembling
     void addMToMatrix(const core::MechanicalParams *mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix) override;
-
+    void buildMassMatrix(sofa::core::behavior::MassMatrixAccumulator* matrices) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* /* matrix */) override {}
+    void buildDampingMatrix(core::behavior::DampingMatrix* /* matrices */) override {}
 
     SReal getElementMass(sofa::Index index) const override;
     void getElementMass(sofa::Index, linearalgebra::BaseMatrix *m) const override;
@@ -385,7 +383,7 @@ type::Vec6 DiagonalMass<defaulttype::Rigid3Types>::getMomentum ( const core::Mec
 
 
 
-#if  !defined(SOFA_COMPONENT_MASS_DIAGONALMASS_CPP)
+#if !defined(SOFA_COMPONENT_MASS_DIAGONALMASS_CPP)
 extern template class SOFA_COMPONENT_MASS_API DiagonalMass<defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_MASS_API DiagonalMass<defaulttype::Vec2Types>;
 extern template class SOFA_COMPONENT_MASS_API DiagonalMass<defaulttype::Vec2Types, defaulttype::Vec3Types>;

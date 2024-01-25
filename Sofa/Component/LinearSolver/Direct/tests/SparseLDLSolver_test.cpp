@@ -22,6 +22,7 @@
 #include <sofa/testing/BaseTest.h>
 #include <sofa/component/linearsolver/direct/SparseLDLSolver.h>
 #include <sofa/component/linearsolver/direct/SparseCommon.h>
+#include <sofa/component/linearsystem/MatrixLinearSystem.h>
 #include <sofa/simulation/Node.h>
 #include <sofa/simulation/graph/DAGSimulation.h>
 #include <sofa/simulation/graph/SimpleApi.h>
@@ -52,12 +53,12 @@ TEST(Metis, permutation)
     sofa::type::vector<int> perm(n);
     sofa::type::vector<int> invperm(n);
 
-    auto res = METIS_NodeND(&n , xadj.data(), adj.data(), nullptr, nullptr, perm.data(),invperm.data());
+    const auto res = METIS_NodeND(&n , xadj.data(), adj.data(), nullptr, nullptr, perm.data(),invperm.data());
     EXPECT_EQ(res, METIS_OK);
 
-    sofa::type::vector<int> expectedPerm
+    const sofa::type::vector<int> expectedPerm
     { 14, 12, 5, 2, 0, 11, 8, 13, 9, 1, 10, 6, 3, 4, 7 };
-    sofa::type::vector<int> expectedInvPerm
+    const sofa::type::vector<int> expectedInvPerm
     { 4, 9, 3, 12, 13, 2, 11, 14, 6, 8, 10, 5, 1, 7, 0 };
 
     EXPECT_EQ(perm, expectedPerm);
@@ -117,7 +118,7 @@ TEST(SparseLDLSolver, MatrixFactorization)
     matrix.compress();
 
     using Solver = sofa::component::linearsolver::direct::SparseLDLSolver<MatrixType, sofa::linearalgebra::FullVector<SReal> >;
-    Solver::SPtr solver = sofa::core::objectmodel::New<Solver>();
+    const Solver::SPtr solver = sofa::core::objectmodel::New<Solver>();
 
     solver->init();
     solver->invert(matrix);
@@ -194,7 +195,7 @@ TEST(SparseLDLSolver, EmptySystem)
     matrix.compress();
 
     using Solver = sofa::component::linearsolver::direct::SparseLDLSolver<MatrixType, sofa::linearalgebra::FullVector<SReal> >;
-    Solver::SPtr solver = sofa::core::objectmodel::New<Solver>();
+    const Solver::SPtr solver = sofa::core::objectmodel::New<Solver>();
 
     solver->init();
 
@@ -207,8 +208,7 @@ TEST(SparseLDLSolver, EmptyMState)
     // required to be able to use EXPECT_MSG_NOEMIT and EXPECT_MSG_EMIT
     sofa::helper::logging::MessageDispatcher::addHandler(sofa::testing::MainGtestMessageHandler::getInstance() ) ;
 
-    sofa::simulation::setSimulation(new sofa::simulation::graph::DAGSimulation());
-    sofa::simulation::Node::SPtr root = sofa::simulation::getSimulation()->createNewGraph("root");
+    const sofa::simulation::Node::SPtr root = sofa::simulation::getSimulation()->createNewGraph("root");
 
     sofa::simpleapi::importPlugin("Sofa.Component.LinearSolver.Direct");
     sofa::simpleapi::importPlugin("Sofa.Component.ODESolver.Backward");
@@ -219,14 +219,14 @@ TEST(SparseLDLSolver, EmptyMState)
     sofa::simpleapi::createObject(root, "SparseLDLSolver", {{"template", "CompressedRowSparseMatrixd"}});
     sofa::simpleapi::createObject(root, "MechanicalObject", {{"template", "Vec3"}, {"position", ""}});
 
-    sofa::simulation::getSimulation()->init(root.get());
+    sofa::simulation::node::initRoot(root.get());
 
     {
         EXPECT_MSG_EMIT(Warning);
-        sofa::simulation::getSimulation()->animate(root.get(), 0.5_sreal);
+        sofa::simulation::node::animate(root.get(), 0.5_sreal);
     }
 
-    sofa::simulation::getSimulation()->unload(root);
+    sofa::simulation::node::unload(root);
 }
 
 
@@ -236,8 +236,7 @@ TEST(SparseLDLSolver, TopologyChangeEmptyMState)
     // required to be able to use EXPECT_MSG_NOEMIT and EXPECT_MSG_EMIT
     sofa::helper::logging::MessageDispatcher::addHandler(sofa::testing::MainGtestMessageHandler::getInstance() ) ;
 
-    sofa::simulation::setSimulation(new sofa::simulation::graph::DAGSimulation());
-    sofa::simulation::Node::SPtr root = sofa::simulation::getSimulation()->createNewGraph("root");
+  const sofa::simulation::Node::SPtr root = sofa::simulation::getSimulation()->createNewGraph("root");
 
     sofa::simpleapi::importPlugin("Sofa.Component.LinearSolver.Direct");
     sofa::simpleapi::importPlugin("Sofa.Component.Mass");
@@ -257,18 +256,38 @@ TEST(SparseLDLSolver, TopologyChangeEmptyMState)
                                   {{"useDataInputs", "true"}, {"timeToRemove", "0.05"},
                                    {"pointsToRemove", "0"}});
 
-    sofa::simulation::getSimulation()->init(root.get());
+    sofa::simulation::node::initRoot(root.get());
 
     {
         EXPECT_MSG_NOEMIT(Warning);
-        sofa::simulation::getSimulation()->animate(root.get(), 0.1_sreal);
+        sofa::simulation::node::animate(root.get(), 0.1_sreal);
     }
 
     {
         EXPECT_MSG_EMIT(Warning);
-        sofa::simulation::getSimulation()->animate(root.get(), 0.1_sreal);
+        sofa::simulation::node::animate(root.get(), 0.1_sreal);
     }
 
-    sofa::simulation::getSimulation()->unload(root);
+    sofa::simulation::node::unload(root);
 }
 
+
+
+TEST(SparseLDLSolver, AssociatedLinearSystem)
+{
+    using MatrixType = sofa::linearalgebra::CompressedRowSparseMatrix<SReal>;
+    using Solver = sofa::component::linearsolver::direct::SparseLDLSolver<MatrixType, sofa::linearalgebra::FullVector<SReal> >;
+    const Solver::SPtr solver = sofa::core::objectmodel::New<Solver>();
+
+    solver->init();
+    EXPECT_NE(solver->getContext(), nullptr);
+
+    auto* system = solver->getLinearSystem();
+    EXPECT_NE(system, nullptr);
+
+    using MatrixSystem = sofa::component::linearsystem::MatrixLinearSystem<MatrixType, sofa::linearalgebra::FullVector<SReal> >;
+    auto* matrixSystem = dynamic_cast<MatrixSystem*>(system);
+    EXPECT_NE(matrixSystem, nullptr);
+
+    EXPECT_EQ(MatrixSystem::GetCustomTemplateName(), MatrixType::Name());
+}

@@ -47,12 +47,9 @@ namespace sofa::component::mapping::linear
 using namespace topology;
 using sofa::type::Vec3;
 using sofa::type::Matrix3;
-using sofa::type::Mat3x3d;
-using sofa::type::Vec3d;
 using sofa::core::objectmodel::ComponentState;
 using sofa::linearalgebra::EigenSparseMatrix;
 
-// 10/18 E.Coevoet: what's the difference between edge/line, tetra/tetrahedron, hexa/hexahedron?
 typedef typename sofa::core::topology::BaseMeshTopology::Line Edge;
 typedef typename sofa::core::topology::BaseMeshTopology::Edge Edge;
 typedef typename sofa::core::topology::BaseMeshTopology::Triangle Triangle;
@@ -310,12 +307,11 @@ void BarycentricMapping<TIn, TOut>::applyJ (const core::MechanicalParams * mpara
 {
     SOFA_UNUSED(mparams);
 
-    typename Out::VecDeriv* out = _out.beginEdit();
     if (d_mapper != nullptr)
     {
-        d_mapper->applyJ(*out, in.getValue());
+        auto outWriteAccessor = sofa::helper::getWriteAccessor(_out);
+        d_mapper->applyJ(outWriteAccessor.wref(), in.getValue());
     }
-    _out.endEdit();
 }
 
 
@@ -326,8 +322,8 @@ void BarycentricMapping<TIn, TOut>::applyJT (const core::MechanicalParams * mpar
 
     if (d_mapper != nullptr)
     {
-        d_mapper->applyJT(*out.beginEdit(), in.getValue());
-        out.endEdit();
+        auto outWriteAccessor = sofa::helper::getWriteAccessor(out);
+        d_mapper->applyJT(outWriteAccessor.wref(), in.getValue());
     }
 }
 
@@ -379,8 +375,8 @@ void BarycentricMapping<TIn, TOut>::applyJT(const core::ConstraintParams * cpara
 
     if (d_mapper!=nullptr )
     {
-        d_mapper->applyJT(*out.beginEdit(), in.getValue());
-        out.endEdit();
+        auto outWriteAccessor = sofa::helper::getWriteAccessor(out);
+        d_mapper->applyJT(outWriteAccessor.wref(), in.getValue());
     }
 }
 

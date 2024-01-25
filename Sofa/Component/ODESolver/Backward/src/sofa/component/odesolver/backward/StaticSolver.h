@@ -116,7 +116,7 @@ public:
 
     SReal getIntegrationFactor(int inputDerivative, int outputDerivative, SReal dt) const
     {
-        SReal matrix[3][3] =
+        const SReal matrix[3][3] =
             {
                 { 1, dt, 0},
                 { 0, 1, 0},
@@ -137,14 +137,12 @@ public:
 
     SReal getSolutionIntegrationFactor(int outputDerivative, SReal dt) const
     {
-        SReal vect[3] = { dt, 1, 1/dt};
+        const SReal vect[3] = { dt, 1, 1/dt};
         if (outputDerivative >= 3)
             return 0;
         else
             return vect[outputDerivative];
     }
-
-    virtual void parse(core::objectmodel::BaseObjectDescription* arg) override;
 
 protected:
 

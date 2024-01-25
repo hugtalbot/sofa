@@ -53,7 +53,7 @@ void TopologySubsetIndices::createTopologyHandler(sofa::core::topology::BaseMesh
 
 Index TopologySubsetIndices::getLastElementIndex() const
 {
-    auto nbr = Index(m_topology->getNbPoints());
+    const auto nbr = Index(m_topology->getNbPoints());
     return (nbr == 0) ? sofa::InvalidID : nbr - 1;
 }
 
@@ -85,7 +85,6 @@ void TopologySubsetIndices::updateLastIndex(Index posLastIndex, Index newGlobalI
 }
 
 template class SOFA_CORE_API sofa::core::topology::TopologyDataHandler < core::topology::BaseMeshTopology::Point, type::vector<Index> >;
-template class SOFA_CORE_API sofa::core::topology::TopologyData < core::topology::BaseMeshTopology::Point, type::vector<Index> >;
 //template class SOFA_CORE_API sofa::core::topology::BaseTopologyData < type::vector<Index> >;
 
 } //namespace sofa::core::topology

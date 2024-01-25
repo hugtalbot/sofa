@@ -19,9 +19,11 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-
-
 #include <sofa/component/linearsolver/direct/SparseCommon.h>
+
+extern "C" {
+#include <metis.h>
+}
 
 namespace sofa::component::linearsolver::direct
 {
@@ -36,7 +38,7 @@ void csrToAdj(int n, int * M_colptr, int * M_rowind, type::vector<int>& adj, typ
     {
         for (int i=M_colptr[j];i<M_colptr[j+1];i++) 
         {
-            int col = M_rowind[i];
+            const int col = M_rowind[i];
             if (col>j) tran_countvec[col]++;
         }
     }
@@ -55,7 +57,7 @@ void csrToAdj(int n, int * M_colptr, int * M_rowind, type::vector<int>& adj, typ
     {
         for (int i=M_colptr[j];i<M_colptr[j+1];i++) 
         {
-            int line = M_rowind[i];
+            const int line = M_rowind[i];
             if (line>j)
             {
                 t_adj[t_xadj[line] + tran_countvec[line]] = j;
@@ -86,14 +88,13 @@ void csrToAdj(int n, int * M_colptr, int * M_rowind, type::vector<int>& adj, typ
     }
 }
 
-
-void fillReducingPermutation(const cs &A,int * perm,int * invperm)
+void fillReducingPermutation(int nbColumns, int *columns, int* rowIndices,
+    int * perm,int * invperm)
 {
-    int n = A.n;
     sofa::type::vector<int> adj, xadj, t_adj, t_xadj, tran_countvec;
-    csrToAdj( A.n, A.p , A.i , adj, xadj, t_adj, t_xadj, tran_countvec );
-    METIS_NodeND(&n, xadj.data(), adj.data(), nullptr, nullptr, perm, invperm);
-
+    csrToAdj( nbColumns, columns , rowIndices , adj, xadj, t_adj, t_xadj, tran_countvec );
+    METIS_NodeND(&nbColumns, xadj.data(), adj.data(), nullptr, nullptr, perm, invperm);
 }
+
 
 }

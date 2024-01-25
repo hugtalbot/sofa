@@ -52,7 +52,7 @@ public:
 
 bool TetrahedronSetTopology_test::testEmptyContainer()
 {
-    TetrahedronSetTopologyContainer::SPtr topoCon = sofa::core::objectmodel::New< TetrahedronSetTopologyContainer >();
+    const TetrahedronSetTopologyContainer::SPtr topoCon = sofa::core::objectmodel::New< TetrahedronSetTopologyContainer >();
     EXPECT_EQ(topoCon->getNbTetrahedra(), 0);
     EXPECT_EQ(topoCon->getNumberOfElements(), 0);
     EXPECT_EQ(topoCon->getNumberOfTetrahedra(), 0);
@@ -75,7 +75,7 @@ bool TetrahedronSetTopology_test::testEmptyContainer()
 
 bool TetrahedronSetTopology_test::testTetrahedronBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::core::topology::TopologyElementType::TETRAHEDRON);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::geometry::ElementType::TETRAHEDRON);
     TetrahedronSetTopologyContainer* topoCon = dynamic_cast<TetrahedronSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -149,7 +149,7 @@ bool TetrahedronSetTopology_test::testTetrahedronBuffers()
 
 bool TetrahedronSetTopology_test::testTriangleBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::core::topology::TopologyElementType::TETRAHEDRON);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::geometry::ElementType::TETRAHEDRON);
     TetrahedronSetTopologyContainer* topoCon = dynamic_cast<TetrahedronSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -245,7 +245,7 @@ bool TetrahedronSetTopology_test::testTriangleBuffers()
 
 bool TetrahedronSetTopology_test::testEdgeBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::core::topology::TopologyElementType::TETRAHEDRON);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::geometry::ElementType::TETRAHEDRON);
     TetrahedronSetTopologyContainer* topoCon = dynamic_cast<TetrahedronSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -342,7 +342,7 @@ bool TetrahedronSetTopology_test::testEdgeBuffers()
 
 bool TetrahedronSetTopology_test::testVertexBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::core::topology::TopologyElementType::TETRAHEDRON);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::geometry::ElementType::TETRAHEDRON);
     TetrahedronSetTopologyContainer* topoCon = dynamic_cast<TetrahedronSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -389,8 +389,8 @@ bool TetrahedronSetTopology_test::testVertexBuffers()
 
 bool TetrahedronSetTopology_test::checkTopology()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::core::topology::TopologyElementType::TETRAHEDRON);
-    TetrahedronSetTopologyContainer* topoCon = dynamic_cast<TetrahedronSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/cube_low_res.msh", sofa::geometry::ElementType::TETRAHEDRON);
+    const TetrahedronSetTopologyContainer* topoCon = dynamic_cast<TetrahedronSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
     {
@@ -399,7 +399,7 @@ bool TetrahedronSetTopology_test::checkTopology()
         return false;
     }
 
-    bool res = topoCon->checkTopology();
+    const bool res = topoCon->checkTopology();
     
     if (scene != nullptr)
         delete scene;
@@ -411,7 +411,7 @@ bool TetrahedronSetTopology_test::testTetrahedronGeometry()
 {
     typedef sofa::component::topology::container::dynamic::TetrahedronSetGeometryAlgorithms<sofa::defaulttype::Vec3Types> TetraAlgo3;
 
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/6_tetra_bad.msh", sofa::core::topology::TopologyElementType::TETRAHEDRON);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/6_tetra_bad.msh", sofa::geometry::ElementType::TETRAHEDRON);
 
     std::vector<TetraAlgo3*> algos;
     scene->getNode()->get<TetraAlgo3>(&algos, sofa::core::objectmodel::BaseContext::SearchRoot);

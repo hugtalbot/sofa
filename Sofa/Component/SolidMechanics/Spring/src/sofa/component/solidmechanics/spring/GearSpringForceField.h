@@ -213,6 +213,8 @@ public:
 
     void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& data_df1, DataVecDeriv& data_df2, const DataVecDeriv& data_dx1, const DataVecDeriv& data_dx2) override;
 
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
+
     SReal getPotentialEnergy(const core::MechanicalParams*, const DataVecCoord&, const DataVecCoord& ) const override { return m_potentialEnergy; }
 
     sofa::type::vector<Spring> * getSprings() { return springs.beginEdit(); }
@@ -297,7 +299,7 @@ public:
 
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_GEARSPRINGFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_GEARSPRINGFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_SPRING_API GearSpring<defaulttype::Rigid3Types>;
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_SPRING_API GearSpringForceField<defaulttype::Rigid3Types>;
 

@@ -92,11 +92,11 @@ template<class TMatrix, class TVector>
 void ShewchukPCGLinearSolver<TMatrix,TVector>::setSystemMBKMatrix(const core::MechanicalParams* mparams)
 {
     sofa::helper::AdvancedTimer::valSet("PCG::buildMBK", 1);
-    sofa::helper::AdvancedTimer::stepBegin("PCG::setSystemMBKMatrix");
 
-    Inherit::setSystemMBKMatrix(mparams);
-
-    sofa::helper::AdvancedTimer::stepEnd("PCG::setSystemMBKMatrix");
+    {
+        SCOPED_TIMER("PCG::setSystemMBKMatrix");
+        Inherit::setSystemMBKMatrix(mparams);
+    }
 
     if (l_preconditioner.get()==nullptr) return;
 
@@ -109,7 +109,7 @@ void ShewchukPCGLinearSolver<TMatrix,TVector>::setSystemMBKMatrix(const core::Me
     else if (f_build_precond.getValue())
     {
         sofa::helper::AdvancedTimer::valSet("PCG::PrecondBuildMBK", 1);
-        helper::ScopedAdvancedTimer mbkTimer("PCG::PrecondSetSystemMBKMatrix");
+        SCOPED_TIMER_VARNAME(mbkTimer, "PCG::PrecondSetSystemMBKMatrix");
 
         if (f_update_step.getValue()>0)
         {
@@ -155,7 +155,7 @@ void ShewchukPCGLinearSolver<Matrix,Vector>::handleEvent(sofa::core::objectmodel
 template<class TMatrix, class TVector>
 void ShewchukPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vector& b)
 {
-    helper::ScopedAdvancedTimer solveTimer("PCGLinearSolver::solve");
+    SCOPED_TIMER_VARNAME(solveTimer, "PCGLinearSolver::solve");
 
     std::map < std::string, sofa::type::vector<double> >& graph = * f_graph.beginEdit();
 //    sofa::type::vector<double>& graph_error = graph["Error"];
@@ -171,17 +171,17 @@ void ShewchukPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vect
     Vector& w = *vtmp.createTempVector();
     Vector& s = *vtmp.createTempVector();
 
-    bool apply_precond = l_preconditioner.get()!=nullptr && f_use_precond.getValue();
+    const bool apply_precond = l_preconditioner.get()!=nullptr && f_use_precond.getValue();
 
-    double b_norm = b.dot(b);
-    double tol = f_tolerance.getValue() * b_norm;
+    const double b_norm = b.dot(b);
+    const double tol = f_tolerance.getValue() * b_norm;
 
     r = M * x;
     cgstep_beta(r,b,-1);// r = -1 * r + b  =   b - (M * x)
 
     if (apply_precond)
     {
-        helper::ScopedAdvancedTimer applyPrecondTimer("PCGLinearSolver::apply Precond");
+        SCOPED_TIMER_VARNAME(applyPrecondTimer, "PCGLinearSolver::apply Precond");
         l_preconditioner.get()->setSystemLHVector(w);
         l_preconditioner.get()->setSystemRHVector(r);
         l_preconditioner.get()->solveSystem();
@@ -198,7 +198,7 @@ void ShewchukPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vect
     while ((iter <= f_maxIter.getValue()) && (r_norm > tol))
     {
         s = M * w;
-        double dtq = w.dot(s);
+        const double dtq = w.dot(s);
         double alpha = r_norm / dtq;
 
         cgstep_alpha(x,w,alpha);//for(int i=0; i<n; i++) x[i] += alpha * d[i];
@@ -206,7 +206,7 @@ void ShewchukPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vect
 
         if (apply_precond)
         {
-            helper::ScopedAdvancedTimer applyPrecondTimer("PCGLinearSolver::apply Precond");
+            SCOPED_TIMER_VARNAME(applyPrecondTimer, "PCGLinearSolver::apply Precond");
             l_preconditioner.get()->setSystemLHVector(s);
             l_preconditioner.get()->setSystemRHVector(r);
             l_preconditioner.get()->solveSystem();
@@ -216,7 +216,7 @@ void ShewchukPCGLinearSolver<TMatrix,TVector>::solve (Matrix& M, Vector& x, Vect
             s = r;
         }
 
-        double deltaOld = r_norm;
+        const double deltaOld = r_norm;
         r_norm = r.dot(s);
         graph_error.push_back(r_norm/b_norm);
 

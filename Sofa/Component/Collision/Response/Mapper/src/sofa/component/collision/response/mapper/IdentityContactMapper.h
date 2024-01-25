@@ -176,13 +176,13 @@ public:
 
     Index addPoint(const Coord& /*P*/, Index index, Real& r)
     {
-        collision::geometry::Sphere e(this->model, index);
+        const collision::geometry::Sphere e(this->model, index);
         r = e.r();
         return index;
     }
 };
 
-#if  !defined(SOFA_COMPONENT_COLLISION_IDENTITYCONTACTMAPPER_CPP)
+#if !defined(SOFA_COMPONENT_COLLISION_IDENTITYCONTACTMAPPER_CPP)
 extern template class SOFA_COMPONENT_COLLISION_RESPONSE_MAPPER_API ContactMapper<collision::geometry::SphereCollisionModel<sofa::defaulttype::Vec3Types>, sofa::defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_COLLISION_RESPONSE_MAPPER_API ContactMapper<collision::geometry::PointCollisionModel<sofa::defaulttype::Vec3Types>, sofa::defaulttype::Vec3Types>;
 #endif

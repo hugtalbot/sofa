@@ -63,9 +63,6 @@ public:
     SetIndex d_indices1; ///< Indices of the source points on the first model
     SetIndex d_indices2; ///< Indices of the fixed points on the second model
 
-    SOFA_ATTRIBUTE_DISABLED__STIFFSPRINGFORCEFIELD_DATANAME("To fix your code, use d_lengths")
-    DeprecatedAndRemoved d_length;
-
     core::objectmodel::Data<sofa::type::vector<SReal> > d_lengths; ///< List of lengths to create the springs. Must have the same than indices1 & indices2, or if only one element, it will be applied to all springs. If empty, 0 will be applied everywhere
 protected:
     sofa::type::vector<Mat>  dfdx;
@@ -83,6 +80,8 @@ protected:
     /// Apply the stiffness, i.e. accumulate df given dx
     virtual void addSpringDForce(VecDeriv& df1,const  VecDeriv& dx1, VecDeriv& df2,const  VecDeriv& dx2, sofa::Index i, const Spring& spring, SReal kFactor, SReal bFactor);
 
+    virtual typename DataTypes::DPos computeSpringDForce(VecDeriv& df1,const  VecDeriv& dx1, VecDeriv& df2,const  VecDeriv& dx2, sofa::Index i, const Spring& spring, SReal kFactor, SReal bFactor);
+
     StiffSpringForceField(SReal ks=100.0, SReal kd=5.0);
     StiffSpringForceField(MechanicalState* object1, MechanicalState* object2, SReal ks=100.0, SReal kd=5.0);
 
@@ -98,10 +97,13 @@ public:
     void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& data_df1, DataVecDeriv& data_df2, const DataVecDeriv& data_dx1, const DataVecDeriv& data_dx2) override;
     using Inherit::addKToMatrix;
     void addKToMatrix(const sofa::core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+
 
 protected:
 
-    static void addToMatrix(linearalgebra::BaseMatrix* globalMatrix, const unsigned int offsetRow, const unsigned int offsetCol, const Mat& localMatrix);
+    template<class Matrix>
+    static void addToMatrix(Matrix* globalMatrix, const unsigned int offsetRow, const unsigned int offsetCol, const Mat& localMatrix);
 };
 
 #if !defined(SOFA_COMPONENT_FORCEFIELD_STIFFSPRINGFORCEFIELD_CPP)

@@ -23,11 +23,6 @@
 
 #include <sofa/component/linearsolver/direct/SparseCholeskySolver.h>
 
-SOFA_DEPRECATED_HEADER("v22.06", "v23.06", "sofa/component/linearsolver/direct/SparseCholeskySolver.h")
-
-namespace sofa::component::linearsolver
-{
-	template<class TMatrix, class TVector>
-    using SparseCholeskySolver = sofa::component::linearsolver::direct::SparseCholeskySolver<TMatrix, TVector>;
-
-} // namespace sofa::component::linearsolver
+SOFA_PRAGMA_ERROR( \
+    "This header has been DISABLED since v23.12. " \
+    "To fix this error you must use the CSparseSolvers plugins. " )

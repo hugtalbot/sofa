@@ -73,10 +73,11 @@ public:
 	TorsionForceField();
 	virtual ~TorsionForceField();
 
-	void bwdInit() override;
 	void addForce(const MechanicalParams *, DataVecDeriv &f, const DataVecCoord &x, const DataVecDeriv &v) override;
 	void addDForce(const MechanicalParams *mparams, DataVecDeriv &df, const DataVecDeriv &dx) override;
 	void addKToMatrix(linearalgebra::BaseMatrix *matrix, SReal kFact, unsigned int &offset) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+	void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
 
     SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const override;
 
@@ -97,7 +98,7 @@ template<>
 void TorsionForceField<Rigid3Types>::addDForce(const core::MechanicalParams *mparams, DataVecDeriv &df, const DataVecDeriv &dx);
 
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_TORSIONFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_TORSIONFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API TorsionForceField<Vec3Types>;
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API TorsionForceField<Rigid3Types>;
 

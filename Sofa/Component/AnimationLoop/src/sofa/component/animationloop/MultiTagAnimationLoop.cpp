@@ -48,8 +48,7 @@ int MultiTagAnimationLoopClass = core::RegisterObject("Simple animation loop tha
         .addAlias("MultiTagMasterSolver")
         ;
 
-MultiTagAnimationLoop::MultiTagAnimationLoop(simulation::Node* gnode)
-    : Inherit(gnode)
+MultiTagAnimationLoop::MultiTagAnimationLoop()
 {
 }
 
@@ -70,7 +69,10 @@ void MultiTagAnimationLoop::init()
 
 void MultiTagAnimationLoop::step(const sofa::core::ExecParams* params, SReal dt)
 {
-    sofa::helper::AdvancedTimer::stepBegin("AnimationStep");
+    auto node = dynamic_cast<sofa::simulation::Node*>(this->l_node.get());
+
+    SCOPED_TIMER_VARNAME(animationStepTimer, "AnimationStep");
+
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printNode("Step");
 #endif
@@ -78,16 +80,16 @@ void MultiTagAnimationLoop::step(const sofa::core::ExecParams* params, SReal dt)
     {
         AnimateBeginEvent ev ( dt );
         PropagateEventVisitor act ( params, &ev );
-        this->gnode->execute ( act );
+        node->execute ( act );
     }
 
-    SReal startTime = this->gnode->getTime();
+    SReal startTime = node->getTime();
 
     BehaviorUpdatePositionVisitor beh(params , dt);
-    this->gnode->execute ( beh );
+    node->execute ( beh );
 
     UpdateInternalDataVisitor uid(params);
-    gnode->execute ( uid );
+    node->execute ( uid );
 
     sofa::core::objectmodel::TagSet::iterator it;
 
@@ -98,7 +100,7 @@ void MultiTagAnimationLoop::step(const sofa::core::ExecParams* params, SReal dt)
         this->addTag (*it);
 
         dmsg_info() << "begin constraints reset" ;
-        MechanicalResetConstraintVisitor(&cparams).execute(this->getContext());
+        MechanicalResetConstraintVisitor(&cparams).execute(node);
         dmsg_info() << "end constraints reset" ;
 
         dmsg_info() << "begin collision for tag: "<< *it ;
@@ -111,37 +113,35 @@ void MultiTagAnimationLoop::step(const sofa::core::ExecParams* params, SReal dt)
         this->removeTag (*it);
     }
 
-    this->gnode->setTime ( startTime + dt );
-    this->gnode->execute<UpdateSimulationContextVisitor>(params);  // propagate time
+    node->setTime ( startTime + dt );
+    node->execute<UpdateSimulationContextVisitor>(params);  // propagate time
 
     {
         AnimateEndEvent ev ( dt );
         PropagateEventVisitor act ( params, &ev );
-        this->gnode->execute ( act );
+        node->execute ( act );
     }
 
-    sofa::helper::AdvancedTimer::stepBegin("UpdateMapping");
     //Visual Information update: Ray Pick add a MechanicalMapping used as VisualMapping
-    this->gnode->execute<UpdateMappingVisitor>(params);
-    sofa::helper::AdvancedTimer::step("UpdateMappingEndEvent");
+    {
+        SCOPED_TIMER_VARNAME(updateMappingTimer, "UpdateMapping");
+        node->execute<UpdateMappingVisitor>(params);
+    }
     {
         UpdateMappingEndEvent ev ( dt );
         PropagateEventVisitor act ( params , &ev );
-        this->gnode->execute ( act );
+        node->execute ( act );
     }
-    sofa::helper::AdvancedTimer::stepEnd("UpdateMapping");
 
     if (d_computeBoundingBox.getValue())
     {
-        sofa::helper::ScopedAdvancedTimer timer("UpdateBBox");
-        this->gnode->execute<UpdateBoundingBoxVisitor>(params);
+        SCOPED_TIMER("UpdateBBox");
+        node->execute<UpdateBoundingBoxVisitor>(params);
     }
 
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("Step");
 #endif
-
-    sofa::helper::AdvancedTimer::stepEnd("AnimationStep");
 }
 
 void MultiTagAnimationLoop::clear()

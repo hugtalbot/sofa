@@ -20,7 +20,3 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
-
-#include <sofa/component/collision/response/contact/DefaultContactManager.h>
-
-SOFA_DISABLED_HEADER("v22.06", "v23.06", "sofa/component/collision/response/contact/DefaultContactManager.h")

@@ -30,7 +30,7 @@
 #include <sofa/simulation/Node.h>
 
 // Including constraint, force and mass
-#include <sofa/component/constraint/projective/AffineMovementConstraint.h>
+#include <sofa/component/constraint/projective/AffineMovementProjectiveConstraint.h>
 #include <sofa/component/statecontainer/MechanicalObject.h>
 #include <sofa/component/solidmechanics/spring/MeshSpringForceField.h>
 #include <sofa/component/solidmechanics/fem/elastic/TetrahedronFEMForceField.h>
@@ -61,7 +61,7 @@ struct AffinePatch_sofa_test : public sofa::testing::BaseSimulationTest, sofa::t
     typedef typename DataTypes::VecDeriv VecDeriv;
     typedef typename DataTypes::Deriv Deriv;
     typedef typename DataTypes::Real Real;
-    typedef constraint::projective::AffineMovementConstraint<DataTypes> AffineMovementConstraint;
+    typedef constraint::projective::AffineMovementProjectiveConstraint<DataTypes> AffineMovementProjectiveConstraint;
     typedef statecontainer::MechanicalObject<DataTypes> MechanicalObject;
     typedef typename component::solidmechanics::spring::MeshSpringForceField<DataTypes> MeshSpringForceField;
     typedef typename component::solidmechanics::fem::elastic::TetrahedronFEMForceField<DataTypes> TetraForceField;
@@ -83,7 +83,7 @@ struct AffinePatch_sofa_test : public sofa::testing::BaseSimulationTest, sofa::t
     void SetUp()
     {
         // Init simulation
-        sofa::simulation::setSimulation(simulation = new sofa::simulation::graph::DAGSimulation());
+        simulation = sofa::simulation::getSimulation();
 
         root = simulation::getSimulation()->createNewGraph("root");
 
@@ -204,7 +204,7 @@ struct AffinePatch_sofa_test : public sofa::testing::BaseSimulationTest, sofa::t
     bool compareSimulatedToTheoreticalPositions(double convergenceAccuracy, double diffMaxBetweenSimulatedAndTheoreticalPosition)
     {
         // Init simulation
-        sofa::simulation::getSimulation()->init(root.get());
+        sofa::simulation::node::initRoot(root.get());
 
         // Compute the theoretical final positions
         VecCoord finalPos;
@@ -226,7 +226,7 @@ struct AffinePatch_sofa_test : public sofa::testing::BaseSimulationTest, sofa::t
         do
         {
             hasConverged = true;
-            sofa::simulation::getSimulation()->animate(root.get(),0.5);
+            sofa::simulation::node::animate(root.get(), 0.5_sreal);
             typename MechanicalObject::ReadVecCoord x = patchStruct.dofs->readPositions();
 
             // Compute dx

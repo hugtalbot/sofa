@@ -61,11 +61,11 @@ QRGBAColorPicker::QRGBAColorPicker(QWidget* parent) : QWidget(parent)
     connect( _colorButton, SIGNAL( clicked() ), this, SLOT( raiseQColorDialog() ) );
 }
 
-Vec4f QRGBAColorPicker::getColor() const
+type::RGBAColor QRGBAColorPicker::getColor() const
 {
     typedef unsigned char uchar;
-    const uchar max = std::numeric_limits<uchar>::max();
-    Vec4f color;
+    constexpr uchar max = std::numeric_limits<uchar>::max();
+    type::RGBAColor color;
     float r = _r->text().toFloat();
     float g = _g->text().toFloat();
     float b = _b->text().toFloat();
@@ -94,14 +94,14 @@ void QRGBAColorPicker::updateRGBAColor()
     redrawColorButton();
 }
 
-void QRGBAColorPicker::setColor(const Vec4f& color)
+void QRGBAColorPicker::setColor(const type::RGBAColor& color)
 {
     typedef unsigned char uchar;
-    const uchar max = std::numeric_limits<uchar>::max();
-    const uchar r = uchar(  max * color[0] );
-    const uchar g = uchar(  max * color[1] );
-    const uchar b = uchar(  max * color[2] );
-    const uchar a = uchar(  max * color[3] );
+    constexpr uchar max = std::numeric_limits<uchar>::max();
+    const uchar r = uchar(max * color[0]);
+    const uchar g = uchar(max * color[1]);
+    const uchar b = uchar(max * color[2]);
+    const uchar a = uchar(max * color[3]);
     QString str;
     str.setNum(r);
     _r->setText(str);
@@ -111,15 +111,20 @@ void QRGBAColorPicker::setColor(const Vec4f& color)
     _b->setText(str);
     str.setNum(a);
     _a->setText(str);
-    _rgba = qRgba(r,g,b,a);
+    _rgba = qRgba(r, g, b, a);
 
     redrawColorButton();
 }
 
+void QRGBAColorPicker::setColor(const Vec4f& color)
+{
+    setColor(type::RGBAColor{color[0], color[1] , color[2] ,color[3]});
+}
+
 void QRGBAColorPicker::redrawColorButton()
 {
-    int w=_colorButton->width();
-    int h=_colorButton->height();
+    const int w=_colorButton->width();
+    const int h=_colorButton->height();
 
     QPixmap *pix=new QPixmap(25,20);
     pix->fill(QColor(qRed(_rgba),
@@ -146,7 +151,7 @@ void QRGBAColorPicker::raiseQColorDialog()
     if( qcolor.isValid() )
 #endif
     {
-        QRgb rgba=qcolor.rgb();
+        const QRgb rgba=qcolor.rgb();
         r=qRed(rgba);
         g=qGreen(rgba);
         b=qBlue(rgba);

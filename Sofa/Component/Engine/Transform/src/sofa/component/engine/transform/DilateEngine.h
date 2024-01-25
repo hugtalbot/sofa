@@ -58,7 +58,6 @@ public:
     ~DilateEngine() override {}
 
     void init() override;
-    void bwdInit() override;
     void reinit() override;
     void doUpdate() override;
 
@@ -73,7 +72,7 @@ protected:
     Data<Real> d_minThickness; ///< minimal thickness to enforce
 };
 
-#if  !defined(SOFA_COMPONENT_ENGINE_DILATEENGINE_CPP)
+#if !defined(SOFA_COMPONENT_ENGINE_DILATEENGINE_CPP)
 extern template class SOFA_COMPONENT_ENGINE_TRANSFORM_API DilateEngine<defaulttype::Vec3Types>;
 #endif
 

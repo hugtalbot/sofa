@@ -69,13 +69,13 @@ public:
     void SetUp() override
     {
         sofa::simpleapi::importPlugin("Sofa.Component");
-        simulation::setSimulation(m_simulation = new simulation::graph::DAGSimulation());
+        m_simulation = sofa::simulation::getSimulation();
     }
 
     void TearDown() override
     {
         if (m_root != nullptr)
-            simulation::getSimulation()->unload(m_root);
+            sofa::simulation::node::unload(m_root);
     }
 
     void createSimpleBeam(Real radius, Real youngModulus, Real poissonRatio)
@@ -96,10 +96,10 @@ public:
 
         createObject(m_root, "BeamFEMForceField", { {"Name","Beam"}, {"template", rigidTypeName}, {"radius", str(radius)}, {"youngModulus", str(youngModulus)}, {"poissonRatio", str(poissonRatio)} });
         createObject(m_root, "UniformMass", { {"name","mass"}, {"totalMass","1.0"} });
-        createObject(m_root, "FixedConstraint", { {"name","fix"}, {"indices","0"} });
+        createObject(m_root, "FixedProjectiveConstraint", { {"name","fix"}, {"indices","0"} });
 
         /// Init simulation
-        sofa::simulation::getSimulation()->init(m_root.get());
+        sofa::simulation::node::initRoot(m_root.get());
     }
 
 
@@ -126,7 +126,7 @@ public:
         m_root = sofa::simpleapi::createRootNode(m_simulation, "root");
         createObject(m_root, "BeamFEMForceField", { {"Name","Beam"}, {"template", rigidTypeName}, {"radius", "0.05"} });
         
-        sofa::simulation::getSimulation()->init(m_root.get());
+        sofa::simulation::node::initRoot(m_root.get());
     }
 
 
@@ -135,10 +135,15 @@ public:
         EXPECT_MSG_EMIT(Error);
 
         m_root = sofa::simpleapi::createRootNode(m_simulation, "root");
+        createObject(m_root, "DefaultAnimationLoop");
+        createObject(m_root, "EulerImplicitSolver");
+        createObject(m_root, "CGLinearSolver", { { "iterations", "20" }, { "threshold", "1e-8" }, {"tolerance", "1e-5"} });
         createObject(m_root, "MechanicalObject", { {"template", rigidTypeName}, {"position", "0 0 1 0 0 0 1   1 0 1 0 0 0 1   2 0 1 0 0 0 1   3 0 1 0 0 0 1"} });
         createObject(m_root, "BeamFEMForceField", { {"Name","Beam"}, {"template", rigidTypeName} });
 
-        sofa::simulation::getSimulation()->init(m_root.get());
+        sofa::simulation::node::initRoot(m_root.get());
+
+        sofa::simulation::node::animate(m_root.get(), 0.01_sreal);
     }
 
 
@@ -152,7 +157,7 @@ public:
         EXPECT_MSG_EMIT(Error);
 
         /// Init simulation
-        sofa::simulation::getSimulation()->init(m_root.get());
+        sofa::simulation::node::initRoot(m_root.get());
     }
 
 
@@ -226,7 +231,7 @@ public:
         // simulate
         for (int i = 0; i < 10; i++)
         {
-            m_simulation->animate(m_root.get(), 0.01);
+            sofa::simulation::node::animate(m_root.get(), 0.01_sreal);
         }
 
         // check positions after simulation
@@ -246,18 +251,18 @@ public:
     {
         createSimpleBeam(0.05, 20000000, 0.49);
 
-        typename EdgeModifier::SPtr edgeModif = m_root->getTreeObject<EdgeModifier>();
+        const typename EdgeModifier::SPtr edgeModif = m_root->getTreeObject<EdgeModifier>();
         ASSERT_TRUE(edgeModif.get() != nullptr);
 
         typename BeamFEM::SPtr bFEM = m_root->getTreeObject<BeamFEM>();
         const VecBeamInfo& EdgeInfos = bFEM->m_beamsData.getValue();
 
         ASSERT_EQ(EdgeInfos.size(), 3);
-        
-        sofa::topology::SetIndex indices = { 0 };
+
+        const sofa::topology::SetIndex indices = { 0 };
         edgeModif->removeEdges(indices, true);
 
-        m_simulation->animate(m_root.get(), 0.01);
+        sofa::simulation::node::animate(m_root.get(), 0.01_sreal);
         ASSERT_EQ(EdgeInfos.size(), 2);
     }
 };

@@ -26,10 +26,7 @@
 #include <sofa/type/config.h>
 #include <cstring>
 
-namespace sofa
-{
-
-namespace helper
+namespace sofa::helper
 {
 
 #ifndef MAXIMUM_NUMBER_OF_DEVICES
@@ -83,23 +80,6 @@ public :
     static bool isNull(device_pointer p) {return p==nullptr;}
 };
 
-/// CPU MemoryManager
-template <class T >
-class CPUMemoryManager : public MemoryManager<T>
-{
-public:
-
-    template<class T2> struct SOFA_ATTRIBUTE_DISABLED__REBIND() rebind
-    {
-        typedef DeprecatedAndRemoved other;
-    };
-
-};
-
-}
-
 }
 
 #endif //SOFA_HELPER_MEMORYMANAGER_H
-
-

@@ -353,14 +353,6 @@ void MechanicalObject<DataTypes>::parse ( sofa::core::objectmodel::BaseObjectDes
                                       (Real)arg->getAttributeAsFloat("dy2",0.0),
                                       (Real)arg->getAttributeAsFloat("dz2",0.0)));
     }
-
-    if (arg->getAttribute("isToPrint")!=nullptr)
-    {
-        msg_deprecated() << "The 'isToPrint' data field has been deprecated in SOFA v19.06 due to lack of consistency in how it should work." << msgendl
-                            "Please contact sofa-dev team in case you need similar.";
-    }
-
-
 }
 
 
@@ -379,11 +371,11 @@ void MechanicalObject<DataTypes>::handleStateChange()
     this->getContext()->get(geoAlgo, sofa::core::objectmodel::BaseContext::Local);
 
     std::list< const TopologyChange * >::const_iterator itBegin = l_topology->beginStateChange();
-    std::list< const TopologyChange * >::const_iterator itEnd = l_topology->endStateChange();
+    const std::list< const TopologyChange * >::const_iterator itEnd = l_topology->endStateChange();
 
     while( itBegin != itEnd )
     {
-        TopologyChangeType changeType = (*itBegin)->getChangeType();
+        const TopologyChangeType changeType = (*itBegin)->getChangeType();
 
         switch( changeType )
         {
@@ -392,7 +384,7 @@ void MechanicalObject<DataTypes>::handleStateChange()
             using sofa::type::vector;
             const PointsAdded &pointsAdded = *static_cast< const PointsAdded * >( *itBegin );
 
-            Size prevSizeMechObj = getSize();
+            const Size prevSizeMechObj = getSize();
             Size nbPoints = Size(pointsAdded.getNbAddedVertices());
 
             if (Size(pointsAdded.pointIndexArray.size()) != nbPoints)
@@ -481,7 +473,7 @@ void MechanicalObject<DataTypes>::handleStateChange()
         {
             const auto& tab = ( static_cast< const PointsRemoved * >( *itBegin ) )->getArray();
 
-            unsigned int prevSizeMechObj   = getSize();
+            const unsigned int prevSizeMechObj   = getSize();
             unsigned int lastIndexMech = prevSizeMechObj - 1;
             for (unsigned int i = 0; i < tab.size(); ++i)
             {
@@ -691,7 +683,7 @@ void MechanicalObject<DataTypes>::applyTranslation (const SReal dx, const SReal 
 template <class DataTypes>
 void MechanicalObject<DataTypes>::applyRotation (const SReal rx, const SReal ry, const SReal rz)
 {
-    sofa::type::Quat<SReal> q =
+    const sofa::type::Quat<SReal> q =
             type::Quat< SReal >::createQuaterFromEuler(sofa::type::Vec3(rx, ry, rz) * M_PI / 180.0);
     applyRotation(q);
 }
@@ -852,6 +844,40 @@ void MechanicalObject<DataTypes>::copyFromBaseVector(sofa::core::VecId dest, con
 }
 
 template <class DataTypes>
+void MechanicalObject<DataTypes>::copyToBaseMatrix(linearalgebra::BaseMatrix* dest, core::ConstMatrixDerivId src, unsigned& offset)
+{
+    if (dest == nullptr)
+    {
+        dmsg_error() << "Cannot copy into an invalid matrix: a valid matrix is required";
+        return;
+    }
+    if (const auto* matrixData = this->read(src))
+    {
+        const MatrixDeriv& matrix = matrixData->getValue();
+
+        for (MatrixDerivRowConstIterator rowIt = matrix.begin(); rowIt != matrix.end(); ++rowIt)
+        {
+            const int cid = rowIt.index();
+            for (MatrixDerivColConstIterator colIt = rowIt.begin(); colIt != rowIt.end(); ++colIt)
+            {
+                const unsigned int dof = colIt.index();
+                const Deriv n = colIt.val();
+
+                for (unsigned int r = 0; r < Deriv::size(); ++r)
+                {
+                    dest->add(cid, offset + dof * Deriv::size() + r, n[r]);
+                }
+            }
+        }
+    }
+    else
+    {
+        msg_error() << "Cannot copy matrix into destination: source does not exist";
+    }
+    offset += this->getMatrixSize();
+}
+
+template <class DataTypes>
 void MechanicalObject<DataTypes>::addToBaseVector(linearalgebra::BaseVector* dest, sofa::core::ConstVecId src, unsigned int &offset)
 {
     applyPredicateIfCoordOrDeriv(src.type, [this, &dest, &offset, &src](auto vtype)
@@ -956,7 +982,7 @@ void MechanicalObject<DataTypes>::init()
 
     if (maxElement != vector_sizes.end())
     {
-        Size maxSize = (*maxElement).second;
+        const Size maxSize = (*maxElement).second;
 
         // Resize the mechanical object size to match the maximum size of argument's vectors
         if (getSize() < maxSize)
@@ -1626,8 +1652,22 @@ void MechanicalObject<DataTypes>::setVecIdProperties(core::TVecId<vtype, vaccess
 {
     if (!properties.label.empty())
     {
-        vec_d->setName(properties.label + core::VecTypeLabels.at(vtype));
-        vec_d->setHelp("VecId: " + v.getName());
+        const std::string newname = properties.label;
+        const std::string oldname = properties.label + core::VecTypeLabels.at(vtype);
+        const auto base = vec_d->getOwner();
+        if(base && !base->findData(oldname))
+        {
+            base->addAlias(vec_d, oldname.c_str());
+
+            // This allows to find the data field in getData() using its new name eg: constraint_dx
+            if(base->findData(newname))
+                msg_error(base) << "Unable to expose a dynamic data field named '" << newname << "' as that name already exists. Please report this issue to https://github.com/sofa-framework/sofa/issues (for more infos see PR: https://github.com/sofa-framework/sofa/pull/3783)";
+            else
+                base->addAlias(vec_d, newname.c_str());
+
+        }
+        vec_d->setName(newname);
+        vec_d->setHelp("VecId: " + oldname);
     }
     if (!properties.group.empty())
     {
@@ -2247,9 +2287,11 @@ void MechanicalObject<DataTypes>::resetAcc(const core::ExecParams* params, core:
 template <class DataTypes>
 void MechanicalObject<DataTypes>::resetConstraint(const core::ConstraintParams* cParams)
 {
+    //reset the constraint jacobian matrix
     Data<MatrixDeriv>& c_data = *this->write(cParams->j().getId(this));
     sofa::helper::getWriteOnlyAccessor(c_data)->clear();
 
+    //reset the mapping jacobian matrix
     Data<MatrixDeriv>& m_data = *this->write(core::MatrixDerivId::mappingJacobian());
     sofa::helper::getWriteOnlyAccessor(m_data)->clear();
 }
@@ -2287,7 +2329,7 @@ void MechanicalObject<DataTypes>::getConstraintJacobian(const core::ConstraintPa
 template <class DataTypes>
 void MechanicalObject<DataTypes>::buildIdentityBlocksInJacobian(const sofa::type::vector<unsigned int>& list_n, core::MatrixDerivId &mID)
 {
-    const auto N = Deriv::size();
+    static constexpr auto N = Deriv::size();
     Data<MatrixDeriv>* cMatrix= this->write(mID);
 
     MatrixDeriv& jacobian = *cMatrix->beginEdit();
@@ -2419,7 +2461,7 @@ SReal MechanicalObject<DataTypes>::getConstraintJacobianTimesVecDeriv(unsigned i
 template <class DataTypes>
 inline void MechanicalObject<DataTypes>::drawIndices(const core::visual::VisualParams* vparams)
 {
-    float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * showIndicesScale.getValue());
+    const float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * showIndicesScale.getValue());
 
     std::vector<type::Vec3> positions;
     positions.reserve(d_size.getValue());
@@ -2443,7 +2485,7 @@ inline void MechanicalObject<DataTypes>::drawVectors(const core::visual::VisualP
         type::Vec3 p1 = type::Vec3(getPX(i), getPY(i), getPZ(i));
         type::Vec3 p2 = type::Vec3(getPX(i)+scale*vx, getPY(i)+scale*vy, getPZ(i)+scale*vz);
 
-        float rad = (float)( (p1-p2).norm()/20.0 );
+        const float rad = (float)( (p1-p2).norm()/20.0 );
         switch (drawMode.getValue())
         {
         case 0:
@@ -2544,7 +2586,7 @@ bool MechanicalObject<DataTypes>::pickParticles(const core::ExecParams* /* param
 
             type::Vec<3,Real> vecPoint = (pos-origin) - direction*dist;
             SReal distToRay = vecPoint.norm2();
-            SReal maxr = radius0 + dRadius*dist;
+            const SReal maxr = radius0 + dRadius*dist;
             if (distToRay <= maxr*maxr)
             {
                 particles.insert(std::make_pair(distToRay,std::make_pair(this,i)));

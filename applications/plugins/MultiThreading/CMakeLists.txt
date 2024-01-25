@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(MultiThreading VERSION 0.1)
 
 set(HEADER_FILES
-    src/MultiThreading/config.h
+    src/MultiThreading/config.h.in
     src/MultiThreading/initMultiThreading.h
     src/MultiThreading/DataExchange.h
     src/MultiThreading/DataExchange.inl
@@ -12,6 +12,9 @@ set(HEADER_FILES
     src/MultiThreading/component/animationloop/StepTask.h
     src/MultiThreading/component/collision/detection/algorithm/ParallelBVHNarrowPhase.h
     src/MultiThreading/component/collision/detection/algorithm/ParallelBruteForceBroadPhase.h
+    src/MultiThreading/component/linearsolver/iterative/ParallelCGLinearSolver.h
+    src/MultiThreading/component/linearsolver/iterative/ParallelCGLinearSolver.inl
+    src/MultiThreading/component/linearsolver/iterative/ParallelCompressedRowSparseMatrixMechanical.h
     src/MultiThreading/component/mapping/linear/BeamLinearMapping_mt.h
     src/MultiThreading/component/mapping/linear/BeamLinearMapping_mt.inl
     src/MultiThreading/component/mapping/linear/BeamLinearMapping_tasks.inl
@@ -33,9 +36,9 @@ set(SOURCE_FILES
     src/MultiThreading/DataExchange.cpp
     src/MultiThreading/MeanComputation.cpp
     src/MultiThreading/component/animationloop/AnimationLoopParallelScheduler.cpp
-    src/MultiThreading/component/animationloop/StepTask.cpp
     src/MultiThreading/component/collision/detection/algorithm/ParallelBVHNarrowPhase.cpp
     src/MultiThreading/component/collision/detection/algorithm/ParallelBruteForceBroadPhase.cpp
+    src/MultiThreading/component/linearsolver/iterative/ParallelCGLinearSolver.cpp
     src/MultiThreading/component/mapping/linear/BeamLinearMapping_mt.cpp
     src/MultiThreading/component/solidmechanics/fem/elastic/ParallelHexahedronFEMForceField.cpp
     src/MultiThreading/component/solidmechanics/fem/elastic/ParallelTetrahedronFEMForceField.cpp
@@ -67,6 +70,7 @@ sofa_find_package(Sofa.Component.SolidMechanics.FEM.Elastic REQUIRED)
 sofa_find_package(Sofa.Component.Mapping.Linear REQUIRED)
 sofa_find_package(Sofa.Component.StateContainer REQUIRED)
 sofa_find_package(Sofa.Component.SolidMechanics.Spring REQUIRED)
+sofa_find_package(Sofa.Component.LinearSolver.Iterative REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} Sofa.Simulation.Common)
@@ -75,9 +79,7 @@ target_link_libraries(${PROJECT_NAME} Sofa.Component.SolidMechanics.FEM.Elastic)
 target_link_libraries(${PROJECT_NAME} Sofa.Component.Mapping.Linear)
 target_link_libraries(${PROJECT_NAME} Sofa.Component.StateContainer)
 target_link_libraries(${PROJECT_NAME} Sofa.Component.SolidMechanics.Spring)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_MULTITHREADING_PLUGIN")
-
+target_link_libraries(${PROJECT_NAME} Sofa.Component.LinearSolver.Iterative)
 
 ## Install rules for the library and headers; CMake package configurations files
 sofa_create_package_with_targets(

@@ -174,14 +174,14 @@ void LinearSolverConstraintCorrection<DataTypes>::addComplianceInConstraintSpace
 
     switch (cparams->constOrder())
     {
-    case core::ConstraintParams::POS_AND_VEL :
-    case core::ConstraintParams::POS :
-        factor = l_ODESolver.get()->getPositionIntegrationFactor();
+    case core::ConstraintOrder::POS_AND_VEL :
+    case core::ConstraintOrder::POS :
+        factor = l_ODESolver->getPositionIntegrationFactor();
         break;
 
-    case core::ConstraintParams::ACC :
-    case core::ConstraintParams::VEL :
-        factor = l_ODESolver.get()->getVelocityIntegrationFactor();
+    case core::ConstraintOrder::ACC :
+    case core::ConstraintOrder::VEL :
+        factor = l_ODESolver->getVelocityIntegrationFactor();
         break;
 
     default :
@@ -707,7 +707,7 @@ void LinearSolverConstraintCorrection<DataTypes>::getBlockDiagonalCompliance(lin
             MatrixDerivColConstIterator colItEnd = rowIt.end();
 
             unsigned int dof_buf = 0;
-            int debug = 0;
+            const int debug = 0;
 
             for (MatrixDerivColConstIterator colIt = rowIt.begin(); colIt != colItEnd; ++colIt)
             {
@@ -719,7 +719,7 @@ void LinearSolverConstraintCorrection<DataTypes>::getBlockDiagonalCompliance(lin
 
                 if (debug!=0)
                 {
-                    int test = dof_buf - dof;
+                    const int test = dof_buf - dof;
                     if (test>2 || test< -2)
                         dmsg_info() << "For constraint id1 dof1 = " << dof_buf << " dof2 = " << dof;
                 }

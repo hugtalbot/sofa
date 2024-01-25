@@ -184,6 +184,8 @@ public:
         msg_warning() << "Method getPotentialEnergy not implemented yet.";
         return 0.0;
     }
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
 
     void draw(const core::visual::VisualParams* vparams) override;
 
@@ -213,7 +215,7 @@ public:
 };
 
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_STANDARDTETRAHEDRALFEMFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_STANDARDTETRAHEDRALFEMFORCEFIELD_CPP)
 
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_HYPERELASTIC_API StandardTetrahedralFEMForceField<sofa::defaulttype::Vec3Types>;
 

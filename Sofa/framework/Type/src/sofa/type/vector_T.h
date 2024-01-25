@@ -67,12 +67,6 @@ public:
     template<class T2>
     using rebind_to = vector< T2, CPUMemoryManager<T2> >;
 
-    template<class T2> struct SOFA_ATTRIBUTE_DISABLED__REBIND() rebind
-    {
-        typedef DeprecatedAndRemoved other;
-    };
-
-
     /// Basic constructor
     vector() : std::vector<T,Alloc>() {}
     /// Constructor
@@ -99,14 +93,8 @@ public:
         return *this;
     }
 
-#ifdef __STL_MEMBER_TEMPLATES
-    /// Constructor
-    template <class InputIterator>
-    vector(InputIterator first, InputIterator last): std::vector<T,Alloc>(first,last) {}
-#else /* __STL_MEMBER_TEMPLATES */
     /// Constructor
     vector(typename vector<T>::const_iterator first, typename vector<T>::const_iterator last): std::vector<T>(first,last) {}
-#endif /* __STL_MEMBER_TEMPLATES */
 
     /// Read/write random access
     reference operator[](Size n)

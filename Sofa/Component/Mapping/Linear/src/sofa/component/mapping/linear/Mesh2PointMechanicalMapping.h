@@ -25,7 +25,6 @@
 #include <sofa/core/Mapping.h>
 
 #include <sofa/defaulttype/VecTypes.h>
-#include <sofa/defaulttype/TopologyTypes.h>
 
 #include <sofa/component/mapping/linear/Mesh2PointTopologicalMapping.h>
 
@@ -84,7 +83,7 @@ protected:
 
 
 
-#if  !defined(SOFA_COMPONENT_MAPPING_MESH2POINTMECHANICALMAPPING_CPP)
+#if !defined(SOFA_COMPONENT_MAPPING_MESH2POINTMECHANICALMAPPING_CPP)
 extern template class SOFA_COMPONENT_MAPPING_LINEAR_API Mesh2PointMechanicalMapping< defaulttype::Vec3Types, defaulttype::Vec3Types >;
 #endif
 

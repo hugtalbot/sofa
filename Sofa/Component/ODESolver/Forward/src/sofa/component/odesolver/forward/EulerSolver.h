@@ -120,7 +120,7 @@ protected:
                                     core::MultiVecDerivId acc,
                                     core::ConstMultiVecDerivId f);
 
-    /// Apply projective constraints, such as FixedConstraint
+    /// Apply projective constraints, such as FixedProjectiveConstraint
     static void projectResponse(sofa::simulation::common::MechanicalOperations* mop, core::MultiVecDerivId vecId);
 
     static void solveConstraints(sofa::simulation::common::MechanicalOperations* mop, core::MultiVecDerivId acc);
@@ -129,9 +129,6 @@ protected:
 
     static void solveSystem(core::behavior::MultiMatrix<simulation::common::MechanicalOperations>* matrix,
                             core::MultiVecDerivId solution, core::MultiVecDerivId rhs);
-
-    SOFA_ATTRIBUTE_DISABLED__EULERSOLVER_OPTIM_DIAGONALMATRIX()
-    DeprecatedAndRemoved d_optimizedForDiagonalMatrix{};
 };
 
 } // namespace sofa::component::odesolver::forward

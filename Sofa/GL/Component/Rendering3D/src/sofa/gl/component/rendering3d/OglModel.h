@@ -77,6 +77,7 @@ protected:
     GLuint vbo, iboEdges, iboTriangles, iboQuads;
     bool VBOGenDone, initDone, useEdges, useTriangles, useQuads, canUsePatches;
     size_t oldVerticesSize, oldNormalsSize, oldTexCoordsSize, oldTangentsSize, oldBitangentsSize, oldEdgesSize, oldTrianglesSize, oldQuadsSize;
+    int edgesRevision, trianglesRevision, quadsRevision;
 
     /// These two buffers are used to convert the data field to float type before being sent to
     /// opengl
@@ -97,7 +98,6 @@ protected:
 
     GLenum getGLenum(const char* c ) const;
 
-
     OglModel();
 
     ~OglModel() override;
@@ -110,7 +110,6 @@ public:
     void initVisual() override;
 
     void init() override { VisualModelImpl::init(); }
-    void parse(core::objectmodel::BaseObjectDescription* arg) override;
 
     void updateBuffers() override;
 

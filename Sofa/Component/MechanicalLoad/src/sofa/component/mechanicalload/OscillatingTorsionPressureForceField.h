@@ -102,6 +102,9 @@ public:
 
     SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const override;
 
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
+
     void draw(const core::visual::VisualParams* vparams) override;
 
     void setDminAndDmax(const SReal _dmin, const SReal _dmax){dmin.setValue(static_cast<Real>(_dmin));
@@ -127,19 +130,19 @@ protected :
     Coord getVecFromRotAxis( const Coord &x );
     Real getAngle( const Coord &v1, const Coord &v2 );
 
-    std::vector<Real> relMomentToApply;   // estimated share of moment to apply to each point
-    std::vector<bool> pointActive;        // true if moment is applied to specific point (surface)
-    std::vector<Coord> vecFromCenter;     // vector from rotation axis for all points
-    std::vector<Real> distFromCenter;     // norm of vecFromCenter
-    std::vector<Coord> momentDir;         // direction in which to apply a moment
-    std::vector<Coord> origVecFromCenter; // vector from rotation axis for all points in original state
-    std::vector<Coord> origCenter;        // center of rotation for original points
+    sofa::type::vector<Real> relMomentToApply;   // estimated share of moment to apply to each point
+    sofa::type::vector<bool> pointActive;        // true if moment is applied to specific point (surface)
+    sofa::type::vector<Coord> vecFromCenter;     // vector from rotation axis for all points
+    sofa::type::vector<Real> distFromCenter;     // norm of vecFromCenter
+    sofa::type::vector<Coord> momentDir;         // direction in which to apply a moment
+    sofa::type::vector<Coord> origVecFromCenter; // vector from rotation axis for all points in original state
+    sofa::type::vector<Coord> origCenter;        // center of rotation for original points
     SReal rotationAngle;
 
     sofa::core::topology::BaseMeshTopology* m_topology; ///< Pointer to the current topology
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_OSCILLATINGTORSIONPRESSUREFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_OSCILLATINGTORSIONPRESSUREFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API OscillatingTorsionPressureForceField<sofa::defaulttype::Vec3Types>;
 #endif //  !defined(SOFA_COMPONENT_FORCEFIELD_OSCILLATINGTORSIONPRESSUREFORCEFIELD_CPP)
 

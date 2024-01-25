@@ -45,6 +45,13 @@ SparseGridMultipleTopology::SparseGridMultipleTopology( bool _isVirtual ) : Spar
 
 void SparseGridMultipleTopology::buildAsFinest()
 {
+    if (_fileTopologies.getValue().empty())
+    {
+        msg_error() << "No file topology provided";
+        this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
+        return;
+    }
+
     if( _dataStiffnessCoefs.getValue().size() < _fileTopologies.getValue().size() )
     {
         msg_warning() << "SparseGridMultipleTopology: not enough stiffnessCoefs";
@@ -61,7 +68,7 @@ void SparseGridMultipleTopology::buildAsFinest()
         // 			return;
     }
 
-    unsigned regularGridsSize = _regularGrids.size();
+    const unsigned regularGridsSize = _regularGrids.size();
 
     if (regularGridsSize < _fileTopologies.getValue().size())
     {

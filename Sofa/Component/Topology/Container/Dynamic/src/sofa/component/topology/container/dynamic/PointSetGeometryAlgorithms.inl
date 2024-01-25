@@ -22,7 +22,6 @@
 #pragma once
 #include <sofa/component/topology/container/dynamic/PointSetGeometryAlgorithms.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/core/behavior/MechanicalState.h>
 #include <sofa/core/objectmodel/Tag.h>
 #include <sofa/simulation/fwd.h>
 #include <sofa/simulation/Simulation.h>
@@ -47,10 +46,10 @@ void PointSetGeometryAlgorithms< DataTypes >::init()
 {
     this->d_componentState.setValue(ComponentState::Invalid);
     if ( this->d_tagMechanics.getValue().size()>0) {
-        sofa::core::objectmodel::Tag mechanicalTag(this->d_tagMechanics.getValue());
-        object = this->getContext()->core::objectmodel::BaseContext::template get< core::behavior::MechanicalState< DataTypes > >(mechanicalTag,sofa::core::objectmodel::BaseContext::SearchUp);
+        const sofa::core::objectmodel::Tag mechanicalTag(this->d_tagMechanics.getValue());
+        object = this->getContext()->core::objectmodel::BaseContext::template get< core::State< DataTypes > >(mechanicalTag,sofa::core::objectmodel::BaseContext::SearchUp);
     } else {
-        object = this->getContext()->core::objectmodel::BaseContext::template get< core::behavior::MechanicalState< DataTypes > >();
+        object = this->getContext()->core::objectmodel::BaseContext::template get< core::State< DataTypes > >();
     }
     core::topology::GeometryAlgorithms::init();
 
@@ -72,7 +71,7 @@ void PointSetGeometryAlgorithms< DataTypes >::init()
 
     if(this->object ==nullptr)
     {
-        msg_error() << "Unable to get a valid mechanical object from the context";
+        msg_error() << "Unable to get a valid state from the context";
         return;
     }
     this->d_componentState.setValue(ComponentState::Valid);
@@ -87,7 +86,7 @@ template <class DataTypes>
 float PointSetGeometryAlgorithms< DataTypes >::getIndicesScale() const
 {
     const sofa::type::BoundingBox& bbox = this->getContext()->f_bbox.getValue();
-    float bbDiff = float((bbox.maxBBox() - bbox.minBBox()).norm());
+    const float bbDiff = float((bbox.maxBBox() - bbox.minBBox()).norm());
     if (std::isinf(bbDiff))
         return d_showIndicesScale.getValue();
     else
@@ -196,7 +195,7 @@ PointSetGeometryAlgorithms<DataTypes>::computeAngle(PointID ind_p0, PointID ind_
     Coord p0 = p[ind_p0];
     Coord p1 = p[ind_p1];
     Coord p2 = p[ind_p2];
-    double t = (p1 - p0)*(p2 - p0);
+    const double t = (p1 - p0)*(p2 - p0);
 
     if(fabs(t) < ZERO)
         return RIGHT;
@@ -276,15 +275,9 @@ void PointSetGeometryAlgorithms<DataTypes>::draw(const core::visual::VisualParam
 
     if (d_showPointIndices.getValue())
     {
-        sofa::type::Vec3 sceneMinBBox, sceneMaxBBox;
         const VecCoord& coords =(this->object->read(core::ConstVecCoordId::position())->getValue());
-
-        sofa::simulation::Node* context = sofa::simulation::node::getNodeFrom(this->getContext());
         constexpr auto color4 = sofa::type::RGBAColor::white();
-
-        sofa::simulation::getSimulation()->computeBBox(context, sceneMinBBox.ptr(), sceneMaxBBox.ptr());
-
-        float scale = getIndicesScale();
+        const float scale = getIndicesScale();
 
         std::vector<type::Vec3> positions;
         for (unsigned int i =0; i<coords.size(); i++)

@@ -68,13 +68,6 @@ public:
                                     sofa::type::rebind_to<memory_manager, T2>,
                                     sofa::type::rebind_to<datatypeinfo_manager, T2> >;
 
-    template<class T2> struct SOFA_ATTRIBUTE_DISABLED__REBIND() rebind
-    {
-        typedef DeprecatedAndRemoved other;
-    };
-
-
-
 protected:
     Size     vectorSize;     ///< Current size of the vector
     Size     allocSize;      ///< Allocated size on host
@@ -187,7 +180,7 @@ public:
         DEBUG_OUT_V(SPACEP << "operator=, id is " << v.id << "(" << v.hostIsValid << "," << (v.deviceIsValid & 1) << ") " << std::endl);
         DEBUG_OUT_V(std::cout << v.id << " : " << "(" << v.hostIsValid << "," << (v.deviceIsValid & 1) << ") " << ". operator= param " << id << std::endl);
 
-        Size newSize = v.size();
+        const Size newSize = v.size();
         clear();
 
         fastResize(newSize);
@@ -658,7 +651,7 @@ public:
     {
         iterator p0 = begin();
         Size i = position - p0;
-        Size n = size();
+        const Size n = size();
         if (i >= n) return end();
         for (Size j = i + 1; j < n; ++j)
             *(p0 + (j - 1)) = *(p0 + j);
@@ -669,7 +662,7 @@ public:
     iterator insert(iterator position, const T& x)
     {
         Size i = position - begin();
-        Size n = size();
+        const Size n = size();
         if (i > n) i = n;
         resize(n + 1);
         iterator p0 = begin();

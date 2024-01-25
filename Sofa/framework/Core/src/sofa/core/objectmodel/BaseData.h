@@ -112,6 +112,9 @@ public:
     /// Get a string representation of the value held in this %Data.
     virtual std::string getValueString() const = 0;
 
+    /// Get a string representation of the default value held in this %Data.
+    virtual std::string getDefaultValueString() const = 0;
+
     /// Get the name of the type of the value held in this %Data.
     virtual std::string getValueTypeString() const = 0;
 
@@ -144,14 +147,6 @@ public:
     /// Set the help message.
     void setHelp(const std::string& val) { help = val; }
 
-    /// Get owner class
-    SOFA_ATTRIBUTE_DISABLED__BASEDATA_OWNERCLASS_ACCESSOR("Replace getOwnerClass() by getOwner()->getClassName().")
-    const std::string& getOwnerClass() const = delete;
-
-    /// Set owner class
-    SOFA_ATTRIBUTE_DISABLED__BASEDATA_OWNERCLASS_ACCESSOR("This feature will be totally removed. You are not supposed to change Owner's type name.")
-    void setOwnerClass(const char* val) = delete;
-
     /// Get group
     const std::string& getGroup() const { return group; }
 
@@ -164,9 +159,6 @@ public:
     /// Set widget
     void setWidget(const char* val) { widget = val; }
 
-    /// True if the counter of modification gives valid information.
-    SOFA_ATTRIBUTE_DISABLED__TDATA_INTO_DATA("Data<> must have, by design, their counter valid.")
-    bool isCounterValid() const = delete;
 
     /// @name Flags
     /// @{
@@ -259,13 +251,6 @@ public:
 
     /// Update the value of this %Data
     void update() override;
-
-    /// Copy the value from another Data.
-    ///
-    /// Note that this is a one-time copy and not a permanent link (otherwise see setParent())
-    /// @return true if the copy was successful.
-    SOFA_ATTRIBUTE_DISABLED__TDATA_INTO_DATA("Use copyValueFrom() instead.")
-    bool copyValue(const BaseData* data) = delete;
 
     /// Copy the value from another Data.
     ///

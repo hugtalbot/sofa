@@ -39,7 +39,7 @@
 namespace sofa::component::constraint::lagrangian::solver
 {
 
-class LCPConstraintProblem : public ConstraintProblem
+class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_SOLVER_API LCPConstraintProblem : public ConstraintProblem
 {
 public:
     SReal mu;
@@ -52,7 +52,6 @@ class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_SOLVER_API LCPConstraintSolver : publ
 public:
     SOFA_CLASS(LCPConstraintSolver, ConstraintSolverImpl);
 
-    typedef std::vector<core::behavior::BaseConstraintCorrection*> list_cc;
     typedef sofa::core::MultiVecId MultiVecId;
 
 protected:
@@ -66,9 +65,6 @@ protected:
     */
     ~LCPConstraintSolver() override;
 public:
-    void init() override;
-
-    void cleanup() override;
 
     bool prepareStates(const core::ConstraintParams * /*cParams*/, MultiVecId res1, MultiVecId res2=MultiVecId::null()) override;
     bool buildSystem(const core::ConstraintParams * /*cParams*/, MultiVecId res1, MultiVecId res2=MultiVecId::null()) override;
@@ -91,6 +87,8 @@ public:
     Data<int> merge_method; ///< if multi_grid is active: which method to use to merge constraints (0 = compliance-based, 1 = spatial coordinates)
     Data<int> merge_spatial_step; ///< if merge_method is 1: grid size reduction between multigrid levels
     Data<int> merge_local_levels; ///< if merge_method is 1: up to the specified level of the multigrid, constraints are grouped locally, i.e. separately within each contact pairs, while on upper levels they are grouped globally independently of contact pairs.
+    Data<type::vector< SReal >> d_constraintForces; ///< OUTPUT: The Data constraintForces is used to provide the intensities of constraint forces in the simulation. The user can easily check the constraint forces from the GenericConstraint component interface
+    Data<bool> d_computeConstraintForces; ///< The indices of the constraintForces to store in the constraintForce data field
 
     Data < std::set<int> > constraintGroups; ///< list of ID of groups of constraints to be handled by this solver.
 
@@ -104,23 +102,13 @@ public:
     ConstraintProblem* getConstraintProblem() override;
     void lockConstraintProblem(sofa::core::objectmodel::BaseObject* from, ConstraintProblem* p1, ConstraintProblem* p2=nullptr) override; ///< Do not use the following LCPs until the next call to this function. This is used to prevent concurent access to the LCP when using a LCPForceFeedback through an haptic thread
 
-    void removeConstraintCorrection(core::behavior::BaseConstraintCorrection *s) override;
-
 private:
-    type::vector<core::behavior::BaseConstraintCorrection*> constraintCorrections;
-    type::vector<bool> constraintCorrectionIsActive; // for each constraint correction, a boolean that is false if the parent node is sleeping
     void computeInitialGuess();
     void keepContactForcesValue();
 
     unsigned int _numConstraints;
-    SReal _mu;
+    SOFA_ATTRIBUTE_DEPRECATED__LCPCONSTRAINTSOLVERMUMEMBER() DeprecatedAndRemoved _mu;
 
-    /// Call the method resetConstraint on all the mechanical states and BaseConstraintSet
-    void resetConstraints(core::ConstraintParams cparams);
-    /// Call the method buildConstraintMatrix on all the BaseConstraintSet
-    void buildConstraintMatrix(core::ConstraintParams cparams);
-    /// Call the method applyJT on all the mappings
-    void accumulateMatrixDeriv(core::ConstraintParams cparams);
     /// Multigrid hierarchy is resized and cleared
     void buildHierarchy();
     /// Call the method getConstraintInfo on all the BaseConstraintSet
@@ -129,9 +117,8 @@ private:
     void addComplianceInConstraintSpace(core::ConstraintParams cparams);
 
     /// for built lcp ///
-    void build_LCP();
     LCPConstraintProblem lcp1, lcp2, lcp3; // Triple buffer for LCP.
-    LCPConstraintProblem *lcp, *last_lcp; /// use of last_lcp allows several LCPForceFeedback to be used in the same scene
+    LCPConstraintProblem *current_cp, *last_cp; /// use of last_lcp allows several LCPForceFeedback to be used in the same scene
     sofa::linearalgebra::LPtrFullMatrix<SReal>  *_W;
 
     /// multi-grid approach ///
@@ -148,17 +135,16 @@ private:
 
 
     /// common built-unbuilt
-    sofa::core::objectmodel::BaseContext *context;
     sofa::linearalgebra::FullVector<SReal> *_dFree, *_result;
+    void buildSystem();
     ///
 
     /// for unbuilt lcp ///
-    void build_problem_info();
     int lcp_gaussseidel_unbuilt(SReal *dfree, SReal *f, std::vector<SReal>* residuals = nullptr);
     int nlcp_gaussseidel_unbuilt(SReal *dfree, SReal *f, std::vector<SReal>* residuals = nullptr);
     int gaussseidel_unbuilt(SReal *dfree, SReal *f, std::vector<SReal>* residuals = nullptr);
 
-    sofa::linearalgebra::SparseMatrix<SReal> *_Wdiag;
+    sofa::linearalgebra::SparseMatrix<SReal> _Wdiag;
     std::vector<core::behavior::BaseConstraintCorrection*> _cclist_elem1;
     std::vector<core::behavior::BaseConstraintCorrection*> _cclist_elem2;
 

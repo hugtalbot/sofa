@@ -351,103 +351,38 @@ typename DataTypes::Coord EdgeSetGeometryAlgorithms<DataTypes>::computeRestEdgeD
 template<class DataTypes>
 bool EdgeSetGeometryAlgorithms<DataTypes>::isPointOnEdge(const sofa::type::Vec<3,Real> &pt, const EdgeID ind_e) const
 {
-    constexpr Real ZERO = static_cast<Real>(1e-12);
-
-    sofa::type::Vec<3,Real> p0 = pt;
-
     Coord vertices[2];
     getEdgeVertexCoordinates(ind_e, vertices);
+    sofa::type::Vec<3, Real> p1(type::NOINIT), p2(type::NOINIT);
 
-    sofa::type::Vec<3,Real> p1; //(vertices[0][0], vertices[0][1], vertices[0][2]);
-    sofa::type::Vec<3,Real> p2; //(vertices[1][0], vertices[1][1], vertices[1][2]);
     DataTypes::get(p1[0], p1[1], p1[2], vertices[0]);
     DataTypes::get(p2[0], p2[1], p2[2], vertices[1]);
-
-    sofa::type::Vec<3,Real> v = (p0 - p1).cross(p0 - p2);
-
-    if(v.norm2() < ZERO)
-        return true;
-    else
-        return false;
+    
+    return sofa::geometry::Edge::isPointOnEdge(pt, p1, p2);
 }
 
-//
+
 template<class DataTypes>
-auto EdgeSetGeometryAlgorithms<DataTypes>::compute2PointsBarycoefs(
+auto EdgeSetGeometryAlgorithms<DataTypes>::computeEdgeBarycentricCoordinates(
     const sofa::type::Vec<3, Real> &p,
-    PointID ind_p1,
-    PointID ind_p2) const -> sofa::type::vector< SReal >
+    PointID ind_p1, PointID ind_p2, bool useRestPosition) const -> sofa::type::vector< SReal >
 {
-    constexpr Real ZERO = static_cast<Real>(1e-6);
+    sofa::core::ConstVecCoordId::MyVecId _vecId = useRestPosition ? core::ConstVecCoordId::restPosition() : core::ConstVecCoordId::position();
 
-    sofa::type::vector< SReal > baryCoefs;
-
-    const typename DataTypes::VecCoord& vect_c =(this->object->read(core::ConstVecCoordId::position())->getValue());
+    const typename DataTypes::VecCoord& vect_c = (this->object->read(_vecId)->getValue());
     const typename DataTypes::Coord& c0 = vect_c[ind_p1];
     const typename DataTypes::Coord& c1 = vect_c[ind_p2];
 
     sofa::type::Vec<3, Real> a; DataTypes::get(a[0], a[1], a[2], c0);
     sofa::type::Vec<3, Real> b; DataTypes::get(b[0], b[1], b[2], c1);
 
-    Real dis = (b - a).norm();
-    Real coef_a, coef_b;
+    sofa::type::Vec<2, Real> coefs = sofa::geometry::Edge::getBarycentricCoordinates(p, a, b);
+    sofa::type::vector< SReal > baryCoefs;
 
-
-    if(dis < ZERO)
-    {
-        coef_a = 0.5;
-        coef_b = 0.5;
-    }
-    else
-    {
-        coef_a = (p - b).norm() / dis;
-        coef_b = (p - a).norm() / dis;
-    }
-
-    baryCoefs.push_back(coef_a);
-    baryCoefs.push_back(coef_b);
+    baryCoefs.push_back(coefs[0]);
+    baryCoefs.push_back(coefs[1]);
 
     return baryCoefs;
-
-}
-
-
-/// Write the current mesh into a msh file
-template <typename DataTypes>
-void EdgeSetGeometryAlgorithms<DataTypes>::writeMSHfile(const char *filename) const
-{
-    std::ofstream myfile;
-    myfile.open (filename);
-
-    const typename DataTypes::VecCoord& vect_c =(this->object->read(core::ConstVecCoordId::position())->getValue());
-
-    const size_t numVertices = vect_c.size();
-
-    myfile << "$NOD\n";
-    myfile << numVertices <<"\n";
-
-    for (size_t i=0; i<numVertices; ++i)
-    {
-        Real x=0,y=0,z=0; DataTypes::get(x,y,z, vect_c[i]);
-
-        myfile << i+1 << " " << x << " " << y << " " << z <<"\n";
-    }
-
-    myfile << "$ENDNOD\n";
-    myfile << "$ELM\n";
-
-    const sofa::type::vector<Edge> &edge = this->m_topology->getEdges();
-
-    myfile << edge.size() <<"\n";
-
-    for (size_t i=0; i<edge.size(); ++i)
-    {
-        myfile << i+1 << " 1 1 1 2 " << edge[i][0]+1 << " " << edge[i][1]+1 <<"\n";
-    }
-
-    myfile << "$ENDELM\n";
-
-    myfile.close();
 }
 
 
@@ -462,74 +397,6 @@ bool is_point_on_edge(const Vec& p, const Vec& a, const Vec& b)
     else
         return false;
 }
-
-template<class DataTypes>
-auto EdgeSetGeometryAlgorithms<DataTypes>::computeRest2PointsBarycoefs(
-    const sofa::type::Vec<3, Real>& p,
-    PointID ind_p1,
-    PointID ind_p2) const -> sofa::type::vector<SReal>
-{
-    constexpr Real ZERO = static_cast<Real>(1e-6);
-
-    sofa::type::vector< SReal > baryCoefs;
-
-    const typename DataTypes::VecCoord& vect_c = (this->object->read(core::ConstVecCoordId::restPosition())->getValue());
-    const typename DataTypes::Coord& c0 = vect_c[ind_p1];
-    const typename DataTypes::Coord& c1 = vect_c[ind_p2];
-
-    sofa::type::Vec<3,Real> a; DataTypes::get(a[0], a[1], a[2], c0);
-    sofa::type::Vec<3,Real> b; DataTypes::get(b[0], b[1], b[2], c1);
-
-    Real dis = (b - a).norm();
-    Real coef_a, coef_b;
-
-
-    if(dis < ZERO)
-    {
-        coef_a = 0.5;
-        coef_b = 0.5;
-    }
-    else
-    {
-        coef_a = (p - b).norm() / dis;
-        coef_b = (p - a).norm() / dis;
-    }
-
-    baryCoefs.push_back(coef_a);
-    baryCoefs.push_back(coef_b);
-
-    return baryCoefs;
-
-}
-
-template<class Vec>
-sofa::type::vector< typename Vec::value_type > compute_2points_barycoefs(const Vec& p, const Vec& a, const Vec& b)
-{
-    using Real = typename Vec::value_type;
-    const Real ZERO = 1e-6;
-
-    sofa::type::vector< Real > baryCoefs;
-
-    Real dis = (b - a).norm();
-    Real coef_a, coef_b;
-
-    if(dis < ZERO)
-    {
-        coef_a = 0.5;
-        coef_b = 0.5;
-    }
-    else
-    {
-        coef_a = (p - b).norm() / dis;
-        coef_b = (p - a).norm() / dis;
-    }
-
-    baryCoefs.push_back(coef_a);
-    baryCoefs.push_back(coef_b);
-
-    return baryCoefs;
-}
-
 
 template<class DataTypes>
 auto EdgeSetGeometryAlgorithms<DataTypes>::computePointProjectionOnEdge (const EdgeID edgeIndex,
@@ -573,9 +440,7 @@ auto EdgeSetGeometryAlgorithms<DataTypes>::computePointProjectionOnEdge (const E
     Coord coord_H = compute2EdgesIntersection ( coord_edge1, coord_edge2, intersected);
     sofa::type::Vec<3, Real> h; DataTypes::get(h[0], h[1], h[2], coord_H);
 
-    auto barycoord = compute2PointsBarycoefs(h, theEdge[0], theEdge[1]);
-    return barycoord;
-
+    return computeEdgeBarycentricCoordinates(h, theEdge[0], theEdge[1]);
 }
 
 template<class DataTypes>
@@ -799,7 +664,7 @@ void EdgeSetGeometryAlgorithms< DataTypes >::computeLocalFrameEdgeWeights( type:
         // decompose E.Et for system solution
         if( cholDcmp(L,EEt) ) // Cholesky decomposition of the covariance matrix succeeds, we use it to solve the systems
         {
-            size_t n = weights.size();     // start index for this vertex
+            const size_t n = weights.size();     // start index for this vertex
             weights.resize( n + ve.size() ); // concatenate all the W of the nodes
             sofa::type::Vec<3, Real> a,u;
 
@@ -829,7 +694,7 @@ void EdgeSetGeometryAlgorithms< DataTypes >::computeLocalFrameEdgeWeights( type:
         }
         else
         {
-            size_t n = weights.size();     // start index for this vertex
+            const size_t n = weights.size();     // start index for this vertex
             weights.resize( n + ve.size() ); // concatenate all the W of the nodes
             sofa::type::Vec<3, Real> a,u;
 
@@ -882,7 +747,7 @@ void EdgeSetGeometryAlgorithms<DataTypes>::initPointAdded(PointID index, const c
 {
     using namespace sofa::core::topology;
 
-    if (ancestorElem.type != core::topology::TopologyElementType::EDGE)
+    if (ancestorElem.type != geometry::ElementType::EDGE)
     {
         PointSetGeometryAlgorithms< DataTypes >::initPointAdded(index, ancestorElem, coordVecs, derivVecs);
     }
@@ -951,5 +816,20 @@ bool EdgeSetGeometryAlgorithms<DataTypes>::mustComputeBBox() const
 {
     return ( (this->m_topology->getNbEdges() != 0 && (d_drawEdges.getValue() || showEdgeIndices.getValue())) || Inherit1::mustComputeBBox() );
 }
+
+
+template <class DataTypes>
+sofa::type::vector< SReal > EdgeSetGeometryAlgorithms<DataTypes>::compute2PointsBarycoefs(const sofa::type::Vec<3, Real> &p, PointID ind_p1, PointID ind_p2) const
+{
+    return computeEdgeBarycentricCoordinates(p, ind_p1, ind_p2);
+}
+
+
+template <class DataTypes>
+sofa::type::vector< SReal > EdgeSetGeometryAlgorithms<DataTypes>::computeRest2PointsBarycoefs(const sofa::type::Vec<3, Real> &p, PointID ind_p1, PointID ind_p2) const
+{
+    return computeEdgeBarycentricCoordinates(p, ind_p1, ind_p2, true);
+}
+
 
 } //namespace sofa::component::topology::container::dynamic

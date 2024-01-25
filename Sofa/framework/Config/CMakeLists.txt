@@ -43,7 +43,7 @@ endif()
 # SOFA_FLOAT please consider using SOFA_WITH_FLOAT and SOFA_WITH_DOUBLE.
 # Eg: SOFA_WITH_FLOAT indicate that you need to generate the
 # float code and SOFA_WITH_DOUBLE indicates that you
-# nedd to generate the double related code.
+# need to generate the double related code.
 if(${SOFA_FLOATING_POINT_TYPE} STREQUAL float)
     set(SOFA_WITH_FLOAT 1)
     set(SOFA_WITH_DOUBLE 0)
@@ -60,18 +60,12 @@ option(SOFA_DUMP_VISITOR_INFO "Compile Sofa with the SOFA_DUMP_VISITOR_INFO macr
 if(MSVC)
     option(SOFA_VECTORIZE "(deprecated) Enable the use of SSE2 instructions by the compiler (Only available for MSVC)." OFF)
     option(SOFA_ENABLE_SIMD "Enable the use of SIMD instructions by the compiler (AVX/AVX2 for msvc, march=native for gcc/clang)." OFF)
-    option(SOFA_ENABLE_FAST_MATH "Enable floating-point model to fast (theorically faster but can bring unexpected results/bugs)." OFF)
 endif()
-### Mask
-### Removed since v21.12
-### Warn the user if he set the option by himself
-if(SOFA_USE_MASK)
-    message(WARNING "SOFA_USE_MASK is set ; use of ForceMask has been removed in v21.12. If you are using this feature, your own code will most likely not compile anymore.
-            For more information: https://github.com/sofa-framework/sofa/pull/2316")
-endif()
+option(SOFA_ENABLE_FAST_MATH "Enable floating-point model to fast (theoretically faster but can bring unexpected results/bugs)." OFF)
+
 
 ### SOFA_DEV_TOOL
-option(SOFA_WITH_DEVTOOLS "Compile with developement extra features." ON)
+option(SOFA_WITH_DEVTOOLS "Compile with development extra features." ON)
 
 # Variables to expose in configured files
 sofa_set_01(SOFA_NO_UPDATE_BBOX_ VALUE ${SOFA_NO_UPDATE_BBOX}) # build_option_bbox.h.in
@@ -125,11 +119,19 @@ set(SOFACONFIG_LINK_OPTIONS "")
 set(SOFACONFIG_LINK_OPTIONS_DEBUG "")
 set(SOFACONFIG_LINK_OPTIONS_RELEASE "")
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT IS_IPO_SUPPORTED OUTPUT IPO_ERROR)
-
 ## Link-time optimization
-if (IS_IPO_SUPPORTED)
+if(NOT IPO_CHECK_DONE)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT IS_IPO_SUPPORTED OUTPUT IPO_ERROR)
+    set(IPO_CHECK_DONE ON CACHE INTERNAL "IPO check has been done" FORCE)
+    if (IS_IPO_SUPPORTED)
+        set(IPO_SUPPORTED ON CACHE INTERNAL "IPO can be activated" FORCE)
+    else()
+        message(STATUS "IPO / LTO not supported: <${IPO_ERROR}>")
+    endif()
+endif()
+
+if (IPO_SUPPORTED)
     # Focus on max speed with link-time optimization
     option(SOFA_ENABLE_LINK_TIME_OPTIMIZATION "Enable interprocedural optimization" OFF)
     if (SOFA_ENABLE_LINK_TIME_OPTIMIZATION)
@@ -173,6 +175,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "C
 
     # Silence attribute warnings (for example, ignored already defined external template)
     target_compile_options(${PROJECT_NAME} PUBLIC -Wno-attributes)
+
+    if(SOFA_ENABLE_FAST_MATH)
+        list(APPEND SOFACONFIG_COMPILE_OPTIONS "-ffast-math")
+    endif()
 endif()
 
 ## Windows-specific
@@ -233,6 +239,30 @@ if(SOFA_OPENMP)
     else()
         message("WARNING: Your compiler does not implement OpenMP.")
     endif()
+endif()
+
+## Tracy
+option(SOFA_TRACY "Compile SOFA with the Tracy profiler client" OFF)
+if (SOFA_TRACY)
+    set(SOFA_TRACY_VERSION v0.9.1)
+    include(FetchContent)
+    option(TRACY_STATIC "Whether to build Tracy as a static library" OFF)
+    FetchContent_Declare (
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG ${SOFA_TRACY_VERSION}
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable (tracy)
+    target_link_libraries(${PROJECT_NAME} PUBLIC TracyClient )
+    message(STATUS "SOFA is compiled with the Tracy profiler client. Use the Tracy server ${SOFA_TRACY_VERSION}.")
+endif()
+
+
+option(SOFA_ENABLE_BUILTIN_TIMER "Enable the builtin timers" ON)
+if(SOFA_ENABLE_BUILTIN_TIMER)
+    set(SOFA_ENABLE_SCOPED_ADVANCED_TIMER 1)
 endif()
 
 # An important C++11 feature may be not enabled due to

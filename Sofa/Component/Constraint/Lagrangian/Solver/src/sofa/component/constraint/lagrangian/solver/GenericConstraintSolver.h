@@ -37,7 +37,6 @@ namespace sofa::component::constraint::lagrangian::solver
 
 class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_SOLVER_API GenericConstraintSolver : public ConstraintSolverImpl
 {
-    typedef std::vector<core::behavior::BaseConstraintCorrection*> list_cc;
     typedef sofa::core::MultiVecId MultiVecId;
 
 public:
@@ -52,15 +51,12 @@ public:
 
     bool prepareStates(const core::ConstraintParams * /*cParams*/, MultiVecId res1, MultiVecId res2=MultiVecId::null()) override;
     bool buildSystem(const core::ConstraintParams * /*cParams*/, MultiVecId res1, MultiVecId res2=MultiVecId::null()) override;
-    void buildSystem_matrixFree(unsigned int numConstraints);
-    void buildSystem_matrixAssembly(const core::ConstraintParams *cParams);
     void rebuildSystem(SReal massFactor, SReal forceFactor) override;
     bool solveSystem(const core::ConstraintParams * /*cParams*/, MultiVecId res1, MultiVecId res2=MultiVecId::null()) override;
     bool applyCorrection(const core::ConstraintParams * /*cParams*/, MultiVecId res1, MultiVecId res2=MultiVecId::null()) override;
     void computeResidual(const core::ExecParams* /*params*/) override;
     ConstraintProblem* getConstraintProblem() override;
     void lockConstraintProblem(sofa::core::objectmodel::BaseObject* from, ConstraintProblem* p1, ConstraintProblem* p2 = nullptr) override;
-    void removeConstraintCorrection(core::behavior::BaseConstraintCorrection *s) override;
 
     Data< sofa::helper::OptionsGroup > d_resolutionMethod; ///< Method used to solve the constraint problem, among: \"ProjectedGaussSeidel\", \"UnbuiltGaussSeidel\" or \"for NonsmoothNonlinearConjugateGradient\"
 
@@ -106,18 +102,19 @@ protected:
 
     void clearConstraintProblemLocks();
 
-    enum { CP_BUFFER_SIZE = 10 };
-    sofa::type::fixed_array<GenericConstraintProblem,CP_BUFFER_SIZE> m_cpBuffer;
-    sofa::type::fixed_array<bool,CP_BUFFER_SIZE> m_cpIsLocked;
+    static constexpr auto CP_BUFFER_SIZE = 10;
+    sofa::type::fixed_array<GenericConstraintProblem, CP_BUFFER_SIZE> m_cpBuffer;
+    sofa::type::fixed_array<bool, CP_BUFFER_SIZE> m_cpIsLocked;
     GenericConstraintProblem *current_cp, *last_cp;
-    type::vector<core::behavior::BaseConstraintCorrection*> constraintCorrections;
-    type::vector<bool> constraintCorrectionIsActive; // for each constraint correction, a boolean that is false if the parent node is sleeping
-
-
-    sofa::core::objectmodel::BaseContext *context { nullptr };
+    SOFA_ATTRIBUTE_DISABLED__GENERICCONSTRAINTSOLVER_CONSTRAINTCORRECTIONS() DeprecatedAndRemoved constraintCorrections; //use ConstraintSolverImpl::l_constraintCorrections instead
 
     sofa::core::MultiVecDerivId m_lambdaId;
     sofa::core::MultiVecDerivId m_dxId;
+
+    void buildSystem_matrixFree(unsigned int numConstraints);
+
+    // Explicitly compute the compliance matrix projected in the constraint space
+    void buildSystem_matrixAssembly(const core::ConstraintParams *cParams);
 
 private:
 
@@ -137,6 +134,16 @@ private:
         ComplianceMatrixType& m_complianceMatrix;
         std::unique_ptr<ComplianceMatrixType> m_threadMatrix;
     };
+
+
+    sofa::type::vector<core::behavior::BaseConstraintCorrection*> filteredConstraintCorrections() const;
+
+    void computeAndApplyMotionCorrection(const core::ConstraintParams* cParams, GenericConstraintSolver::MultiVecId res1, GenericConstraintSolver::MultiVecId res2) const;
+    void applyMotionCorrection(
+        const core::ConstraintParams* cParams,
+        MultiVecId res1, MultiVecId res2,
+        core::behavior::BaseConstraintCorrection* constraintCorrection) const;
+    void storeConstraintLambdas(const core::ConstraintParams* cParams);
 
 };
 

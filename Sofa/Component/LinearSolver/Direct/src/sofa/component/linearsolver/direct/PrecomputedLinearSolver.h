@@ -81,18 +81,18 @@ public:
     typedef typename PrecomputedLinearSolverInternalData<TMatrix,TVector>::TBaseMatrix TBaseMatrix;
 
     Data<bool> jmjt_twostep; ///< Use two step algorithm to compute JMinvJt
-    Data<bool> f_verbose; ///< Dump system state at each iteration
     Data<bool> use_file; ///< Dump system matrix in a file
     Data<double> init_Tolerance;
+
+    SOFA_ATTRIBUTE_DEPRECATED__SOLVER_DIRECT_VERBOSEDATA()
+    Data<bool> f_verbose; ///< Dump system state at each iteration
 
     PrecomputedLinearSolver();
     void solve (TMatrix& M, TVector& x, TVector& b) override;
     void invert(TMatrix& M) override;
     void setSystemMBKMatrix(const core::MechanicalParams* mparams) override;
     void loadMatrix(TMatrix& M);
-#if SOFASPARSESOLVER_HAVE_CSPARSE
-    void loadMatrixWithCSparse(TMatrix& M);
-#endif
+    void loadMatrixWithCholeskyDecomposition(TMatrix& M);
     bool addJMInvJt(linearalgebra::BaseMatrix* result, linearalgebra::BaseMatrix* J, SReal fact) override;
 
     /// Returns the sofa template name. By default the name of the c++ class signature is exposed...
@@ -107,6 +107,8 @@ public:
     {
         return &internalData.Minv;
     }
+
+    void parse(core::objectmodel::BaseObjectDescription *arg) override;
 
 protected :
     template<class JMatrix>

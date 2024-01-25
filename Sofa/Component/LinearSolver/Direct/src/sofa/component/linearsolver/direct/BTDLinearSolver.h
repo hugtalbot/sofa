@@ -24,11 +24,15 @@
 
 #include <sofa/core/behavior/LinearSolver.h>
 #include <sofa/component/linearsolver/iterative/MatrixLinearSolver.h>
+#include <sofa/component/linearsystem/TypedMatrixLinearSystem.h>
+#include <sofa/component/linearsystem/MatrixLinearSystem.h>
 #include <sofa/linearalgebra/SparseMatrix.h>
 #include <sofa/linearalgebra/BTDMatrix.h>
 #include <sofa/linearalgebra/BlockVector.h>
 #include <cmath>
 #include <sofa/type/Mat.h>
+#include <sofa/component/linearsolver/direct/MatrixLinearSystem[BTDMatrix].h>
+#include <sofa/component/linearsolver/direct/TypedMatrixLinearSystem[BTDMatrix].h>
 
 namespace sofa::component::linearsolver::direct
 {
@@ -50,20 +54,7 @@ public:
     Data<bool> d_subpartSolve; ///< Allows for the computation of a subpart of the system
     Data<bool> d_verification; ///< verification of the subpartSolve
 
-    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATANAME("To fix your code, use d_verbose")
-    DeprecatedAndRemoved f_verbose;
-    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATANAME("To fix your code, use d_problem")
-    DeprecatedAndRemoved problem;
-    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATANAME("To fix your code, use d_subpartSolve")
-    DeprecatedAndRemoved subpartSolve;
-    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATANAME("To fix your code, use d_verification")
-    DeprecatedAndRemoved verification;
-    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATANAME("To fix your code, use d_blockSize")
-    DeprecatedAndRemoved f_blockSize;
-    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATANAME("test_perf has been removed and not replaced.")
-    DeprecatedAndRemoved test_perf;
-
-    SOFA_ATTRIBUTE_DEPRECATED__BTDLINEARSOLVER_DATABLOCKSIZE("d_blockSize has been deleted, as it was never actually used.")
+    SOFA_ATTRIBUTE_DISABLED__BTDLINEARSOLVER_DATABLOCKSIZE("d_blockSize has been deleted, as it was never actually used.")
     DeprecatedAndRemoved d_blockSize;
 
     typedef typename Vector::SubVectorType SubVector;
@@ -183,8 +174,7 @@ private:
 
 };
 
-#if  !defined(SOFA_COMPONENT_LINEARSOLVER_BTDLINEARSOLVER_CPP)
+#if !defined(SOFA_COMPONENT_LINEARSOLVER_BTDLINEARSOLVER_CPP)
 extern template class SOFA_COMPONENT_LINEARSOLVER_DIRECT_API BTDLinearSolver< linearalgebra::BTDMatrix<6, SReal>, linearalgebra::BlockVector<6, SReal> >;
 #endif
-
 } //namespace sofa::component::linearsolver::direct
