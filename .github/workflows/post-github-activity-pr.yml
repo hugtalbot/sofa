@@ -34,7 +34,7 @@ jobs:
           BOT_NAME: "SOFA Github bot"
           EMBEDS_TITLE: "#${{github.event.pull_request.number}} ${{github.event.pull_request.title}}"
           EMBEDS_URL: "https://github.com/sofa-framework/sofa/pull/${{github.event.pull_request.number}}"
-          EMBEDS_DESCRIPTION: "Authored by @${{github.event.pull_request.user.login}}\nLabels: ${{github.event.pull_request.labels.*.name}}"
+          EMBEDS_DESCRIPTION: "Authored by @${{github.event.pull_request.user.login}}\nLabels: ${{github.event.pull_request.label.name}}"
 
       # PR merged
       - name: Run script post-discord-message.py for PR merged
