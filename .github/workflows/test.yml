@@ -27,5 +27,4 @@ jobs:
       - name: Echo time
         run: |
           echo "${{github.event.schedule}}"
-          echo "${{github.event.schedule | date('%-u') == '1' }}"
 
