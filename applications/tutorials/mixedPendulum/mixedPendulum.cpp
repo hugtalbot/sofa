@@ -38,7 +38,7 @@
 #include <sofa/helper/accessor.h>
 #include <sofa/component/init.h>
 #include <sofa/simulation/graph/init.h>
-#include <SofaGui/initSofaGui.h>
+#include <sofa/gui/init.h>
 
 
 typedef sofa::component::odesolver::forward::EulerExplicitSolver Solver;
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     //force load all components
     sofa::component::init();
     //force load SofaGui (registering guis)
-    sofa::gui::initSofaGui();
+    sofa::gui::init();
 
     //To set a specific resolution for the viewer, use the component ViewerSetting in you scene graph
     sofa::gui::common::GUIManager::SetDimension(800, 600);
@@ -66,7 +66,6 @@ int main(int argc, char** argv)
     double splength = 1.;
 
     //-------------------- The graph root node
-    sofa::simulation::setSimulation(new sofa::simulation::graph::DAGSimulation());
     auto groot = sofa::simulation::getSimulation()->createNewGraph("root");
     groot->setGravity({ 0,-10,0 });
 
@@ -199,7 +198,7 @@ int main(int argc, char** argv)
     sofa::gui::common::GUIManager::SetDimension(800, 600);
 
     //=========================== Init the scene
-    sofa::simulation::getSimulation()->init(groot.get());
+    sofa::simulation::node::initRoot(groot.get());
     sofa::gui::common::GUIManager::SetScene(groot);
 
     groot->setAnimate(true);
@@ -208,9 +207,8 @@ int main(int argc, char** argv)
     sofa::gui::common::GUIManager::MainLoop(groot);
 
     if (groot != NULL)
-        sofa::simulation::getSimulation()->unload(groot);
+        sofa::simulation::node::unload(groot);
 
     sofa::simulation::graph::cleanup();
     return 0;
 }
-

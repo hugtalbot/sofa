@@ -86,8 +86,6 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
 
     using sofa::type::Vec3;
     using sofa::type::Matrix3;
-    using sofa::type::Mat3x3d;
-    using sofa::type::Vec3d;
 
     const VecCoord& in = d_inputPositions.getValue();
     const VecCoord& out = d_mappedPointPositions.getValue();
@@ -114,10 +112,6 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
         linearInterpolIndices.resize(out.size());
         linearInterpolValues.resize(out.size());
     }
-
-
-
-    int outside = 0;
 
     const sofa::core::topology::BaseMeshTopology::SeqTetrahedra& tetrahedra = l_topology->getTetrahedra();
     const sofa::core::topology::BaseMeshTopology::SeqHexahedra& cubes = l_topology->getHexahedra();
@@ -177,7 +171,7 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
             centers.resize ( triangles.size() +quads.size() );
             for ( unsigned int t = 0; t < triangles.size(); t++ )
             {
-                Mat3x3d m,mt;
+                Mat3x3 m,mt;
                 m[0] = (in)[triangles[t][1]]-(in)[triangles[t][0]];
                 m[1] = (in)[triangles[t][2]]-(in)[triangles[t][0]];
                 m[2] = cross ( m[0],m[1] );
@@ -189,7 +183,7 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
             }
             for ( unsigned int c = 0; c < quads.size(); c++ )
             {
-                Mat3x3d m,mt;
+                Mat3x3 m,mt;
                 m[0] = (in)[quads[c][1]]-(in)[quads[c][0]];
                 m[1] = (in)[quads[c][3]]-(in)[quads[c][0]];
                 m[2] = cross ( m[0],m[1] );
@@ -219,10 +213,6 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
                     if ( d>0 ) d = ( pos-centers[c0+c] ).norm2();
                     if ( d<distance ) { coefs = v; distance = d; index = c0+c; }
                 }
-                if ( distance>0 )
-                {
-                    ++outside;
-                }
                 if ( index < c0 )
                 {
                     addPointInTriangle ( index, coefs.ptr(),i );
@@ -241,7 +231,7 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
         centers.resize ( tetrahedra.size() +cubes.size() );
         for ( unsigned int t = 0; t < tetrahedra.size(); t++ )
         {
-            Mat3x3d m,mt;
+            Mat3x3 m,mt;
             m[0] = (in)[tetrahedra[t][1]]-(in)[tetrahedra[t][0]];
             m[1] = (in)[tetrahedra[t][2]]-(in)[tetrahedra[t][0]];
             m[2] = (in)[tetrahedra[t][3]]-(in)[tetrahedra[t][0]];
@@ -253,7 +243,7 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
         }
         for ( unsigned int c = 0; c < cubes.size(); c++ )
         {
-            Mat3x3d m,mt;
+            Mat3x3 m,mt;
             m[0] = (in)[cubes[c][1]]-(in)[cubes[c][0]];
             m[1] = (in)[cubes[c][3]]-(in)[cubes[c][0]];
             m[2] = (in)[cubes[c][4]]-(in)[cubes[c][0]];
@@ -282,10 +272,6 @@ void MeshBarycentricMapperEngine<DataTypes>::doUpdate()
                 SReal d = std::max ( std::max (SReal(-v[0]), SReal(-v[1]) ),std::max ( std::max (SReal(-v[2]), SReal(v[0]-1) ),std::max (SReal(v[1]-1), SReal(v[2]-1 )) ) );
                 if ( d>0 ) d = ( pos-centers[c0+c] ).norm2();
                 if ( d<distance ) { coefs = v; distance = d; index = c0+c; }
-            }
-            if ( distance>0 )
-            {
-                ++outside;
             }
             if ( index < c0 )
                 addPointInTetra ( index, coefs.ptr() , i);

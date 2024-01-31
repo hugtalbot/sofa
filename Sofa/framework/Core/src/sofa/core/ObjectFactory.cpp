@@ -47,10 +47,10 @@ ObjectFactory::ClassEntry& ObjectFactory::getEntry(std::string classname)
 /// Test if a creator exists for a given classname
 bool ObjectFactory::hasCreator(std::string classname)
 {
-    ClassEntryMap::iterator it = registry.find(classname);
+    const ClassEntryMap::iterator it = registry.find(classname);
     if (it == registry.end())
         return false;
-    ClassEntry::SPtr entry = it->second;
+    const ClassEntry::SPtr entry = it->second;
     return (!entry->creatorMap.empty());
 }
 
@@ -58,14 +58,14 @@ std::string ObjectFactory::shortName(std::string classname)
 {
     std::string shortname;
 
-    ClassEntryMap::iterator it = registry.find(classname);
+    const ClassEntryMap::iterator it = registry.find(classname);
     if (it != registry.end())
     {
-        ClassEntry::SPtr entry = it->second;
+        const ClassEntry::SPtr entry = it->second;
         if(!entry->creatorMap.empty())
         {
-            CreatorMap::iterator myit = entry->creatorMap.begin();
-            Creator::SPtr c = myit->second;
+            const CreatorMap::iterator myit = entry->creatorMap.begin();
+            const Creator::SPtr c = myit->second;
             shortname = c->getClass()->shortName;
         }
     }
@@ -76,14 +76,14 @@ bool ObjectFactory::addAlias(std::string name, std::string target, bool force,
                              ClassEntry::SPtr* previous)
 {
     // Check that the pointed class does exist
-    ClassEntryMap::iterator it = registry.find(target);
+    const ClassEntryMap::iterator it = registry.find(target);
     if (it == registry.end())
     {
         msg_error("ObjectFactory::addAlias()") << "Target class for alias '" << target << "' not found: " << name;
         return false;
     }
 
-    ClassEntry::SPtr& pointedEntry = it->second;
+    const ClassEntry::SPtr& pointedEntry = it->second;
     ClassEntry::SPtr& aliasEntry = registry[name];
 
     // Check that the alias does not already exist, unless 'force' is true
@@ -94,7 +94,7 @@ bool ObjectFactory::addAlias(std::string name, std::string target, bool force,
     }
 
     if (previous) {
-        ClassEntry::SPtr& entry = aliasEntry;
+        const ClassEntry::SPtr& entry = aliasEntry;
         *previous = entry;
     }
 
@@ -147,6 +147,16 @@ objectmodel::BaseObject::SPtr ObjectFactory::createObject(objectmodel::BaseConte
     std::string templatename = sofa::helper::join(usertemplatenames, ",");
     std::string userresolved = templatename; // Copy in case we change for the default one
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    //Check if object has been renamed
+
+    using sofa::helper::lifecycle::renamedComponents;
+    auto renamedComponent = renamedComponents.find(classname);
+    if( renamedComponent != renamedComponents.end() )
+    {
+        classname = renamedComponent->second.getNewName();
+    }
 
 
     // In order to get the errors from the creators only, we save the current errors at this point
@@ -206,13 +216,19 @@ objectmodel::BaseObject::SPtr ObjectFactory::createObject(objectmodel::BaseConte
 
         using sofa::helper::lifecycle::ComponentChange;
         using sofa::helper::lifecycle::uncreatableComponents;
+        using sofa::helper::lifecycle::movedComponents;
         if(it == registry.end())
         {
             arg->logError("The object '" + classname + "' is not in the factory.");
             auto uuncreatableComponent = uncreatableComponents.find(classname);
+            auto movedComponent = movedComponents.find(classname);
             if( uuncreatableComponent != uncreatableComponents.end() )
             {
                 arg->logError( uuncreatableComponent->second.getMessage() );
+            }
+            else if (movedComponent != movedComponents.end())
+            {
+                arg->logError( movedComponent->second.getMessage() );
             }
             else
             {
@@ -404,7 +420,7 @@ void ObjectFactory::getEntriesFromTarget(std::vector<ClassEntry::SPtr>& result, 
             bool inTarget = false;
             for (CreatorMap::iterator itc = entry->creatorMap.begin(), itcend = entry->creatorMap.end(); itc != itcend; ++itc)
             {
-                Creator::SPtr c = itc->second;
+                const Creator::SPtr c = itc->second;
                 if (target == c->getTarget())
                 {
                     inTarget = true;
@@ -435,7 +451,7 @@ void ObjectFactory::dump(std::ostream& out)
 {
     for (ClassEntryMap::iterator it = registry.begin(), itend = registry.end(); it != itend; ++it)
     {
-        ClassEntry::SPtr entry = it->second;
+        const ClassEntry::SPtr entry = it->second;
         if (entry->className != it->first) continue;
         out << "class " << entry->className <<" :\n";
         if (!entry->aliases.empty())
@@ -480,7 +496,7 @@ void ObjectFactory::dumpXML(std::ostream& out)
 {
     for (ClassEntryMap::iterator it = registry.begin(), itend = registry.end(); it != itend; ++it)
     {
-        ClassEntry::SPtr entry = it->second;
+        const ClassEntry::SPtr entry = it->second;
         if (entry->className != it->first) continue;
         out << "<class name=\"" << xmlencode(entry->className) <<"\">\n";
         for (std::set<std::string>::iterator myit = entry->aliases.begin(), itend = entry->aliases.end(); myit != itend; ++myit)
@@ -506,7 +522,7 @@ void ObjectFactory::dumpHTML(std::ostream& out)
     out << "<ul>\n";
     for (ClassEntryMap::iterator it = registry.begin(), itend = registry.end(); it != itend; ++it)
     {
-        ClassEntry::SPtr entry = it->second;
+        const ClassEntry::SPtr entry = it->second;
         if (entry->className != it->first) continue;
         out << "<li><b>" << xmlencode(entry->className) <<"</b>\n";
         if (!entry->description.empty())

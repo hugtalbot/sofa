@@ -3,7 +3,7 @@
     <RequiredPlugin name="Sofa.Component.Collision.Detection.Algorithm"/> <!-- Needed to use components [BVHNarrowPhase BruteForceBroadPhase CollisionPipeline] -->
     <RequiredPlugin name="Sofa.Component.Collision.Detection.Intersection"/> <!-- Needed to use components [MinProximityIntersection] -->
     <RequiredPlugin name="Sofa.Component.Collision.Geometry"/> <!-- Needed to use components [LineCollisionModel PointCollisionModel TriangleCollisionModel] -->
-    <RequiredPlugin name="Sofa.Component.Collision.Response.Contact"/> <!-- Needed to use components [DefaultContactManager] -->
+    <RequiredPlugin name="Sofa.Component.Collision.Response.Contact"/> <!-- Needed to use components [CollisionResponse] -->
     <RequiredPlugin name="Sofa.Component.IO.Mesh"/> <!-- Needed to use components [MeshGmshLoader MeshOBJLoader] -->
     <RequiredPlugin name="Sofa.Component.LinearSolver.Iterative"/> <!-- Needed to use components [CGLinearSolver] -->
     <RequiredPlugin name="Sofa.Component.Mapping.Linear"/> <!-- Needed to use components [BarycentricMapping] -->
@@ -24,7 +24,7 @@
     <BruteForceBroadPhase/>
     <BVHNarrowPhase/>
     <MinProximityIntersection name="Proximity" alarmDistance="0.3" contactDistance="0.2" />
-    <DefaultContactManager name="Response" response="PenalityContactForceField" />
+    <CollisionResponse name="Response" response="PenalityContactForceField" />
     <Node name="Chain">
         <Node name="TorusFixed">
             <MeshOBJLoader name="loader" filename="mesh/torus2_for_collision.obj" />
@@ -107,7 +107,7 @@
         <Node name="TorusRigid">
             <EulerImplicitSolver rayleighStiffness="0.01" />
             <CGLinearSolver iterations="100" threshold="0.00000001" tolerance="1e-5"/>
-            <MechanicalObject template="Rigid3d" dx="10" />
+            <MechanicalObject template="Rigid3" dx="10" />
             <UniformMass filename="BehaviorModels/torus2.rigid" />
             <Node name="Visu">
                 <MeshOBJLoader name="meshLoader_17" filename="mesh/torus2.obj" handleSeams="1" />
@@ -447,7 +447,7 @@
         <Node name="TorusRigid1">
             <EulerImplicitSolver rayleighStiffness="0" />
             <CGLinearSolver iterations="100" threshold="0.00000001" tolerance="1e-5"/>
-            <MechanicalObject template="Rigid3d" dx="2.5" dz="24" />
+            <MechanicalObject template="Rigid3" dx="2.5" dz="24" />
             <UniformMass filename="BehaviorModels/torus.rigid" />
             <Node name="Visu">
                 <MeshOBJLoader name="meshLoader_4" filename="mesh/torus.obj" handleSeams="1" />
@@ -467,7 +467,7 @@
         <Node name="TorusRigid2">
             <EulerImplicitSolver rayleighStiffness="0" />
             <CGLinearSolver iterations="100" threshold="0.00000001" tolerance="1e-5"/>
-            <MechanicalObject template="Rigid3d" dx="5" dz="24" />
+            <MechanicalObject template="Rigid3" dx="5" dz="24" />
             <UniformMass filename="BehaviorModels/torus2.rigid" />
             <Node name="Visu">
                 <MeshOBJLoader name="meshLoader_7" filename="mesh/torus2.obj" handleSeams="1" />
@@ -487,7 +487,7 @@
         <Node name="TorusRigid3">
             <EulerImplicitSolver rayleighStiffness="0" />
             <CGLinearSolver iterations="100" threshold="0.00000001" tolerance="1e-5"/>
-            <MechanicalObject template="Rigid3d" dx="7.5" dz="24" />
+            <MechanicalObject template="Rigid3" dx="7.5" dz="24" />
             <UniformMass filename="BehaviorModels/torus.rigid" />
             <Node name="Visu">
                 <MeshOBJLoader name="meshLoader_12" filename="mesh/torus.obj" handleSeams="1" />
@@ -507,7 +507,7 @@
         <Node name="TorusRigid4">
             <EulerImplicitSolver rayleighStiffness="0" />
             <CGLinearSolver iterations="100" threshold="0.00000001" tolerance="1e-5"/>
-            <MechanicalObject template="Rigid3d" dx="10" dz="24" />
+            <MechanicalObject template="Rigid3" dx="10" dz="24" />
             <UniformMass filename="BehaviorModels/torus2.rigid" />
             <Node name="Visu">
                 <MeshOBJLoader name="meshLoader_16" filename="mesh/torus2.obj" handleSeams="1" />

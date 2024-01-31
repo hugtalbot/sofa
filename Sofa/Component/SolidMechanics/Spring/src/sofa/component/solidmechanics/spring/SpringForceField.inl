@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 #include <sofa/component/solidmechanics/spring/SpringForceField.h>
+#include <sofa/core/behavior/PairInteractionForceField.inl>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/core/topology/BaseMeshTopology.h>
 #include <sofa/core/topology/TopologyChange.h>
@@ -268,7 +269,7 @@ void SpringForceField<DataTypes>::initializeTopologyHandler(sofa::core::topology
                 applyRemovedPoints(pointsRemoved, mstateId);
             });
 
-        if (topology->getTopologyType() == sofa::core::topology::TopologyElementType::EDGE)
+        if (topology->getTopologyType() == sofa::geometry::ElementType::EDGE)
         {
             indices.linkToEdgeDataArray();  
             indices.addTopologyEventCallBack(core::topology::TopologyChangeType::EDGESREMOVED,
@@ -394,6 +395,18 @@ void SpringForceField<DataTypes>::addKToMatrix(sofa::linearalgebra::BaseMatrix *
     msg_error() << "SpringForceField does not support implicit integration. Use StiffSpringForceField instead.";
 }
 
+template <class DataTypes>
+void SpringForceField<DataTypes>::buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix)
+{
+    SOFA_UNUSED(matrix);
+    msg_error() << "SpringForceField does not support implicit integration. Use StiffSpringForceField instead.";
+}
+
+template <class DataTypes>
+void SpringForceField<DataTypes>::buildDampingMatrix(core::behavior::DampingMatrix*)
+{
+    // No damping in this ForceField
+}
 
 
 template<class DataTypes>
@@ -406,12 +419,17 @@ void SpringForceField<DataTypes>::draw(const core::visual::VisualParams* vparams
     const VecCoord& p1 = this->mstate1->read(core::ConstVecCoordId::position())->getValue();
     const VecCoord& p2 = this->mstate2->read(core::ConstVecCoordId::position())->getValue();
 
+    const auto stateLifeCycle = vparams->drawTool()->makeStateLifeCycle();
+
     std::vector< Vec3 > points[4];
-    bool external = (this->mstate1 != this->mstate2);
+    const bool external = (this->mstate1 != this->mstate2);
     const type::vector<Spring>& springs = this->springs.getValue();
     for (sofa::Index i = 0; i < springs.size(); i++)
     {
         if (!springs[i].enabled) continue;
+        assert(i < springs.size());
+        assert(springs[i].m2 < p2.size());
+        assert(springs[i].m1 < p1.size());
         Real d = (p2[springs[i].m2] - p1[springs[i].m1]).norm();
         Vec3 point2, point1;
         point1 = DataTypes::getCPos(p1[springs[i].m1]);

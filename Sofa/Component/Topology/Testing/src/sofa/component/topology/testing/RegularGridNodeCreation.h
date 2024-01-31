@@ -40,7 +40,7 @@ template<class T>
 struct PatchTestStruct
 {
     simulation::Node::SPtr SquareNode;
-    typename component::constraint::projective::AffineMovementConstraint<T>::SPtr affineConstraint;
+    typename component::constraint::projective::AffineMovementProjectiveConstraint<T>::SPtr affineConstraint;
     typename component::statecontainer::MechanicalObject<T>::SPtr dofs;
 };
 
@@ -66,7 +66,7 @@ PatchTestStruct<DataTypes> createRegularGridScene(
     typedef component::topology::container::grid::RegularGridTopology RegularGridTopology;
     typedef typename component::engine::select::BoxROI<DataTypes> BoxRoi;
     typedef typename sofa::component::engine::select::PairBoxROI<DataTypes> PairBoxRoi;
-    typedef typename component::constraint::projective::AffineMovementConstraint<DataTypes> AffineMovementConstraint;
+    typedef typename component::constraint::projective::AffineMovementProjectiveConstraint<DataTypes> AffineMovementProjectiveConstraint;
     typedef component::linearsolver::iterative::CGLinearSolver<component::linearsolver::GraphScatteredMatrix, component::linearsolver::GraphScatteredVector> CGLinearSolver;
 
     // Root node
@@ -80,10 +80,10 @@ PatchTestStruct<DataTypes> createRegularGridScene(
     simulation::Node::SPtr SquareNode = root->createChild("Square");
 
     // Euler implicit solver and cglinear solver
-    component::odesolver::backward::EulerImplicitSolver::SPtr solver = modeling::addNew<component::odesolver::backward::EulerImplicitSolver>(SquareNode,"EulerImplicitSolver");
+    const component::odesolver::backward::EulerImplicitSolver::SPtr solver = modeling::addNew<component::odesolver::backward::EulerImplicitSolver>(SquareNode,"EulerImplicitSolver");
     solver->f_rayleighStiffness.setValue(0.5);
     solver->f_rayleighMass.setValue(0.5);
-    CGLinearSolver::SPtr cgLinearSolver = modeling::addNew< CGLinearSolver >(SquareNode,"linearSolver");
+    const CGLinearSolver::SPtr cgLinearSolver = modeling::addNew< CGLinearSolver >(SquareNode,"linearSolver");
     cgLinearSolver->d_maxIter.setValue(25);
     cgLinearSolver->d_tolerance.setValue(1e-5);
     cgLinearSolver->d_smallDenominatorThreshold.setValue(1e-5);
@@ -92,7 +92,7 @@ PatchTestStruct<DataTypes> createRegularGridScene(
     typename UniformMass::SPtr mass = modeling::addNew<UniformMass>(SquareNode,"mass");
 
     // Regular grid topology
-    RegularGridTopology::SPtr gridMesh = modeling::addNew<RegularGridTopology>(SquareNode,"loader");
+    const RegularGridTopology::SPtr gridMesh = modeling::addNew<RegularGridTopology>(SquareNode,"loader");
     gridMesh->setSize(numX,numY,numZ);
     gridMesh->setPos(startPoint[0],endPoint[0],startPoint[1],endPoint[1],startPoint[2],endPoint[2]);
 
@@ -114,7 +114,7 @@ PatchTestStruct<DataTypes> createRegularGridScene(
     pairBoxRoi->includedBox.setValue(includedBox);
 
     //Affine constraint
-    patchStruct.affineConstraint  = modeling::addNew<AffineMovementConstraint>(SquareNode,"affineConstraint");
+    patchStruct.affineConstraint  = modeling::addNew<AffineMovementProjectiveConstraint>(SquareNode,"affineConstraint");
     modeling::setDataLink(&boxRoi->d_indices,&patchStruct.affineConstraint->m_meshIndices);
     modeling::setDataLink(&pairBoxRoi->f_indices,& patchStruct.affineConstraint->m_indices);
 

@@ -156,6 +156,9 @@ public:
     }
 
     void addKToMatrix(const core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
 
     void draw(const core::visual::VisualParams* vparams) override;
 
@@ -200,7 +203,7 @@ protected:
     type::Mat<8,3,int> _coef; ///< coef of each vertices to compute the strain stress matrix
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_HEXAHEDRALFEMFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_HEXAHEDRALFEMFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_ELASTIC_API HexahedralFEMForceField<defaulttype::Vec3Types>;
 
 #endif

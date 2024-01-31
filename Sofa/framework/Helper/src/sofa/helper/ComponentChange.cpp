@@ -26,31 +26,13 @@ namespace sofa::helper::lifecycle
 {
 
 const std::map<std::string, Deprecated, std::less<> > deprecatedComponents = {
-    // SofaMiscForceField
-    {"MatrixMass", Deprecated("v19.06", "v19.12")},
     {"RayTraceDetection", Deprecated("v21.06", "v21.12")},
     {"BruteForceDetection", Deprecated("v21.06", "v21.12")},
     {"DirectSAP", Deprecated("v21.06", "v21.12")},
+    {"RigidRigidMapping", Deprecated("v23.06", "v23.12", "You can use the component RigidMapping with template='Rigid3,Rigid3' instead.")},
 };
 
-const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents = {
-    // SofaDistanceGrid was pluginized in #389
-    {"DistanceGridCollisionModel", Pluginized("v17.12", "SofaDistanceGrid")},
-    {"RayDistanceGridContact", Pluginized("v17.12", "SofaDistanceGrid")},
-    {"DistanceGridForceField", Pluginized("v17.12", "SofaDistanceGrid")},
-    {"RigidDistanceGridDiscreteIntersection", Pluginized("v17.12", "SofaDistanceGrid")},
-    {"FFDDistanceGridDiscreteIntersection", Pluginized("v17.12", "SofaDistanceGrid")},
-
-    // SofaImplicitField was pluginized in #389
-    {"ImplicitSurfaceContainer", Pluginized("v17.12", "SofaImplicitField")},
-    {"InterpolatedImplicitSurface", Pluginized("v17.12", "SofaImplicitField")},
-    {"SphereSurface", Pluginized("v17.12", "SofaImplicitField")},
-    {"ImplicitSurfaceMapping", Pluginized("v17.12", "SofaImplicitField")},
-
-    // SofaHaptics was pluginized in #945
-    {"NullForceFeedback", Pluginized("v19.06", "SofaHaptics")},
-    {"LCPForceFeedback", Pluginized("v19.06", "SofaHaptics")},
-
+const std::map<std::string, ComponentChange, std::less<> > movedComponents = {
     // SofaValidation was pluginized in #1302
     {"CompareState", Pluginized("v20.06", "SofaValidation")},
     {"CompareTopology", Pluginized("v20.06", "SofaValidation")},
@@ -63,11 +45,11 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     {"EvalSurfaceDistance", Pluginized("v20.06", "SofaValidation")},
     {"ExtraMonitor", Pluginized("v20.06", "SofaValidation")},
     {"Monitor", Pluginized("v20.06", "SofaValidation")},
-        
+
     // SofaGraphComponent was pluginized in #1531
     { "Gravity", Pluginized("v20.12", "SofaGraphComponent") },
     { "PauseAnimationOnEvent", Pluginized("v20.12", "SofaGraphComponent") },
-    
+
     // SofaUserInteraction was pluginized in #1588
     { "SleepController", Pluginized("v20.12", "SofaUserInteraction") },
 
@@ -85,135 +67,6 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "LMConstraintDirectSolver", Pluginized("v20.12", "LMConstraint") },
 
     /***********************/
-    // REMOVED SINCE v22.06
-
-    {"PointConstraint", Removed("v21.12", "v22.06")},
-
-    /***********************/
-    // REMOVED SINCE v21.12
-
-    { "LMDNewProximityIntersection", Removed("v21.12", "v21.12") },
-    { "LocalMinDistanceFilter", Removed("v21.12", "v21.12") },
-    { "LineLocalMinDistanceFilter", Removed("v21.12", "v21.12") },
-    { "PointLocalMinDistanceFilter", Removed("v21.12", "v21.12") },
-    { "TriangleLocalMinDistanceFilter", Removed("v21.12", "v21.12") },
-
-    /***********************/
-    // REMOVED SINCE v21.06
-
-    {"LennardJonesForceField", Removed("v17.12", "v21.06")},
-    {"LengthContainer", Removed("v21.06", "v21.06")},
-    {"PoissonContainer", Removed("v21.06", "v21.06")},
-    {"RadiusContainer", Removed("v21.06", "v21.06")},
-    {"StiffnessContainer", Removed("v21.06", "v21.06")},
-        
-    /***********************/
-    // REMOVED SINCE v20.12
-
-    { "DynamicSparseGridTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    { "HexahedronSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    { "TetrahedronSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    { "QuadSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    { "TriangleSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    { "EdgeSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    { "PointSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
-    
-    /***********************/
-    // REMOVED SINCE v20.06
-
-    {"Euler", Removed("v19.12", "v20.06")},
-    {"EulerExplicit", Removed("v19.12", "v20.06")},
-    {"ExplicitEuler", Removed("v19.12", "v20.06")},
-    {"EulerSolver", Removed("v19.12", "v20.06")},
-    {"ExplicitEulerSolver", Removed("v19.12", "v20.06")},
-
-    {"Capsule", Removed("v19.12", "v20.06")},
-    {"CapsuleModel", Removed("v19.12", "v20.06")},
-    {"TCapsuleModel", Removed("v19.12", "v20.06")},
-
-    {"Cube", Removed("v19.12", "v20.06")},
-    {"CubeModel", Removed("v19.12", "v20.06")},
-
-    {"CudaPoint", Removed("v19.12", "v20.06")},
-    {"CudaPointModel", Removed("v19.12", "v20.06")},
-
-    {"Cylinder", Removed("v19.12", "v20.06")},
-    {"CylinderModel", Removed("v19.12", "v20.06")},
-
-    {"Line", Removed("v19.12", "v20.06")},
-    {"TLineModel", Removed("v19.12", "v20.06")},
-    {"LineMeshModel", Removed("v19.12", "v20.06")},
-    {"LineSetModel", Removed("v19.12", "v20.06")},
-    {"LineMesh", Removed("v19.12", "v20.06")},
-    {"LineSet", Removed("v19.12", "v20.06")},
-    {"LineModel", Removed("v19.12", "v20.06")},
-
-    {"OBB", Removed("v19.12", "v20.06")},
-    {"OBBModel", Removed("v19.12", "v20.06")},
-    {"TOBBModel", Removed("v19.12", "v20.06")},
-
-    {"Point", Removed("v19.12", "v20.06")},
-    {"TPointModel", Removed("v19.12", "v20.06")},
-    {"PointModel", Removed("v19.12", "v20.06")},
-    {"PointMesh", Removed("v19.12", "v20.06")},
-    {"PointSet", Removed("v19.12", "v20.06")},
-
-    {"Ray", Removed("v19.12", "v20.06")},
-    {"RayModel", Removed("v19.12", "v20.06")},
-
-    {"RigidCapsule", Removed("v19.12", "v20.06")},
-    {"RigidCapsuleModel", Removed("v19.12", "v20.06")},
-    {"RigidCapsuleCollisionModel", Removed("v19.12", "v20.06")},
-
-    {"Sphere", Removed("v19.12", "v20.06")},
-    {"SphereModel", Removed("v19.12", "v20.06")},
-    {"TSphereModel", Removed("v19.12", "v20.06")},
-
-    {"Tetrahedron", Removed("v19.12", "v20.06")},
-    {"TetrahedronModel", Removed("v19.12", "v20.06")},
-
-    {"Triangle", Removed("v19.12", "v20.06")},
-    {"TriangleSet", Removed("v19.12", "v20.06")},
-    {"TriangleMesh", Removed("v19.12", "v20.06")},
-    {"TriangleSetModel", Removed("v19.12", "v20.06")},
-    {"TriangleMeshModel", Removed("v19.12", "v20.06")},
-    {"TriangleModel", Removed("v19.12", "v20.06")},
-    {"TTriangleModel", Removed("v19.12", "v20.06")},
-
-    /***********************/
-    // REMOVED SINCE v18.12
-
-    // SofaBoundaryCondition
-    {"BuoyantForceField", Removed("v17.12", "v18.12")},
-    {"VaccumSphereForceField", Removed("v17.12", "v18.12")},
-
-    // SofaMiscForceField
-    {"ForceMaskOff", Removed("v17.12", "v18.12")},
-    {"LineBendingSprings", Removed("v17.12", "v18.12")},
-    {"WashingMachineForceField", Removed("v17.12", "v18.12")},
-
-    // SofaMiscMapping
-    {"CatmullRomSplineMapping", Removed("v17.12", "v18.12")},
-    {"CenterPointMechanicalMapping", Removed("v17.12", "v18.12")},
-    {"CurveMapping", Removed("v17.12", "v18.12")},
-    {"ExternalInterpolationMapping", Removed("v17.12", "v18.12")},
-    {"ProjectionToLineMapping", Removed("v17.12", "v18.12")},
-    {"ProjectionToPlaneMapping", Removed("v17.12", "v18.12")},
-
-    // SofaMisc
-    {"ParallelCGLinearSolver", Removed("v17.12", "v18.12")},
-
-    // SofaUserInteraction
-    {"ArticulatedHierarchyBVHController", Removed("v17.12", "v18.12")},
-    {"ArticulatedHierarchyController", Removed("v17.12", "v18.12")},
-    {"DisabledContact", Removed("v17.12", "v18.12")},
-    {"EdgeSetController", Removed("v17.12", "v18.12")},
-    {"GraspingManager", Removed("v17.12", "v18.12")},
-    {"InterpolationController", Removed("v17.12", "v18.12")},
-    {"MechanicalStateControllerOmni", Removed("v17.12", "v18.12")},
-    {"NodeToggleController", Removed("v17.12", "v18.12")},
-
-    /***********************/
     // MOVED SINCE v21.06
     { "SpatialGridPointModel", Moved("v21.06", "SofaMiscCollision", "SofaSphFluid") },
 
@@ -224,7 +77,7 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
 
     // MOVED SINCE v22.06
     { "GlobalSystemMatrixExporter", Moved("v22.06", "SofaBaseLinearSolver", "SofaMatrix") },
-    
+
     // SofaMiscSolver was deprecated in #2571
     { "DampVelocitySolver", Moved("v22.06", "SofaMiscSolver", "Sofa.Component.ODESolver.Forward") },
     { "NewmarkImplicitSolver", Moved("v22.06", "SofaMiscSolver", "Sofa.Component.ODESolver.Backward") },
@@ -292,7 +145,7 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "StatsSetting", Moved("v22.06", "SofaGraphComponent", "Sofa.Component.Setting") },
     { "ViewerSetting", Moved("v22.06", "SofaGraphComponent", "Sofa.Component.Setting") },
     { "APIVersion", Moved("v22.06", "SofaGraphComponent", "Sofa.Component.Setting") },
-    
+
     // SofaBaseTopology was deprecated in #2612
     { "EdgeSetGeometryAlgorithms", Moved("v22.06", "SofaBaseTopology", "Sofa.Component.Topology.Container.Dynamic") },
     { "EdgeSetTopologyAlgorithms", Moved("v22.06", "SofaBaseTopology", "Sofa.Component.Topology.Container.Dynamic") },
@@ -458,13 +311,11 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     // SofaSparseSolver was deprecated in #2717
     { "FillReducingOrdering", Moved("v22.06", "SofaGeneralLinearSolver", "Sofa.Component.LinearSolver.Direct") },
     { "PrecomputedLinearSolver", Moved("v22.06", "SofaGeneralLinearSolver", "Sofa.Component.LinearSolver.Direct") },
-    { "SparseCholeskySolver", Moved("v22.06", "SofaSparseSolver", "Sofa.Component.LinearSolver.Direct") },
     { "SparseLDLSolver", Moved("v22.06", "SofaSparseSolver", "Sofa.Component.LinearSolver.Direct") },
-    { "SparseLUSolver", Moved("v22.06", "SofaSparseSolver", "Sofa.Component.LinearSolver.Direct") },
 
     // SofaDenseSolver was deprecated in #2717
     { "SVDLinearSolver", Moved("v22.06", "SofaDenseSolver", "Sofa.Component.LinearSolver.Direct") },
-        
+
     // SofaPreconditioner was deprecated in #2717
     { "ShewchukPCGLinearSolver", Moved("v22.06", "SofaPreconditioner", "Sofa.Component.LinearSolver.Iterative") },
     { "JacobiPreconditioner", Moved("v22.06", "SofaPreconditioner", "Sofa.Component.LinearSolver.Preconditioner") },
@@ -481,7 +332,7 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "SubsetMapping", Moved("v22.06", "SofaBaseMechanics", "Sofa.Component.Mapping.Linear") },
     { "MechanicalObject", Moved("v22.06", "SofaBaseMechanics", "Sofa.Component.StateContainer") },
     { "MappedObject", Moved("v22.06", "SofaBaseMechanics", "Sofa.Component.StateContainer") },
-    
+
     // SofaMiscForceField was deprecated in #2752 and ...
     { "MeshMatrixMass", Moved("v22.06", "SofaMiscForceField", "Sofa.Component.Mass") },
     { "GearSpringForceField", Moved("v22.06", "SofaMiscForceField", "Sofa.Component.SolidMechanics.Spring") },
@@ -499,7 +350,7 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "ArticulationCenter", Moved("v22.06", "Movedgid", "ArticulatedSystemPlugin") },
     { "Articulation", Moved("v22.06", "Movedgid", "ArticulatedSystemPlugin") },
     { "ArticulatedSystemMapping", Moved("v22.06", "Movedgid", "ArticulatedSystemPlugin") },
-    
+
     // SofaMiscMapping was deprecated in #2635
     { "BeamLinearMapping", Moved("v22.06", "SofaMiscMapping", "Sofa.Component.Mapping.Linear") },
     { "CenterOfMassMapping", Moved("v22.06", "SofaMiscMapping", "Sofa.Component.Mapping.Linear") },
@@ -516,7 +367,6 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "VoidMapping", Moved("v22.06", "SofaMiscMapping", "Sofa.Component.Mapping.Linear") },
 
     // SofaConstraint was deprecated in #2635, #2790, #2796, #2813 and ...
-    { "MappingGeometricStiffnessForceField", Moved("v22.06", "SofaConstraint", "Sofa.Component.Mapping.MappedMatrix") },
     { "BilateralInteractionConstraint", Moved("v22.06", "SofaConstraint", "Sofa.Component.Constraint.Lagrangian.Model") },
     { "GenericConstraintCorrection", Moved("v22.06", "SofaConstraint", "Sofa.Component.Constraint.Lagrangian.Correction") },
     { "GenericConstraintSolver", Moved("v22.06", "SofaConstraint", "Sofa.Component.Constraint.Lagrangian.Solver") },
@@ -533,7 +383,6 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "LocalMinDistance", Moved("v22.06", "SofaConstraint", "Sofa.Component.Collision.Detection.Intersection") },
 
     // SofaGeneralAnimationLoop was deprecated in #2635 and #2796
-    { "MechanicalMatrixMapper", Moved("v22.06", "SofaGeneralAnimationLoop", "Sofa.Component.Mapping.MappedMatrix") },
     { "MultiStepAnimationLoop", Moved("v22.06", "SofaGeneralAnimationLoop", "Sofa.Component.AnimationLoop") },
     { "MultiTagAnimationLoop", Moved("v22.06", "SofaGeneralAnimationLoop", "Sofa.Component.AnimationLoop") },
 
@@ -743,7 +592,7 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "Distances", Moved("v22.06", "SofaGeneralEngine", "Sofa.Component.Engine.Analyze") },
     { "DisplacementMatrixEngine", Moved("v22.06", "SofaGeneralEngine", "Sofa.Component.Engine.Transform") },
     { "ProjectiveTransformEngine", Moved("v22.06", "SofaGeneralEngine", "Sofa.Component.Engine.Transform") },
-    
+
     // SofaMiscExtra was deprecated in #2917
     { "MeshTetraStuffing", Moved("v22.06", "SofaMiscExtra", "Sofa.Component.Engine.Generate") },
 
@@ -765,8 +614,150 @@ const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents
     { "CompareState", Moved("v22.06", "SofaValidation", "Sofa.Component.Playback") },
     { "CompareTopology", Moved("v22.06", "SofaValidation", "Sofa.Component.Playback") },
 
-    { "OglGrid", Deprecated("v22.12", "v23.06")},
-    { "OglLineAxis", Deprecated("v22.12", "v23.06")},
+    // Removed in #4040, deprecated in #2777
+    { "MechanicalMatrixMapper", Removed("v23.06", "v23.12") },
+    { "MappingGeometricStiffnessForceField", Removed("v23.06", "v23.12") },
+
+    // Moved to CSparseSolvers
+    { "SparseCholeskySolver", Moved("v23.12", "Sofa.Component.LinearSolver.Direct", "CSparseSolvers") },
+    { "SparseLUSolver", Moved("v23.12", "Sofa.Component.LinearSolver.Direct", "CSparseSolvers") }
+
+};
+
+const std::map<std::string, ComponentChange, std::less<> > uncreatableComponents = {
+
+    /***********************/
+    // REMOVED SINCE v23.06
+
+    { "OglGrid", Removed("v22.12", "v23.06")},
+    { "OglLineAxis", Removed("v22.12", "v23.06")},
+
+    /***********************/
+    // REMOVED SINCE v22.06
+
+    {"PointConstraint", Removed("v21.12", "v22.06")},
+
+    /***********************/
+    // REMOVED SINCE v21.12
+
+    { "LMDNewProximityIntersection", Removed("v21.12", "v21.12") },
+    { "LocalMinDistanceFilter", Removed("v21.12", "v21.12") },
+    { "LineLocalMinDistanceFilter", Removed("v21.12", "v21.12") },
+    { "PointLocalMinDistanceFilter", Removed("v21.12", "v21.12") },
+    { "TriangleLocalMinDistanceFilter", Removed("v21.12", "v21.12") },
+
+    /***********************/
+    // REMOVED SINCE v21.06
+
+    {"LengthContainer", Removed("v21.06", "v21.06")},
+    {"PoissonContainer", Removed("v21.06", "v21.06")},
+    {"RadiusContainer", Removed("v21.06", "v21.06")},
+    {"StiffnessContainer", Removed("v21.06", "v21.06")},
+
+    /***********************/
+    // REMOVED SINCE v20.12
+
+    { "DynamicSparseGridTopologyAlgorithms", Removed("v20.12", "v20.12") },
+    { "HexahedronSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
+    { "TetrahedronSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
+    { "QuadSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
+    { "TriangleSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
+    { "EdgeSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
+    { "PointSetTopologyAlgorithms", Removed("v20.12", "v20.12") },
+
+    /***********************/
+    // REMOVED SINCE v20.06
+
+    {"Euler", Removed("v19.12", "v20.06")},
+    {"EulerExplicit", Removed("v19.12", "v20.06")},
+    {"ExplicitEuler", Removed("v19.12", "v20.06")},
+    {"EulerSolver", Removed("v19.12", "v20.06")},
+    {"ExplicitEulerSolver", Removed("v19.12", "v20.06")},
+
+    {"Capsule", Removed("v19.12", "v20.06")},
+    {"CapsuleModel", Removed("v19.12", "v20.06")},
+    {"TCapsuleModel", Removed("v19.12", "v20.06")},
+
+    {"Cube", Removed("v19.12", "v20.06")},
+    {"CubeModel", Removed("v19.12", "v20.06")},
+
+    {"CudaPoint", Removed("v19.12", "v20.06")},
+    {"CudaPointModel", Removed("v19.12", "v20.06")},
+
+    {"Cylinder", Removed("v19.12", "v20.06")},
+    {"CylinderModel", Removed("v19.12", "v20.06")},
+
+    {"Line", Removed("v19.12", "v20.06")},
+    {"TLineModel", Removed("v19.12", "v20.06")},
+    {"LineMeshModel", Removed("v19.12", "v20.06")},
+    {"LineSetModel", Removed("v19.12", "v20.06")},
+    {"LineMesh", Removed("v19.12", "v20.06")},
+    {"LineSet", Removed("v19.12", "v20.06")},
+    {"LineModel", Removed("v19.12", "v20.06")},
+
+    {"OBB", Removed("v19.12", "v20.06")},
+    {"OBBModel", Removed("v19.12", "v20.06")},
+    {"TOBBModel", Removed("v19.12", "v20.06")},
+
+    {"Point", Removed("v19.12", "v20.06")},
+    {"TPointModel", Removed("v19.12", "v20.06")},
+    {"PointModel", Removed("v19.12", "v20.06")},
+    {"PointMesh", Removed("v19.12", "v20.06")},
+    {"PointSet", Removed("v19.12", "v20.06")},
+
+    {"Ray", Removed("v19.12", "v20.06")},
+    {"RayModel", Removed("v19.12", "v20.06")},
+
+    {"RigidCapsule", Removed("v19.12", "v20.06")},
+    {"RigidCapsuleModel", Removed("v19.12", "v20.06")},
+    {"RigidCapsuleCollisionModel", Removed("v19.12", "v20.06")},
+
+    {"Sphere", Removed("v19.12", "v20.06")},
+    {"SphereModel", Removed("v19.12", "v20.06")},
+    {"TSphereModel", Removed("v19.12", "v20.06")},
+
+    {"Tetrahedron", Removed("v19.12", "v20.06")},
+    {"TetrahedronModel", Removed("v19.12", "v20.06")},
+
+    {"Triangle", Removed("v19.12", "v20.06")},
+    {"TriangleSet", Removed("v19.12", "v20.06")},
+    {"TriangleMesh", Removed("v19.12", "v20.06")},
+    {"TriangleSetModel", Removed("v19.12", "v20.06")},
+    {"TriangleMeshModel", Removed("v19.12", "v20.06")},
+    {"TriangleModel", Removed("v19.12", "v20.06")},
+    {"TTriangleModel", Removed("v19.12", "v20.06")},
+
+};
+
+
+const std::map< std::string, Renamed, std::less<> > renamedComponents = {
+    // Change Constraint naming #4302
+    {"AffineMovementConstraint", Renamed("v24.06","v25.06","AffineMovementProjectiveConstraint")},
+    {"AttachConstraint", Renamed("v24.06","v25.06","AttachProjectiveConstraint")},
+    {"FixedConstraint", Renamed("v24.06","v25.06","FixedProjectiveConstraint")},
+    {"FixedPlaneConstraint", Renamed("v24.06","v25.06","FixedPlaneProjectiveConstraint")},
+    {"FixedRotationConstraint", Renamed("v24.06","v25.06","FixedRotationProjectiveConstraint")},
+    {"FixedTranslationConstraint", Renamed("v24.06","v25.06","FixedTranslationProjectiveConstraint")},
+    {"HermiteSplineConstraint", Renamed("v24.06","v25.06","HermiteSplineProjectiveConstraint")},
+    {"LinearMovementConstraint", Renamed("v24.06","v25.06","LinearMovementProjectiveConstraint")},
+    {"LinearVelocityConstraint", Renamed("v24.06","v25.06","LinearVelocityProjectiveConstraint")},
+    {"OscillatorConstraint", Renamed("v24.06","v25.06","OscillatorProjectiveConstraint")},
+    {"ParabolicConstraint", Renamed("v24.06","v25.06","ParabolicProjectiveConstraint")},
+    {"PartialFixedConstraint", Renamed("v24.06","v25.06","PartialFixedProjectiveConstraint")},
+    {"PartialLinearMovementConstraint", Renamed("v24.06","v25.06","PartialLinearMovementProjectiveConstraint")},
+    {"PatchTestMovementConstraint", Renamed("v24.06","v25.06","PatchTestMovementProjectiveConstraint")},
+    {"PositionBasedDynamicsConstraint", Renamed("v24.06","v25.06","PositionBasedDynamicsProjectiveConstraint")},
+    {"SkeletalMotionConstraint", Renamed("v24.06","v25.06","SkeletalMotionProjectiveConstraint")},
+    {"ProjectToLineConstraint", Renamed("v24.06","v25.06","LineProjectiveConstraint")},
+    {"ProjectToPlaneConstraint", Renamed("v24.06","v25.06","PlaneProjectiveConstraint")},
+    {"ProjectToPointConstraint", Renamed("v24.06","v25.06","PointProjectiveConstraint")},
+    {"ProjectDirectionConstraint", Renamed("v24.06","v25.06","DirectionProjectiveConstraint")},
+    {"BilateralInteractionConstraint", Renamed("v24.06","v25.06","BilateralLagrangianConstraint")},
+    {"SlidingConstraint", Renamed("v24.06","v25.06","SlidingLagrangianConstraint")},
+    {"StopperConstraint", Renamed("v24.06","v25.06","StopperLagrangianConstraint")},
+    {"UniformConstraint", Renamed("v24.06","v25.06","UniformLagrangianConstraint")},
+    {"UnilateralInteractionConstraint", Renamed("v24.06","v25.06","UnilateralLagrangianConstraint")}
+
 };
 
 } // namespace sofa::helper::lifecycle

@@ -124,7 +124,7 @@ class ContactMapper<collision::geometry::RigidSphereModel,TVec3Types > : public 
     public:
         sofa::Index addPoint(const typename TVec3Types::Coord & P, sofa::Index index,typename TVec3Types::Real & r)
         {
-            collision::geometry::RigidSphere e(this->model, index);
+            const collision::geometry::RigidSphere e(this->model, index);
             const typename collision::geometry::SphereCollisionModel<sofa::defaulttype::Rigid3Types>::DataTypes::Coord & rCenter = e.rigidCenter();
             const typename TVec3Types::Coord & cP = P - rCenter.getCenter();
             const type::Quat<SReal> & ori = rCenter.getOrientation();
@@ -147,7 +147,7 @@ class ContactMapper<collision::geometry::CylinderCollisionModel<sofa::defaulttyp
         }
 };
 
-#if  !defined(SOFA_COMPONENT_COLLISION_RIGIDCONTACTMAPPER_CPP)
+#if !defined(SOFA_COMPONENT_COLLISION_RIGIDCONTACTMAPPER_CPP)
 extern template class SOFA_COMPONENT_COLLISION_RESPONSE_MAPPER_API ContactMapper<collision::geometry::CylinderCollisionModel<sofa::defaulttype::Rigid3Types>, defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_COLLISION_RESPONSE_MAPPER_API ContactMapper<collision::geometry::RigidSphereModel, defaulttype::Vec3Types>;
 

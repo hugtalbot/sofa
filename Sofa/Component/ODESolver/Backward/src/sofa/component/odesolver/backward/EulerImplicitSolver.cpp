@@ -27,6 +27,7 @@
 #include <sofa/helper/AdvancedTimer.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/core/behavior/MultiMatrix.h>
+#include <sofa/helper/ScopedAdvancedTimer.h>
 
 
 namespace sofa::component::odesolver::backward
@@ -110,14 +111,16 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
 
     msg_info() << "trapezoidal factor = " << tr;
 
-    sofa::helper::AdvancedTimer::stepBegin("ComputeForce");
-    mop->setImplicit(true); // this solver is implicit
-    // compute the net forces at the beginning of the time step
-    mop.computeForce(f);
+    {
+        SCOPED_TIMER("ComputeForce");
+        mop->setImplicit(true); // this solver is implicit
+        // compute the net forces at the beginning of the time step
+        mop.computeForce(f);
 
-    msg_info() << "EulerImplicitSolver, initial f = " << f;
+        msg_info() << "EulerImplicitSolver, initial f = " << f;
+    }
 
-    sofa::helper::AdvancedTimer::stepNext ("ComputeForce", "ComputeRHTerm");
+    sofa::helper::AdvancedTimer::stepBegin("ComputeRHTerm");
     if( firstOrder )
     {
         b.eq(f);
@@ -159,9 +162,11 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printNode("SystemSolution");
 #endif
-    sofa::helper::AdvancedTimer::stepNext ("MBKBuild", "MBKSolve");
-    matrix.solve(x, b); //Call to ODE resolution: x is the solution of the system
-    sofa::helper::AdvancedTimer::stepEnd  ("MBKSolve");
+    sofa::helper::AdvancedTimer::stepEnd ("MBKBuild");
+    {
+        SCOPED_TIMER("MBKSolve");
+        matrix.solve(x, b); //Call to ODE resolution: x is the solution of the system}
+    }
 #ifdef SOFA_DUMP_VISITOR_INFO
     simulation::Visitor::printCloseNode("SystemSolution");
 #endif
@@ -187,7 +192,7 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
         if (solveConstraint)
         {
             SOFATIMER_NEXTSTEP("CorrectV");
-            mop.solveConstraint(newVel,core::ConstraintParams::VEL);
+            mop.solveConstraint(newVel,core::ConstraintOrder::VEL);
         }
         SOFATIMER_NEXTSTEP("UpdateX");
 
@@ -196,7 +201,7 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
         if (solveConstraint)
         {
             SOFATIMER_NEXTSTEP("CorrectX");
-            mop.solveConstraint(newPos,core::ConstraintParams::POS);
+            mop.solveConstraint(newPos,core::ConstraintOrder::POS);
         }
 #undef SOFATIMER_NEXTSTEP
         sofa::helper::AdvancedTimer::stepEnd  (prevStep);
@@ -213,7 +218,7 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
         if (solveConstraint)
         {
             SOFATIMER_NEXTSTEP("CorrectV");
-            mop.solveConstraint(newVel,core::ConstraintParams::VEL);
+            mop.solveConstraint(newVel,core::ConstraintOrder::VEL);
         }
         SOFATIMER_NEXTSTEP("UpdateX");
 
@@ -223,7 +228,7 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
         if (solveConstraint)
         {
             SOFATIMER_NEXTSTEP("CorrectX");
-            mop.solveConstraint(newPos,core::ConstraintParams::POS);
+            mop.solveConstraint(newPos,core::ConstraintOrder::POS);
         }
 #undef SOFATIMER_NEXTSTEP
         sofa::helper::AdvancedTimer::stepEnd  (prevStep);
@@ -255,19 +260,18 @@ void EulerImplicitSolver::solve(const core::ExecParams* params, SReal dt, sofa::
             ops[1].second.push_back(std::make_pair(newVel.id(),h));
         }
 
-        sofa::helper::AdvancedTimer::stepBegin("UpdateVAndX");
+        SCOPED_TIMER_VARNAME(updateVAndXTimer, "UpdateVAndX");
         vop.v_multiop(ops);
-        if (!solveConstraint)
+        if (solveConstraint)
         {
-            sofa::helper::AdvancedTimer::stepEnd("UpdateVAndX");
-        }
-        else
-        {
-            sofa::helper::AdvancedTimer::stepNext ("UpdateVAndX", "CorrectV");
-            mop.solveConstraint(newVel,core::ConstraintParams::VEL);
-            sofa::helper::AdvancedTimer::stepNext ("CorrectV", "CorrectX");
-            mop.solveConstraint(newPos,core::ConstraintParams::POS);
-            sofa::helper::AdvancedTimer::stepEnd  ("UpdateVAndX");
+            {
+                SCOPED_TIMER_VARNAME(correctVTimer, "CorrectV");
+                mop.solveConstraint(newVel,core::ConstraintOrder::VEL);
+            }
+            {
+                SCOPED_TIMER_VARNAME(correctXTimer, "CorrectX");
+                mop.solveConstraint(newPos,core::ConstraintOrder::POS);
+            }
         }
     }
 #endif
@@ -303,7 +307,7 @@ SReal EulerImplicitSolver::getIntegrationFactor(int inputDerivative, int outputD
 
 SReal EulerImplicitSolver::getIntegrationFactor(int inputDerivative, int outputDerivative, SReal dt) const
 {
-    SReal matrix[3][3] =
+    const SReal matrix[3][3] =
     {
         { 1, dt, 0},
         { 0, 1, 0},
@@ -322,7 +326,7 @@ SReal EulerImplicitSolver::getSolutionIntegrationFactor(int outputDerivative) co
 
 SReal EulerImplicitSolver::getSolutionIntegrationFactor(int outputDerivative, SReal dt) const
 {
-    SReal vect[3] = { dt, 1, 1/dt};
+    const SReal vect[3] = { dt, 1, 1/dt};
     if (outputDerivative >= 3)
         return 0;
     else

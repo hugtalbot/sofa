@@ -2,7 +2,7 @@
 <Node dt="0.02" gravity="9 0 0" name="root">
 	<RequiredPlugin name="ArticulatedSystemPlugin"/> <!-- Needed to use components [ArticulatedHierarchyContainer ArticulatedSystemMapping Articulation ArticulationCenter] -->
 	<RequiredPlugin name="Sofa.Component.Collision.Geometry"/> <!-- Needed to use components [LineCollisionModel PointCollisionModel TriangleCollisionModel] -->
-	<RequiredPlugin name="Sofa.Component.Constraint.Projective"/> <!-- Needed to use components [PartialFixedConstraint] -->
+	<RequiredPlugin name="Sofa.Component.Constraint.Projective"/> <!-- Needed to use components [PartialFixedProjectiveConstraint] -->
 	<RequiredPlugin name="Sofa.Component.LinearSolver.Iterative"/> <!-- Needed to use components [CGLinearSolver] -->
 	<RequiredPlugin name="Sofa.Component.Mapping.Linear"/> <!-- Needed to use components [BeamLinearMapping] -->
 	<RequiredPlugin name="Sofa.Component.Mass"/> <!-- Needed to use components [UniformMass] -->
@@ -18,13 +18,13 @@
     <Node activated="true" name="ArticulatedSoftBeam">
 	    <EulerImplicitSolver  rayleighStiffness="0.1" rayleighMass="0.1" />
 		<CGLinearSolver iterations="100" tolerance="1e-7" threshold="1e-7"/>
-        <MechanicalObject name="Articulations" position="0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0" template="Vec1d" />
+        <MechanicalObject name="Articulations" position="0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0" template="Vec1" />
 		<Node name="TranslPoint">
-            <MechanicalObject name="DOF" position="0.0 0 0  0 0 0 1" showObject="true" template="Rigid3d" />    
-            <PartialFixedConstraint fixedDirections="1 1 1 1 1 1" indices="0" name="fixOrigin" template="Rigid3d" />
+            <MechanicalObject name="DOF" position="0.0 0 0  0 0 0 1" showObject="true" template="Rigid3" />    
+            <PartialFixedProjectiveConstraint fixedDirections="1 1 1 1 1 1" indices="0" name="fixOrigin" template="Rigid3" />
         </Node>
 	    <Node name="Mechanics">
-	        <MechanicalObject name="DOFs"  template="Rigid3d" position="0.0 0 0  0 0 0 1  
+	        <MechanicalObject name="DOFs"  template="Rigid3" position="0.0 0 0  0 0 0 1  
 	        															1.42857142857 0 0  0 0 0 1  
 	        															2.85714285714 0 0  0 0 0 1  
 	        															4.28571428571 0 0  0 0 0 1  
@@ -49,7 +49,7 @@
 	            <PointCollisionModel />
 	            <BeamLinearMapping isMechanical="true" />
 	        </Node>
-	        <RestShapeSpringsForceField stiffness="1200"  angularStiffness="500" drawSpring="1" external_points="0" external_rest_shape="@../TranslPoint/DOF" mstate="@DOFs" points="0" template="Rigid3d" />
+	        <RestShapeSpringsForceField stiffness="1200"  angularStiffness="500" drawSpring="1" external_points="0" external_rest_shape="@../TranslPoint/DOF" mstate="@DOFs" points="0" template="Rigid3" />
 	    </Node>
 
         <ArticulatedHierarchyContainer />

@@ -22,6 +22,7 @@
 #pragma once
 
 #include <sofa/component/solidmechanics/fem/hyperelastic/StandardTetrahedralFEMForceField.h>
+#include <sofa/core/behavior/ForceField.inl>
 #include <sofa/component/solidmechanics/fem/hyperelastic/TetrahedronHyperelasticityFEMDrawing.h>
 
 #include <sofa/component/solidmechanics/fem/hyperelastic/material/BoyceAndArruda.h>
@@ -40,6 +41,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sofa/helper/AdvancedTimer.h>
+#include <sofa/helper/ScopedAdvancedTimer.h>
 #include <sofa/linearalgebra/CompressedRowSparseMatrix.h>
 
 namespace sofa::component::solidmechanics::fem::hyperelastic
@@ -266,17 +268,17 @@ void StandardTetrahedralFEMForceField<DataTypes>::initNeighbourhoodEdges(){}
 template <class DataTypes>
 void StandardTetrahedralFEMForceField<DataTypes>::addForce(const core::MechanicalParams*  mparams , DataVecDeriv& d_f, const DataVecCoord& d_x, const DataVecDeriv& /* d_v */)
 {
-    sofa::helper::AdvancedTimer::stepBegin("addForceStandardTetraFEM");
+    SCOPED_TIMER("addForceStandardTetraFEM");
 
     VecDeriv& f = *d_f.beginEdit();
     const VecCoord& x = d_x.getValue();
 
     unsigned int i=0,j=0,k=0,l=0;
-    unsigned int nbTetrahedra=m_topology->getNbTetrahedra();
+    const unsigned int nbTetrahedra=m_topology->getNbTetrahedra();
 
     tetrahedronRestInfoVector& tetrahedronInf = *(tetrahedronInfo.beginEdit());
     type::vector<EdgeInformation>& edgeInf = *(edgeInfo.beginEdit());
-    unsigned int nbEdges=m_topology->getNbEdges();
+    const unsigned int nbEdges=m_topology->getNbEdges();
     const type::vector< core::topology::BaseMeshTopology::Edge> &edgeArray=m_topology->getEdges() ;
     TetrahedronRestInformation *tetInfo;
     EdgeInformation *einfo;
@@ -441,22 +443,20 @@ void StandardTetrahedralFEMForceField<DataTypes>::addForce(const core::Mechanica
     tetrahedronInfo.endEdit();
     edgeInfo.endEdit();
     d_f.endEdit();
-
-    sofa::helper::AdvancedTimer::stepEnd("addForceStandardTetraFEM");
 }
 
 
 template <class DataTypes>
 void StandardTetrahedralFEMForceField<DataTypes>::addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx)
 {
-    sofa::helper::AdvancedTimer::stepBegin("addDForceStandardTetraFEM");
+    SCOPED_TIMER("addDForceStandardTetraFEM");
 
     VecDeriv& df = *d_df.beginEdit();
     const VecDeriv& dx = d_dx.getValue();
     Real kFactor = (Real)sofa::core::mechanicalparams::kFactorIncludingRayleighDamping(mparams, this->rayleighStiffness.getValue());
 
     unsigned int l=0;
-    unsigned int nbEdges=m_topology->getNbEdges();
+    const unsigned int nbEdges=m_topology->getNbEdges();
     const type::vector< core::topology::BaseMeshTopology::Edge> &edgeArray=m_topology->getEdges() ;
 
     type::vector<EdgeInformation>& edgeInf = *(edgeInfo.beginEdit());
@@ -535,8 +535,6 @@ void StandardTetrahedralFEMForceField<DataTypes>::addDForce(const core::Mechanic
     edgeInfo.endEdit();
 //	tetrahedronInfo.endEdit();
     d_df.beginEdit();
-
-    sofa::helper::AdvancedTimer::stepEnd("addDForceStandardTetraFEM");
 }
 
 template<class DataTypes>
@@ -563,6 +561,41 @@ void  StandardTetrahedralFEMForceField<DataTypes>::addKToMatrix(sofa::linearalge
         mat->add(N0,N1, -stiffTransposed);
         mat->add(N1,N0, -stiff);
     }
+}
+
+template <class DataTypes>
+void StandardTetrahedralFEMForceField<DataTypes>::buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix)
+{
+    const sofa::Size nbEdges = m_topology->getNbEdges();
+    const type::vector< Edge>& edgeArray=m_topology->getEdges();
+
+    const edgeInformationVector& edgeInf = edgeInfo.getValue();
+
+    auto dfdx = matrix->getForceDerivativeIn(this->mstate)
+                       .withRespectToPositionsIn(this->mstate);
+
+    for (sofa::Size l = 0; l < nbEdges; ++l)
+    {
+        const auto& einfo = edgeInf[l];
+        const Index node0 = edgeArray[l][0];
+        const Index node1 = edgeArray[l][1];
+        const Index N0 = 3 * node0;
+        const Index N1 = 3 * node1;
+
+        const Matrix3& stiff = einfo.DfDx;
+        const Matrix3 stiffTransposed = stiff.transposed();
+
+        dfdx(N0, N0) +=  stiffTransposed;
+        dfdx(N1, N1) +=  stiff;
+        dfdx(N0, N1) += -stiffTransposed;
+        dfdx(N1, N0) += -stiff;
+    }
+}
+
+template <class DataTypes>
+void StandardTetrahedralFEMForceField<DataTypes>::buildDampingMatrix(core::behavior::DampingMatrix*)
+{
+    // No damping in this ForceField
 }
 
 template<class DataTypes>
@@ -716,14 +749,14 @@ template<class DataTypes>
 void StandardTetrahedralFEMForceField<DataTypes>::saveMesh( const char *filename )
 {
     VecCoord pos( this->mstate->read(core::ConstVecCoordId::position())->getValue() );
-    core::topology::BaseMeshTopology::SeqTriangles triangles = m_topology->getTriangles();
+    const core::topology::BaseMeshTopology::SeqTriangles triangles = m_topology->getTriangles();
     FILE *file = fopen( filename, "wb" );
     if (!file) return;
     // write header
     char header[81];
     //	strcpy( header, "STL generated by SOFA." );
     fwrite( (void*)&(header[0]),1, 80, file );
-    unsigned int numTriangles = triangles.size();
+    const unsigned int numTriangles = triangles.size();
     fwrite( &numTriangles, 4, 1, file );
     // write poly data
     float vertex[3][3];

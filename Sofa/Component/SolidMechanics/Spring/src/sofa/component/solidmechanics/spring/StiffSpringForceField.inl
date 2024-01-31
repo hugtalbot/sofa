@@ -22,11 +22,14 @@
 #pragma once
 #include <sofa/linearalgebra/BaseMatrix.h>
 #include <sofa/component/solidmechanics/spring/StiffSpringForceField.h>
+#include <sofa/component/solidmechanics/spring/SpringForceField.inl>
 #include <sofa/core/behavior/MultiMatrixAccessor.h>
 
 #include <sofa/helper/AdvancedTimer.h>
 
 #include <sofa/core/visual/VisualParams.h>
+
+#include <sofa/core/behavior/BaseLocalForceFieldMatrix.h>
 
 namespace sofa::component::solidmechanics::spring
 {
@@ -202,17 +205,27 @@ auto StiffSpringForceField<DataTypes>::computeSpringForce(
 }
 
 template<class DataTypes>
-void StiffSpringForceField<DataTypes>::addSpringDForce(VecDeriv& df1,const  VecDeriv& dx1, VecDeriv& df2,const  VecDeriv& dx2, sofa::Index i, const Spring& spring, SReal kFactor, SReal /*bFactor*/)
+void StiffSpringForceField<DataTypes>::addSpringDForce(VecDeriv& df1,const  VecDeriv& dx1, VecDeriv& df2,const  VecDeriv& dx2, sofa::Index i, const Spring& spring, SReal kFactor, SReal bFactor)
 {
+    typename DataTypes::DPos dforce = computeSpringDForce(df1, dx1, df2, dx2, i, spring, kFactor, bFactor);
+
     const sofa::Index a = spring.m1;
     const sofa::Index b = spring.m2;
-    const typename DataTypes::CPos d = DataTypes::getDPos(dx2[b]) - DataTypes::getDPos(dx1[a]);
-    typename DataTypes::DPos dforce = this->dfdx[i]*d;
-
-    dforce *= kFactor;
 
     DataTypes::setDPos( df1[a], DataTypes::getDPos(df1[a]) + dforce ) ;
     DataTypes::setDPos( df2[b], DataTypes::getDPos(df2[b]) - dforce ) ;
+}
+
+template <class DataTypes>
+typename DataTypes::DPos StiffSpringForceField<DataTypes>::computeSpringDForce(VecDeriv& df1,
+    const VecDeriv& dx1, VecDeriv& df2, const VecDeriv& dx2, sofa::Index i, const Spring& spring,
+    SReal kFactor, SReal bFactor)
+{
+    SOFA_UNUSED(df1);
+    SOFA_UNUSED(df2);
+    SOFA_UNUSED(bFactor);
+    const typename DataTypes::CPos d = DataTypes::getDPos(dx2[spring.m2]) - DataTypes::getDPos(dx1[spring.m1]);
+    return this->dfdx[i] * d * kFactor;
 }
 
 template<class DataTypes>
@@ -227,8 +240,8 @@ void StiffSpringForceField<DataTypes>::addForce(const core::MechanicalParams* mp
 template<class DataTypes>
 void StiffSpringForceField<DataTypes>::addDForce(const core::MechanicalParams* mparams, DataVecDeriv& data_df1, DataVecDeriv& data_df2, const DataVecDeriv& data_dx1, const DataVecDeriv& data_dx2)
 {
-    VecDeriv&        df1 = *data_df1.beginEdit();
-    VecDeriv&        df2 = *data_df2.beginEdit();
+    sofa::helper::WriteOnlyAccessor<sofa::Data<VecDeriv>> df1 = sofa::helper::getWriteOnlyAccessor(data_df1);
+    sofa::helper::WriteOnlyAccessor<sofa::Data<VecDeriv>> df2 = sofa::helper::getWriteOnlyAccessor(data_df2);
     const VecDeriv&  dx1 =  data_dx1.getValue();
     const VecDeriv&  dx2 =  data_dx2.getValue();
     Real kFactor       =  (Real)sofa::core::mechanicalparams::kFactorIncludingRayleighDamping(mparams,this->rayleighStiffness.getValue());
@@ -240,16 +253,14 @@ void StiffSpringForceField<DataTypes>::addDForce(const core::MechanicalParams* m
 
     for (sofa::Index i=0; i<springs.size(); i++)
     {
-        this->addSpringDForce(df1,dx1,df2,dx2, i, springs[i], kFactor, bFactor);
+        this->addSpringDForce(df1.wref(), dx1,df2.wref(),dx2, i, springs[i], kFactor, bFactor);
     }
-
-    data_df1.endEdit();
-    data_df2.endEdit();
 }
 
 
 template <class DataTypes>
-void StiffSpringForceField<DataTypes>::addToMatrix(linearalgebra::BaseMatrix* globalMatrix,
+template<class Matrix>
+void StiffSpringForceField<DataTypes>::addToMatrix(Matrix* globalMatrix,
     const unsigned int offsetRow,
     const unsigned int offsetCol,
     const Mat& localMatrix)
@@ -305,10 +316,10 @@ void StiffSpringForceField<DataTypes>::addKToMatrix(const core::MechanicalParams
     }
     else
     {
-        sofa::core::behavior::MultiMatrixAccessor::MatrixRef mat11 = matrix->getMatrix(this->mstate1);
-        sofa::core::behavior::MultiMatrixAccessor::MatrixRef mat22 = matrix->getMatrix(this->mstate2);
-        sofa::core::behavior::MultiMatrixAccessor::InteractionMatrixRef mat12 = matrix->getMatrix(this->mstate1, this->mstate2);
-        sofa::core::behavior::MultiMatrixAccessor::InteractionMatrixRef mat21 = matrix->getMatrix(this->mstate2, this->mstate1);
+        const sofa::core::behavior::MultiMatrixAccessor::MatrixRef mat11 = matrix->getMatrix(this->mstate1);
+        const sofa::core::behavior::MultiMatrixAccessor::MatrixRef mat22 = matrix->getMatrix(this->mstate2);
+        const sofa::core::behavior::MultiMatrixAccessor::InteractionMatrixRef mat12 = matrix->getMatrix(this->mstate1, this->mstate2);
+        const sofa::core::behavior::MultiMatrixAccessor::InteractionMatrixRef mat21 = matrix->getMatrix(this->mstate2, this->mstate1);
 
         if (!mat11 && !mat22 && !mat12 && !mat21) return;
         const sofa::type::vector<Spring >& ss = this->springs.getValue();
@@ -329,4 +340,65 @@ void StiffSpringForceField<DataTypes>::addKToMatrix(const core::MechanicalParams
 
 }
 
+template <class DataTypes>
+void StiffSpringForceField<DataTypes>::buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix)
+{
+    const sofa::type::vector<Spring >& ss = this->springs.getValue();
+    const auto n = std::min(ss.size(), this->dfdx.size());
+    if (this->mstate1 == this->mstate2)
+    {
+        auto dfdx = matrix->getForceDerivativeIn(this->mstate1.get())
+                           .withRespectToPositionsIn(this->mstate1.get());
+
+        for (std::size_t e = 0; e < n; ++e)
+        {
+            const Spring& s = ss[e];
+            const Mat& m = this->dfdx[e];
+
+            const auto p1 = Deriv::total_size * s.m1;
+            const auto p2 = Deriv::total_size * s.m2;
+
+            for(sofa::Index i = 0; i < N; ++i)
+            {
+                for (sofa::Index j = 0; j < N; ++j)
+                {
+                    const auto k = m[i][j];
+                    dfdx(p1+i, p1+j) += -k;
+                    dfdx(p1+i, p2+j) +=  k;
+                    dfdx(p2+i, p1+j) +=  k;
+                    dfdx(p2+i, p2+j) += -k;
+                }
+            }
+        }
+    }
+    else
+    {
+        auto* m1 = this->mstate1.get();
+        auto* m2 = this->mstate2.get();
+
+        auto df1_dx1 = matrix->getForceDerivativeIn(m1).withRespectToPositionsIn(m1);
+        auto df1_dx2 = matrix->getForceDerivativeIn(m1).withRespectToPositionsIn(m2);
+        auto df2_dx1 = matrix->getForceDerivativeIn(m2).withRespectToPositionsIn(m1);
+        auto df2_dx2 = matrix->getForceDerivativeIn(m2).withRespectToPositionsIn(m2);
+
+        df1_dx1.checkValidity(this);
+        df1_dx2.checkValidity(this);
+        df2_dx1.checkValidity(this);
+        df2_dx2.checkValidity(this);
+
+        for (sofa::Index e = 0; e < n; ++e)
+        {
+            const Spring& s = ss[e];
+            const Mat& m = this->dfdx[e];
+
+            const unsigned p1 = Deriv::total_size * s.m1;
+            const unsigned p2 = Deriv::total_size * s.m2;
+
+            df1_dx1(p1, p1) += -m;
+            df1_dx2(p1, p2) +=  m;
+            df2_dx1(p2, p1) +=  m;
+            df2_dx2(p2, p2) += -m;
+        }
+    }
+}
 } // namespace sofa::component::solidmechanics::spring

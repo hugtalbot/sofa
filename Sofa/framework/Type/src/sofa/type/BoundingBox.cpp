@@ -114,22 +114,22 @@ BoundingBox::operator bbox_t() const
 
 SReal* BoundingBox::minBBoxPtr()
 {
-    return bbox.first.elems;
+    return bbox.first.ptr();
 }
 
 SReal* BoundingBox::maxBBoxPtr()
 {
-    return bbox.second.elems;
+    return bbox.second.ptr();
 }
 
 const SReal* BoundingBox::minBBoxPtr() const
 {
-    return bbox.first.elems;
+    return bbox.first.ptr();
 }
 
 const SReal* BoundingBox::maxBBoxPtr() const
 {
-    return bbox.second.elems;
+    return bbox.second.ptr();
 }
 
 const sofa::type::Vec3& BoundingBox::minBBox() const
@@ -207,7 +207,7 @@ void BoundingBox::include(const BoundingBox& other)
 
 void BoundingBox::inflate(const SReal amount)
 {
-    sofa::type::Vec3 size(amount,amount,amount);
+    const sofa::type::Vec3 size(amount,amount,amount);
     minBBox() -= size;
     maxBBox() += size;
 }
@@ -262,7 +262,7 @@ BoundingBox BoundingBox::getInflate( SReal amount ) const
 {
     BoundingBox result;
 
-    sofa::type::Vec3 size(amount,amount,amount);
+    const sofa::type::Vec3 size(amount,amount,amount);
     result.minBBox() = minBBox() - size;
     result.maxBBox() = maxBBox() + size;
 
@@ -360,22 +360,22 @@ BoundingBox2D::operator bbox_t() const
 
 SReal* BoundingBox2D::minBBoxPtr()
 {
-    return bbox.first.elems;
+    return bbox.first.ptr();
 }
 
 SReal* BoundingBox2D::maxBBoxPtr()
 {
-    return bbox.second.elems;
+    return bbox.second.ptr();
 }
 
 const SReal* BoundingBox2D::minBBoxPtr() const
 {
-    return bbox.first.elems;
+    return bbox.first.ptr();
 }
 
 const SReal* BoundingBox2D::maxBBoxPtr() const
 {
-    return bbox.second.elems;
+    return bbox.second.ptr();
 }
 
 const sofa::type::Vec<2, SReal>& BoundingBox2D::minBBox() const
@@ -445,7 +445,7 @@ void BoundingBox2D::include(const BoundingBox2D& other)
 
 void BoundingBox2D::inflate(const SReal amount)
 {
-    sofa::type::Vec<2, SReal> size(amount,amount);
+    const sofa::type::Vec<2, SReal> size(amount,amount);
     minBBox() -= size;
     maxBBox() += size;
 }
@@ -493,7 +493,7 @@ BoundingBox2D BoundingBox2D::getInflate( SReal amount ) const
 {
     BoundingBox2D result;
 
-    sofa::type::Vec<2, SReal> size(amount,amount);
+    const sofa::type::Vec<2, SReal> size(amount,amount);
     result.minBBox() = minBBox() - size;
     result.maxBBox() = maxBBox() + size;
 

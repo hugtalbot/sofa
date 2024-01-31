@@ -70,7 +70,7 @@ void ArgumentParser::parse()
     // copy argv into a temporary
     char** copyArgv = new char* [m_argc + 1];
     for (int i = 0; i < m_argc; i++) {
-        int len = strlen(m_argv[i]) + 1;
+        const int len = strlen(m_argv[i]) + 1;
         copyArgv[i] = new char[len];
         strcpy(copyArgv[i], m_argv[i]);
     }
@@ -82,10 +82,10 @@ void ArgumentParser::parse()
     try
     {
         m_options.parse_positional("input-file");
-        auto temp = m_options.parse(copyArgc, copyArgv);
+        const auto temp = m_options.parse(copyArgc, copyArgv);
         vecArg = temp.arguments();
     }
-    catch (const cxxopts::OptionException& e)
+    catch (const cxxopts::exceptions::exception& e)
     {
         msg_error("ArgumentParser") << e.what();
         exit(EXIT_FAILURE);
@@ -94,7 +94,7 @@ void ArgumentParser::parse()
     // copy result
     for (const auto& arg : vecArg)
     {
-        m_parseResult.insert({ arg.key(), arg.value() });
+        m_parseResult[arg.key()] = arg.value();
         if(arg.key() == "argv")
             extra.push_back(arg.value());
 
@@ -118,7 +118,7 @@ void ArgumentParser::parse()
 
 void ArgumentParser::showArgs()
 {
-    auto result = this->getMap();
+    const auto result = this->getMap();
 
     for (auto it = result.cbegin(); it != result.cend(); it++)
     {

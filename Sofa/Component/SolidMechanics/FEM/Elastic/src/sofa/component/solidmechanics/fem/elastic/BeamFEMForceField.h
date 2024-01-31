@@ -157,8 +157,6 @@ public:
 
     bool m_partialListSegment;
     bool m_updateStiffnessMatrix;
-    SOFA_ATTRIBUTE_DISABLED__REMOVE_UNUSED_ASSEMBLING()
-    DeprecatedAndRemoved m_assembling;
     SReal m_lastUpdatedStep;
 
     Quat<SReal>& beamQuat(int i);
@@ -172,19 +170,18 @@ public:
 public:
 
     void init() override;
-    void bwdInit() override;
     void reinit() override;
     virtual void reinitBeam(Index i);
     void addForce(const MechanicalParams* mparams, DataVecDeriv &  dataF, const DataVecCoord &  dataX , const DataVecDeriv & dataV ) override;
     void addDForce(const MechanicalParams* mparams, DataVecDeriv&   datadF , const DataVecDeriv&   datadX ) override;
     void addKToMatrix(const MechanicalParams* mparams, const MultiMatrixAccessor* matrix ) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
     SReal getPotentialEnergy(const MechanicalParams* mparams, const DataVecCoord&  x) const override;
     void draw(const core::visual::VisualParams* vparams) override;
     void computeBBox(const core::ExecParams* params, bool onlyVisible) override;
 
     void setUpdateStiffnessMatrix(bool val);
-    SOFA_ATTRIBUTE_DISABLED("v22.06 (PR#2901)", "v22.12", "Removing unused boolean data assembling in forcefields.")
-    void setComputeGlobalMatrix(bool val) = delete;
     void setBeam(Index i, SReal E, SReal L, SReal nu, SReal r, SReal rInner);
     void initBeams(std::size_t size);
 
@@ -200,7 +197,7 @@ protected:
     void applyStiffnessLarge( VecDeriv& f, const VecDeriv& x, int i, Index a, Index b, SReal fact=1.0);
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_BEAMFEMFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_BEAMFEMFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_ELASTIC_API BeamFEMForceField<defaulttype::Rigid3Types>;
 #endif
 

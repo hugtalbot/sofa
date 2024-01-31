@@ -90,6 +90,8 @@ public:
 
     /// Brings ForceField contribution to the global system stiffness matrix.
     void addKToMatrix(const core::MechanicalParams* mparams, const sofa::core::behavior::MultiMatrixAccessor* matrix ) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
     void draw(const core::visual::VisualParams* vparams) override;
 
 protected :
@@ -98,7 +100,7 @@ protected :
     VecReal k;
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_AngularSpringForceField_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_AngularSpringForceField_CPP)
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_SPRING_API AngularSpringForceField<sofa::defaulttype::Rigid3Types>;
 #endif
 

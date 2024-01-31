@@ -22,7 +22,7 @@
 
 #include <sofa/gui/component/performer/FixParticlePerformer.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/component/constraint/projective/FixedConstraint.h>
+#include <sofa/component/constraint/projective/FixedProjectiveConstraint.h>
 
 #include <sofa/simulation/InitVisitor.h>
 #include <sofa/simulation/DeleteVisitor.h>
@@ -47,7 +47,7 @@ void FixParticlePerformer<DataTypes>::start()
     }
 
     simulation::Node* nodeCollision = static_cast<simulation::Node*>(mstateCollision->getContext());
-    simulation::Node::SPtr nodeFixation = nodeCollision->createChild("FixationPoint");
+    const simulation::Node::SPtr nodeFixation = nodeCollision->createChild("FixationPoint");
     fixations.push_back( nodeFixation.get() );
 
     //Create the Container of points
@@ -62,7 +62,7 @@ void FixParticlePerformer<DataTypes>::start()
 
 
     //Fix all the points
-    typename sofa::component::constraint::projective::FixedConstraint<DataTypes>::SPtr fixFixation = sofa::core::objectmodel::New< sofa::component::constraint::projective::FixedConstraint<DataTypes> >();
+    typename sofa::component::constraint::projective::FixedProjectiveConstraint<DataTypes>::SPtr fixFixation = sofa::core::objectmodel::New< sofa::component::constraint::projective::FixedProjectiveConstraint<DataTypes> >();
     fixFixation->d_fixAll.setValue(true);
     nodeFixation->addObject(fixFixation);
 

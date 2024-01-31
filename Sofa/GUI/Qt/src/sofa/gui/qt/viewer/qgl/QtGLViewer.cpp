@@ -577,7 +577,7 @@ void QtGLViewer::DisplayOBJs()
     {
         //		std::cout << "-----------------------------------> initTexturesDone\n";
         //---------------------------------------------------
-        simulation::getSimulation()->initTextures(groot.get());
+        sofa::simulation::node::initTextures(groot.get());
         //---------------------------------------------------
         initTexturesDone = true;
     }
@@ -588,7 +588,7 @@ void QtGLViewer::DisplayOBJs()
                                   qglviewer::Vec(vparams->sceneBBox().maxBBoxPtr()));
 
         //Draw Debug information of the components
-        simulation::getSimulation()->draw(vparams,groot.get());
+        sofa::simulation::node::draw(vparams, groot.get());
         if (m_bShowAxis)
         {
             //DrawAxis(0.0, 0.0, 0.0, 10.0);
@@ -605,11 +605,11 @@ void QtGLViewer::DisplayOBJs()
             glMatrixMode(GL_MODELVIEW);
             glPushMatrix();
             glLoadIdentity();
-            sofa::type::Quat<SReal> sofaQuat( this->camera()->orientation()[0]
-                    , this->camera()->orientation()[1]
-                    , this->camera()->orientation()[2]
-                    , this->camera()->orientation()[3]);
-            gl::Axis::draw(sofa::type::Vec3(30.0_sreal,30.0_sreal,0.0_sreal),sofaQuat.inverse(), 25.0);
+            const sofa::type::Quat<SReal> sofaQuat( this->camera()->orientation()[0]
+                                                  , this->camera()->orientation()[1]
+                                                  , this->camera()->orientation()[2]
+                                                  , this->camera()->orientation()[3]);
+            gl::Axis::draw(sofa::type::Vec3(30.0_sreal,30.0_sreal,0.0_sreal),sofaQuat.inverse(), 25.0, sofa::type::RGBAColor::red(), sofa::type::RGBAColor::green(), sofa::type::RGBAColor::blue());
 
             glMatrixMode(GL_PROJECTION);
             glPopMatrix();
@@ -947,7 +947,7 @@ void QtGLViewer::moveRayPickInteractor(int eventX, int eventY)
     px -= p0;
     py -= p0;
     pz -= p0;
-    double r0 = sqrt(px.norm2() + py.norm2());
+    const double r0 = sqrt(px.norm2() + py.norm2());
     double r1 = sqrt(px1.norm2() + py1.norm2());
     r1 = r0 + (r1-r0) / pz.norm();
     px.normalize();
@@ -1052,7 +1052,7 @@ void QtGLViewer::saveView()
 {
     if (!sceneFileName.empty())
     {
-        std::string viewFileName = sceneFileName+"."+BaseGUI::GetGUIName()+".view";
+        const std::string viewFileName = sceneFileName+"."+BaseGUI::GetGUIName()+".view";
         std::ofstream out(viewFileName.c_str());
         if (!out.fail())
         {
@@ -1064,7 +1064,7 @@ void QtGLViewer::saveView()
     }
 }
 
-void QtGLViewer::getView(Vec3d& pos, Quat<SReal>& ori) const
+void QtGLViewer::getView(Vec3& pos, Quat<SReal>& ori) const
 {
     qglviewer::Vec position = camera()->position();
     for(int i = 0; i < 3; ++i) pos[i] = position[i];
@@ -1072,7 +1072,7 @@ void QtGLViewer::getView(Vec3d& pos, Quat<SReal>& ori) const
     for(int i = 0; i < 4; ++i) ori[i] = orientation[i];
 }
 
-void QtGLViewer::setView(const Vec3d& pos, const Quat<SReal> &ori)
+void QtGLViewer::setView(const Vec3& pos, const Quat<SReal> &ori)
 {
     camera()->setPosition(qglviewer::Vec(pos[0],pos[1],pos[2]));
     camera()->setOrientation(qglviewer::Quaternion(ori[0],ori[1],ori[2],ori[3]));

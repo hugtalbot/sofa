@@ -30,7 +30,7 @@
 #include <cmath>
 #include <sofa/helper/system/thread/CTime.h>
 #include <sofa/defaulttype/VecTypes.h>
-#include <sofa/component/linearsolver/iterative/MatrixLinearSolver.h>
+#include <sofa/component/linearsolver/iterative/MatrixLinearSolver.inl>
 #include <sofa/helper/system/thread/CTime.h>
 #include <sofa/core/behavior/RotationFinder.h>
 #include <sofa/core/behavior/LinearSolver.h>
@@ -39,13 +39,12 @@
 
 #include <sofa/component/odesolver/backward/EulerImplicitSolver.h>
 #include <sofa/component/linearsolver/iterative/CGLinearSolver.h>
-
-#if SOFA_COMPONENT_LINEARSOLVER_DIRECT_HAVE_CSPARSE && !defined(SOFA_FLOAT)
-#include <sofa/component/linearsolver/direct/SparseCholeskySolver.inl>
-#endif
-#include <sofa/linearalgebra/CompressedRowSparseMatrix.h>
+#include <sofa/component/linearsolver/direct/EigenSimplicialLLT.h>
+#include <sofa/component/linearsolver/direct/EigenDirectSparseSolver.inl>
 
 #include <sofa/simulation/Node.h>
+
+#include <sofa/component/linearsolver/preconditioner/PrecomputedMatrixSystem.h>
 
 
 namespace sofa::component::linearsolver::preconditioner
@@ -54,7 +53,6 @@ namespace sofa::component::linearsolver::preconditioner
 template<class TDataTypes>
 PrecomputedWarpPreconditioner<TDataTypes>::PrecomputedWarpPreconditioner()
     : jmjt_twostep( initData(&jmjt_twostep,true,"jmjt_twostep","Use two step algorithm to compute JMinvJt") )
-    , f_verbose( initData(&f_verbose,false,"verbose","Dump system state at each iteration") )
     , use_file( initData(&use_file,true,"use_file","Dump system matrix in a file") )
     , share_matrix( initData(&share_matrix,true,"share_matrix","Share the compliance matrix in memory if they are related to the same file (WARNING: might require to reload Sofa when opening a new scene...)") )
     , l_linearSolver(initLink("linearSolver", "Link towards the linear solver used to precompute the first matrix"))
@@ -64,6 +62,19 @@ PrecomputedWarpPreconditioner<TDataTypes>::PrecomputedWarpPreconditioner()
     first = true;
     _rotate = false;
     usePrecond = true;
+}
+
+template <class TDataTypes>
+void PrecomputedWarpPreconditioner<TDataTypes>::checkLinearSystem()
+{
+    if (!this->l_linearSystem)
+    {
+        auto* matrixLinearSystem=this->getContext()->template get<PrecomputedMatrixSystem<TMatrix, TVector> >();
+        if(!matrixLinearSystem)
+        {
+            this->template createDefaultLinearSystem<PrecomputedMatrixSystem<TMatrix, TVector> >();
+        }
+    }
 }
 
 template<class TDataTypes>
@@ -77,7 +88,7 @@ void PrecomputedWarpPreconditioner<TDataTypes>::setSystemMBKMatrix(const core::M
         init_bFact = sofa::core::mechanicalparams::bFactor(mparams);
         init_kFact = mparams->kFactor();
         Inherit::setSystemMBKMatrix(mparams);
-        loadMatrix(*this->linearSystem.systemMatrix);
+        loadMatrix(*this->getSystemMatrix());
     }
 
     this->linearSystem.needInvert = usePrecond;
@@ -170,13 +181,7 @@ void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrix(TMatrix& M)
             msg_info() << "Precompute : " << fname << " compliance.";
             if (l_linearSolver.empty())
             {
-#if SOFA_COMPONENT_LINEARSOLVER_DIRECT_HAVE_CSPARSE && !defined(SOFA_FLOAT)
-                loadMatrixWithCSparse(M);
-#else
-                msg_error() << "Link \"linearSolver\" is empty, but it is required to load matrix.";
-                this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
-                return;
-#endif  // SOFA_COMPONENT_LINEARSOLVER_DIRECT_HAVE_CSPARSE && !defined(SOFA_FLOAT)
+                loadMatrixWithCholeskyDecomposition(M);
             }
             else
             {
@@ -208,9 +213,8 @@ void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrix(TMatrix& M)
     }
 }
 
-#if SOFA_COMPONENT_LINEARSOLVER_DIRECT_HAVE_CSPARSE && !defined(SOFA_FLOAT)
 template<class TDataTypes>
-void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrixWithCSparse(TMatrix& M)
+void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrixWithCholeskyDecomposition(TMatrix& M)
 {
     msg_info() << "Compute the initial invert matrix with CS_PARSE" ;
 
@@ -223,7 +227,7 @@ void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrixWithCSparse(TMatrix& M
     b.resize(systemSize);
     for (unsigned int j=0; j<systemSize; j++) b.set(j,0.0);
 
-    component::linearsolver::direct::SparseCholeskySolver<CompressedRowSparseMatrix<Real>, FullVector<Real> > solver;
+    direct::EigenSimplicialLLT<Real> solver;
 
     msg_info() << "Precomputing constraint correction LU decomposition " ;
     solver.invert(M);
@@ -263,7 +267,6 @@ void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrixWithCSparse(TMatrix& M
     tmpStr << "Precomputing constraint correction : " << std::fixed << 100.0f << " %" ;
     msg_info() << tmpStr.str();
 }
-#endif  // SOFA_COMPONENT_LINEARSOLVER_DIRECT_HAVE_CSPARSE && !defined(SOFA_FLOAT)
 
 template<class TDataTypes>
 void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrixWithSolver()
@@ -287,8 +290,8 @@ void PrecomputedWarpPreconditioner<TDataTypes>::loadMatrixWithSolver()
     this->getContext()->get(EulerSolver);
 
     // for the initial computation, the gravity has to be put at 0
-    const sofa::type::Vec3d gravity = this->getContext()->getGravity();
-    const sofa::type::Vec3d gravity_zero(0.0,0.0,0.0);
+    const sofa::type::Vec3 gravity = this->getContext()->getGravity();
+    static constexpr sofa::type::Vec3 gravity_zero(0_sreal, 0_sreal, 0_sreal);
     this->getContext()->setGravity(gravity_zero);
 
     component::linearsolver::iterative::CGLinearSolver<GraphScatteredMatrix,GraphScatteredVector>* CGlinearSolver;
@@ -467,7 +470,7 @@ void PrecomputedWarpPreconditioner<TDataTypes>::rotateConstraints()
     _rotate = true;
     if (! use_rotations.getValue()) return;
 
-    simulation::Node *node = dynamic_cast<simulation::Node *>(this->getContext());
+    const simulation::Node *node = dynamic_cast<simulation::Node *>(this->getContext());
     sofa::core::behavior::RotationFinder<TDataTypes>* rotationFinder = nullptr;
 
     if (node != nullptr)
@@ -578,7 +581,7 @@ void PrecomputedWarpPreconditioner<TDataTypes>::ComputeResult(linearalgebra::Bas
             int l = jit1->first;
             for (typename JMatrix::LElementConstIterator i1 = jit1->second.begin(); i1 != jit1->second.end();)
             {
-                int c = i1->first;
+                const int c = i1->first;
                 Real v0 = (Real)i1->second; i1++; Real v1 = (Real)i1->second; i1++; Real v2 = (Real)i1->second; i1++;
                 internalData.JR.set(l,c+0,v0 * R[(c+0)*3+0] + v1 * R[(c+1)*3+0] + v2 * R[(c+2)*3+0] );
                 internalData.JR.set(l,c+1,v0 * R[(c+0)*3+1] + v1 * R[(c+1)*3+1] + v2 * R[(c+2)*3+1] );
@@ -644,7 +647,8 @@ void PrecomputedWarpPreconditioner<TDataTypes>::ComputeResult(linearalgebra::Bas
 template<class TDataTypes>
 void PrecomputedWarpPreconditioner<TDataTypes>::init()
 {
-    simulation::Node *node = dynamic_cast<simulation::Node *>(this->getContext());
+    Inherit1::init();
+    const simulation::Node *node = dynamic_cast<simulation::Node *>(this->getContext());
     if (node != nullptr) mstate = node->get<MState> ();
 }
 

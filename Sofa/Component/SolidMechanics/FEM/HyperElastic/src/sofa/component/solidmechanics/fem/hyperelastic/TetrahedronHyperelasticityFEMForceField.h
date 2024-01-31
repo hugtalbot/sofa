@@ -169,6 +169,8 @@ public:
     void addDForce(const core::MechanicalParams* mparams /* PARAMS FIRST */, DataVecDeriv& d_df, const DataVecDeriv& d_dx) override;
     SReal getPotentialEnergy(const core::MechanicalParams*, const DataVecCoord&) const override;
     void addKToMatrix(sofa::linearalgebra::BaseMatrix *mat, SReal k, unsigned int &offset) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
 
     void draw(const core::visual::VisualParams* vparams) override;
 
@@ -190,7 +192,7 @@ protected:
     void instantiateMaterial();
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_TETRAHEDRONHYPERELASTICITYFEMFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_TETRAHEDRONHYPERELASTICITYFEMFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_HYPERELASTIC_API TetrahedronHyperelasticityFEMForceField<defaulttype::Vec3Types>;
 #endif //  !defined(SOFA_COMPONENT_FORCEFIELD_TETRAHEDRONHYPERELASTICITYFEMFORCEFIELD_CPP)
 

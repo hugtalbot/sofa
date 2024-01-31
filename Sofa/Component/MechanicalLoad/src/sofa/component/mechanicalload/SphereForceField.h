@@ -110,13 +110,15 @@ public:
     void addDForce(const core::MechanicalParams* mparams, DataVecDeriv& d_df, const DataVecDeriv& d_dx) override;
     SReal getPotentialEnergy(const core::MechanicalParams* /*mparams*/, const DataVecCoord&  /* x */) const override;
     virtual void updateStiffness( const VecCoord& x );
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* /*matrix*/) final;
 
     void addKToMatrix(sofa::linearalgebra::BaseMatrix *, SReal, unsigned int &) override;
 
     void draw(const core::visual::VisualParams* vparams) override;
 };
 
-#if  !defined(SOFA_COMPONENT_FORCEFIELD_SPHEREFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_FORCEFIELD_SPHEREFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API SphereForceField<defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API SphereForceField<defaulttype::Vec2Types>;
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API SphereForceField<defaulttype::Vec1Types>;

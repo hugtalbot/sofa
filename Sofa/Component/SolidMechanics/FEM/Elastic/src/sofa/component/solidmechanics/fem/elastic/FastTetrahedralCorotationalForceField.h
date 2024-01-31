@@ -156,6 +156,8 @@ public:
 
     void addKToMatrix(sofa::linearalgebra::BaseMatrix *m, SReal kFactor, unsigned int &offset) override;
     void addKToMatrix(const core::MechanicalParams* /*mparams*/, const sofa::core::behavior::MultiMatrixAccessor* /*matrix*/ ) override;
+    void buildStiffnessMatrix(core::behavior::StiffnessMatrix* matrix) override;
+    void buildDampingMatrix(core::behavior::DampingMatrix* matrix) override;
 
     void updateTopologyInformation();
 
@@ -201,7 +203,7 @@ protected :
     ExtraData m_data;
 };
 
-#if  !defined(SOFA_COMPONENT_INTERACTIONFORCEFIELD_FASTTETRAHEDRALCOROTATIONALFORCEFIELD_CPP)
+#if !defined(SOFA_COMPONENT_INTERACTIONFORCEFIELD_FASTTETRAHEDRALCOROTATIONALFORCEFIELD_CPP)
 extern template class SOFA_COMPONENT_SOLIDMECHANICS_FEM_ELASTIC_API FastTetrahedralCorotationalForceField<sofa::defaulttype::Vec3Types>;
 
 #endif

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Node name="root" dt="0.01" gravity="0 10 0">
     <RequiredPlugin name="Sofa.Component.Collision.Detection.Algorithm"/> <!-- Needed to use components [CollisionPipeline] -->
-    <RequiredPlugin name="Sofa.Component.Constraint.Projective"/> <!-- Needed to use components [FixedConstraint] -->
+    <RequiredPlugin name="Sofa.Component.Constraint.Projective"/> <!-- Needed to use components [FixedProjectiveConstraint] -->
     <RequiredPlugin name="Sofa.Component.LinearSolver.Iterative"/> <!-- Needed to use components [CGLinearSolver] -->
     <RequiredPlugin name="Sofa.Component.Mapping.Linear"/> <!-- Needed to use components [IdentityMapping] -->
     <RequiredPlugin name="Sofa.Component.Mass"/> <!-- Needed to use components [DiagonalMass] -->
@@ -26,16 +26,16 @@
         
         <QuadSetTopologyContainer name="Quad_topo" src="@../grid" />
         <QuadSetTopologyModifier name="Modifier" />
-        <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3d" />
+        <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3" />
         
         <MechanicalObject name="TriangularFEMForceField_dof" />
         <DiagonalMass totalMass="1.0" />
-        <FixedConstraint indices="0 39" />
+        <FixedProjectiveConstraint indices="0 39" />
 
         <Node name="T">
             <TriangleSetTopologyContainer name="Triangle_topo" />
             <TriangleSetTopologyModifier name="Modifier" />
-            <TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3d" />
+            <TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3" />
 
             <Quad2TriangleTopologicalMapping name="TriangularFEMForceField_mapTopo" input="@../Quad_topo" output="@Triangle_topo" />
             <TriangularFEMForceField name="FEM" youngModulus="1000" poissonRatio="0.3" method="large" />
@@ -55,16 +55,16 @@
         
         <QuadSetTopologyContainer name="Quad_topo" src="@../grid" />
         <QuadSetTopologyModifier name="Modifier" />
-        <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3d" />
+        <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3" />
         
         <MechanicalObject name="TriangularFEMForceFieldOptim_dof" />
         <DiagonalMass totalMass="1.0" />
-        <FixedConstraint indices="0 39" />
+        <FixedProjectiveConstraint indices="0 39" />
 
         <Node name="T">
             <TriangleSetTopologyContainer name="Triangle_topo" />
             <TriangleSetTopologyModifier name="Modifier" />
-            <TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3d" />
+            <TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3" />
 
             <Quad2TriangleTopologicalMapping name="TriangularFEMForceFieldOptim_mapTopo" input="@../Quad_topo" output="@Triangle_topo" />
             <TriangularFEMForceFieldOptim name="FEM" youngModulus="1000" poissonRatio="0.3" method="large" />
@@ -84,16 +84,16 @@
         
         <QuadSetTopologyContainer name="Quad_topo" src="@../grid" />
         <QuadSetTopologyModifier name="Modifier" />
-        <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3d" />
+        <QuadSetGeometryAlgorithms name="GeomAlgo" template="Vec3" />
         
         <MechanicalObject name="TriangleFEMForceField_dof" />
         <DiagonalMass totalMass="1.0" />
-        <FixedConstraint indices="0 39" />
+        <FixedProjectiveConstraint indices="0 39" />
 
         <Node name="T">
             <TriangleSetTopologyContainer name="Triangle_topo" />
             <TriangleSetTopologyModifier name="Modifier" />
-            <TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3d" />
+            <TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3" />
 
             <Quad2TriangleTopologicalMapping name="TriangleFEMForceField_mapTopo" input="@../Quad_topo" output="@Triangle_topo" />
             <TriangleFEMForceField name="FEM" youngModulus="1000" poissonRatio="0.3" method="large" />

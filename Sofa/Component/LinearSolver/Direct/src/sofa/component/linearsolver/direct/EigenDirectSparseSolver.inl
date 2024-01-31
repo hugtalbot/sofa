@@ -61,22 +61,21 @@ void EigenDirectSparseSolver<TBlockType, EigenSolver>
     ::invert(Matrix& A)
 {
     {
-        sofa::helper::ScopedAdvancedTimer copyTimer("copyMatrixData");
+        SCOPED_TIMER_VARNAME(copyTimer, "copyMatrixData");
         Mfiltered.copyNonZeros(A);
         Mfiltered.compress();
     }
 
-    if (!m_map)
-    {
-        m_map = std::make_unique<EigenSparseMatrixMap>(Mfiltered.rows(), Mfiltered.cols(), Mfiltered.getColsValue().size(),
-            (typename EigenSparseMatrixMap::StorageIndex*)Mfiltered.rowBegin.data(), (typename EigenSparseMatrixMap::StorageIndex*)Mfiltered.colsIndex.data(), Mfiltered.colsValue.data());
-    }
+    m_map = std::make_unique<EigenSparseMatrixMap>(Mfiltered.rows(), Mfiltered.cols(), Mfiltered.getColsValue().size(),
+                                                   (typename EigenSparseMatrixMap::StorageIndex*)Mfiltered.rowBegin.data(),
+                                                   (typename EigenSparseMatrixMap::StorageIndex*)Mfiltered.colsIndex.data(),
+                                                   Mfiltered.colsValue.data());
 
     const bool analyzePattern = (MfilteredrowBegin != Mfiltered.rowBegin) || (MfilteredcolsIndex != Mfiltered.colsIndex);
 
     if (analyzePattern)
     {
-        sofa::helper::ScopedAdvancedTimer patternAnalysisTimer("patternAnalysis");
+        SCOPED_TIMER_VARNAME(patternAnalysisTimer, "patternAnalysis");
         std::visit([this](auto&& solver)
         {
             solver.analyzePattern(*m_map);
@@ -87,7 +86,7 @@ void EigenDirectSparseSolver<TBlockType, EigenSolver>
     }
 
     {
-        sofa::helper::ScopedAdvancedTimer factorizeTimer("factorization");
+        SCOPED_TIMER_VARNAME(factorizeTimer, "factorization");
         std::visit([this](auto&& solver)
         {
             solver.factorize(*m_map);
@@ -139,7 +138,7 @@ EigenDirectSparseSolver<TBlockType, EigenSolver>::EigenDirectSparseSolver()
     : Inherit1()
     , d_orderingMethod(initData(&d_orderingMethod, "ordering", "Ordering method"))
 {
-    sofa::helper::OptionsGroup d_orderingMethodOptions(4,"Natural", "AMD", "COLAMD", "Metis");
+    sofa::helper::OptionsGroup d_orderingMethodOptions{"Natural", "AMD", "COLAMD", "Metis"};
 
     d_orderingMethodOptions.setSelectedItem(s_defaultOrderingMethod);
     d_orderingMethod.setValue(d_orderingMethodOptions);

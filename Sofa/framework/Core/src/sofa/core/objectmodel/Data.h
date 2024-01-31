@@ -111,6 +111,7 @@ public:
     {
         m_value = ValueType(init.value);
         m_hasDefaultValue = true;
+        m_defaultValue = init.value;
     }
 
     /** \copydoc BaseData(const char*, bool, bool) */
@@ -200,6 +201,7 @@ public:
     bool read( const std::string& s ) override;
     void printValue(std::ostream& out) const override;
     std::string getValueString() const override;
+    std::string getDefaultValueString() const override;
     std::string getValueTypeString() const override;
 
     void operator =( const T& value )
@@ -216,6 +218,7 @@ public:
 
 protected:
     typedef DataContentValue<T,  !std::is_scalar_v<T>> ValueType;
+    T m_defaultValue;
 
     /// Value
     ValueType m_value;
@@ -259,13 +262,26 @@ void Data<T>::printValue( std::ostream& out) const
     out << getValue() << " ";
 }
 
-/// General case for printing default value
+/// General case for printing value
 template<class T>
 std::string Data<T>::getValueString() const
 {
     std::ostringstream out;
     out << getValue();
     return out.str();
+}
+
+/// General case for printing default value
+template<class T>
+std::string Data<T>::getDefaultValueString() const
+{
+    if (hasDefaultValue())
+    {
+        std::ostringstream out;
+        out << this->m_defaultValue;
+        return out.str();
+    }
+    return {};
 }
 
 template<class T>
@@ -286,7 +302,7 @@ bool Data<T>::read(const std::string& s)
     std::istringstream istr( s.c_str() );
 
     // capture std::cerr output (if any)
-    std::stringstream cerrbuffer;
+    const std::stringstream cerrbuffer;
     std::streambuf* old = std::cerr.rdbuf(cerrbuffer.rdbuf());
 
     readValue(istr);
@@ -343,7 +359,7 @@ bool Data<T>::doIsExactSameDataType(const BaseData* parent)
     return dynamic_cast<const Data<T>*>(parent) != nullptr;
 }
 
-#if  !defined(SOFA_CORE_OBJECTMODEL_DATA_CPP)
+#if !defined(SOFA_CORE_OBJECTMODEL_DATA_CPP)
 extern template class SOFA_CORE_API Data< std::string >;
 extern template class SOFA_CORE_API Data< sofa::type::vector<std::string> >;
 extern template class SOFA_CORE_API Data< sofa::type::vector<Index> >;
@@ -435,10 +451,6 @@ WriteAccessor<core::objectmodel::Data<T> > getWriteAccessor(core::objectmodel::D
     return WriteAccessor<core::objectmodel::Data<T> >(data);
 }
 
-template<class T>
-SOFA_ATTRIBUTE_DISABLED("v21.06 (PR#1807)", "v21.12", "You can probably update your code by removing aspect related calls. To update your code, use the new function.")
-WriteAccessor<core::objectmodel::Data<T> > write(core::objectmodel::Data<T>& data) = delete;
-
 
 /// Returns a read accessor from the provided Data<>
 /// Example of use:
@@ -448,10 +460,6 @@ ReadAccessor<core::objectmodel::Data<T> > getReadAccessor(const core::objectmode
 {
     return ReadAccessor<core::objectmodel::Data<T> >(data);
 }
-
-template<class T>
-SOFA_ATTRIBUTE_DISABLED("v21.06 (PR#1807)", "v21.12", "You can probably update your code by removing aspect related calls. To update your code, use the new function.")
-ReadAccessor<core::objectmodel::Data<T> > read(const core::objectmodel::Data<T>& data) = delete;
 
 /// Returns a write only accessor from the provided Data<>
 /// WriteOnly accessors are faster than WriteAccessor because

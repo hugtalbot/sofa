@@ -47,7 +47,7 @@ public:
 
 bool TriangleSetTopology_test::testEmptyContainer()
 {
-    TriangleSetTopologyContainer::SPtr triangleContainer = sofa::core::objectmodel::New< TriangleSetTopologyContainer >();
+    const TriangleSetTopologyContainer::SPtr triangleContainer = sofa::core::objectmodel::New< TriangleSetTopologyContainer >();
     EXPECT_EQ(triangleContainer->getNbTriangles(), 0);
     EXPECT_EQ(triangleContainer->getNumberOfElements(), 0);
     EXPECT_EQ(triangleContainer->getNumberOfTriangles(), 0);
@@ -66,7 +66,7 @@ bool TriangleSetTopology_test::testEmptyContainer()
 
 bool TriangleSetTopology_test::testTriangleBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::core::topology::TopologyElementType::TRIANGLE);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::geometry::ElementType::TRIANGLE);
     TriangleSetTopologyContainer* topoCon = dynamic_cast<TriangleSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -135,7 +135,7 @@ bool TriangleSetTopology_test::testTriangleBuffers()
 
 bool TriangleSetTopology_test::testEdgeBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::core::topology::TopologyElementType::TRIANGLE);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::geometry::ElementType::TRIANGLE);
     TriangleSetTopologyContainer* topoCon = dynamic_cast<TriangleSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -230,7 +230,7 @@ bool TriangleSetTopology_test::testEdgeBuffers()
 
 bool TriangleSetTopology_test::testVertexBuffers()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::core::topology::TopologyElementType::TRIANGLE);
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::geometry::ElementType::TRIANGLE);
     TriangleSetTopologyContainer* topoCon = dynamic_cast<TriangleSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
@@ -274,8 +274,8 @@ bool TriangleSetTopology_test::testVertexBuffers()
 
 bool TriangleSetTopology_test::checkTopology()
 {
-    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::core::topology::TopologyElementType::TRIANGLE);
-    TriangleSetTopologyContainer* topoCon = dynamic_cast<TriangleSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
+    fake_TopologyScene* scene = new fake_TopologyScene("mesh/square1.obj", sofa::geometry::ElementType::TRIANGLE);
+    const TriangleSetTopologyContainer* topoCon = dynamic_cast<TriangleSetTopologyContainer*>(scene->getNode().get()->getMeshTopology());
 
     if (topoCon == nullptr)
     {
@@ -284,7 +284,7 @@ bool TriangleSetTopology_test::checkTopology()
         return false;
     }
 
-    bool res = topoCon->checkTopology();
+    const bool res = topoCon->checkTopology();
     
     if (scene != nullptr)
         delete scene;

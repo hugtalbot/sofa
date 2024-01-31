@@ -99,17 +99,7 @@ public:
 
 
     SOFA_ATTRIBUTE_DISABLED__CONSTRAINTCORRECTION_EXPLICITLINK()
-    Data< type::vector< std::string > >  solverName; ///< name of the constraint solver
-    //SOFA_ATTRIBUTE_DISABLED__CONSTRAINTCORRECTION_EXPLICITLINK()
-    void parse( sofa::core::objectmodel::BaseObjectDescription* arg ) override
-    {
-        Inherit1::parse(arg);
-        if (arg->getAttribute("solverName"))
-        {
-            msg_warning() << "String data \"solverName\" is now replaced by explicit data link: \"linearSolver\" (PR #3152)";
-        }
-    }
-
+    core::objectmodel::lifecycle::RemovedData  solverName{this, "v22.12", "v23.06", "solverName", "replace \"solverName\" by using an explicit data link: \"linearSolver\" (PR #3152)}"};
 
     void verify_constraints();
 
@@ -157,7 +147,7 @@ private:
     bool _new_force; // if true, a "new" force was added in setConstraintDForce which is not yet integrated by a new computation in addConstraintDisplacements
 };
 
-#if  !defined(SOFA_COMPONENT_CONSTRAINT_LINEARSOLVERCONSTRAINTCORRECTION_CPP)
+#if !defined(SOFA_COMPONENT_CONSTRAINT_LINEARSOLVERCONSTRAINTCORRECTION_CPP)
 extern template class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_CORRECTION_API LinearSolverConstraintCorrection<sofa::defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_CORRECTION_API LinearSolverConstraintCorrection<sofa::defaulttype::Vec2Types>;
 extern template class SOFA_COMPONENT_CONSTRAINT_LAGRANGIAN_CORRECTION_API LinearSolverConstraintCorrection<sofa::defaulttype::Vec1Types>;

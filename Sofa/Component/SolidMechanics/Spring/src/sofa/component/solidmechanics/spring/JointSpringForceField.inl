@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 #include <sofa/component/solidmechanics/spring/JointSpringForceField.h>
+#include <sofa/core/behavior/PairInteractionForceField.inl>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/core/MechanicalParams.h>
 #include <sofa/component/solidmechanics/spring/JointSpring.h>
@@ -357,6 +358,12 @@ void JointSpringForceField<DataTypes>::addDForce(const core::MechanicalParams *m
     data_df2.endEdit();
 }
 
+template <class DataTypes>
+void JointSpringForceField<DataTypes>::buildDampingMatrix(core::behavior::DampingMatrix*)
+{
+    // No damping in this ForceField
+}
+
 template<class DataTypes>
 void JointSpringForceField<DataTypes>::draw(const core::visual::VisualParams* vparams)
 {
@@ -367,7 +374,7 @@ void JointSpringForceField<DataTypes>::draw(const core::visual::VisualParams* vp
 
     vparams->drawTool()->setLightingEnabled(true);
 
-    bool external = (this->mstate1!=this->mstate2);
+    const bool external = (this->mstate1!=this->mstate2);
     const type::vector<Spring>& springs = d_springs.getValue();
 
     type::vector<Vec3> vertices;
@@ -377,22 +384,22 @@ void JointSpringForceField<DataTypes>::draw(const core::visual::VisualParams* vp
 
     for (sofa::Index i=0; i<springs.size(); i++)
     {
-        Vec4f color;
+        sofa::type::RGBAColor color;
 
         Real d = (p2[springs[i].m2]-p1[springs[i].m1]).getCenter().norm();
         if (external)
         {
             if (d<springs[i].initTrans.norm()*0.9999)
-                color = Vec4f(1,0,0,1);
+                color = sofa::type::RGBAColor::red();
             else
-                color = Vec4f(0,1,0,1);
+                color = sofa::type::RGBAColor::green();
         }
         else
         {
             if (d<springs[i].initTrans.norm()*0.9999)
-                color = Vec4f(1,0.5f,0,1);
+                color = sofa::type::RGBAColor(1,0.5f,0,1);
             else
-                color = Vec4f(0,1,0.5f,1);
+                color = sofa::type::RGBAColor(0,1,0.5f,1);
         }
 
         Vec3 v0(p1[springs[i].m1].getCenter()[0], p1[springs[i].m1].getCenter()[1], p1[springs[i].m1].getCenter()[2]);

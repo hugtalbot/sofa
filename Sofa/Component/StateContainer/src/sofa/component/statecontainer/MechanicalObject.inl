@@ -40,6 +40,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <sofa/linearalgebra/CompressedRowSparseMatrixMechanical.h>
+
 
 namespace
 {
@@ -353,14 +355,6 @@ void MechanicalObject<DataTypes>::parse ( sofa::core::objectmodel::BaseObjectDes
                                       (Real)arg->getAttributeAsFloat("dy2",0.0),
                                       (Real)arg->getAttributeAsFloat("dz2",0.0)));
     }
-
-    if (arg->getAttribute("isToPrint")!=nullptr)
-    {
-        msg_deprecated() << "The 'isToPrint' data field has been deprecated in SOFA v19.06 due to lack of consistency in how it should work." << msgendl
-                            "Please contact sofa-dev team in case you need similar.";
-    }
-
-
 }
 
 
@@ -379,11 +373,11 @@ void MechanicalObject<DataTypes>::handleStateChange()
     this->getContext()->get(geoAlgo, sofa::core::objectmodel::BaseContext::Local);
 
     std::list< const TopologyChange * >::const_iterator itBegin = l_topology->beginStateChange();
-    std::list< const TopologyChange * >::const_iterator itEnd = l_topology->endStateChange();
+    const std::list< const TopologyChange * >::const_iterator itEnd = l_topology->endStateChange();
 
     while( itBegin != itEnd )
     {
-        TopologyChangeType changeType = (*itBegin)->getChangeType();
+        const TopologyChangeType changeType = (*itBegin)->getChangeType();
 
         switch( changeType )
         {
@@ -392,7 +386,7 @@ void MechanicalObject<DataTypes>::handleStateChange()
             using sofa::type::vector;
             const PointsAdded &pointsAdded = *static_cast< const PointsAdded * >( *itBegin );
 
-            Size prevSizeMechObj = getSize();
+            const Size prevSizeMechObj = getSize();
             Size nbPoints = Size(pointsAdded.getNbAddedVertices());
 
             if (Size(pointsAdded.pointIndexArray.size()) != nbPoints)
@@ -481,7 +475,7 @@ void MechanicalObject<DataTypes>::handleStateChange()
         {
             const auto& tab = ( static_cast< const PointsRemoved * >( *itBegin ) )->getArray();
 
-            unsigned int prevSizeMechObj   = getSize();
+            const unsigned int prevSizeMechObj   = getSize();
             unsigned int lastIndexMech = prevSizeMechObj - 1;
             for (unsigned int i = 0; i < tab.size(); ++i)
             {
@@ -691,7 +685,7 @@ void MechanicalObject<DataTypes>::applyTranslation (const SReal dx, const SReal 
 template <class DataTypes>
 void MechanicalObject<DataTypes>::applyRotation (const SReal rx, const SReal ry, const SReal rz)
 {
-    sofa::type::Quat<SReal> q =
+    const sofa::type::Quat<SReal> q =
             type::Quat< SReal >::createQuaterFromEuler(sofa::type::Vec3(rx, ry, rz) * M_PI / 180.0);
     applyRotation(q);
 }
@@ -812,7 +806,7 @@ void MechanicalObject<DataTypes>::copyToBaseVector(linearalgebra::BaseVector * d
     applyPredicateIfCoordOrDeriv(src.type, [this, &src, &dest, &offset](auto vtype)
     {
         using StateType = core::StateType_t<DataTypes, vtype>; //Coord or Deriv
-        auto vSrc = getReadAccessor<vtype>(src);
+        auto vSrc = this->getReadAccessor<vtype>(src);
         const unsigned int stateTypeDim = sofa::defaulttype::DataTypeInfo<StateType>::size();
 
         for (unsigned int i = 0; i < vSrc.size(); i++)
@@ -835,7 +829,7 @@ void MechanicalObject<DataTypes>::copyFromBaseVector(sofa::core::VecId dest, con
     applyPredicateIfCoordOrDeriv(dest.type, [this, &dest, &offset, &src](auto vtype)
     {
         using StateType = core::StateType_t<DataTypes, vtype>; //Coord or Deriv
-        auto vDest = getWriteOnlyAccessor<vtype>(dest);
+        auto vDest = this->getWriteOnlyAccessor<vtype>(dest);
         const unsigned int stateTypeDim = sofa::defaulttype::DataTypeInfo<StateType>::size();
 
         for (unsigned int i = 0; i < vDest.size(); i++)
@@ -852,12 +846,57 @@ void MechanicalObject<DataTypes>::copyFromBaseVector(sofa::core::VecId dest, con
 }
 
 template <class DataTypes>
+void MechanicalObject<DataTypes>::copyToBaseMatrix(linearalgebra::BaseMatrix* dest, core::ConstMatrixDerivId src, unsigned& offset)
+{
+    if (dest == nullptr)
+    {
+        dmsg_error() << "Cannot copy into an invalid matrix: a valid matrix is required";
+        return;
+    }
+    if (const auto* matrixData = this->read(src))
+    {
+        const MatrixDeriv& matrix = matrixData->getValue();
+
+        if (auto* crs = dynamic_cast<linearalgebra::CompressedRowSparseMatrixMechanical<Real, sofa::linearalgebra::CRSMechanicalPolicy>*>(dest))
+        {
+            // This is more performant compared to the generic case
+            // The structure of the matrix is the same compared to the generic
+            // case, but dest sizes may be modified compared to the generic case
+            crs->copyNonZeros(matrix);
+        }
+        else //generic case
+        {
+            //no modification of the size
+            for (MatrixDerivRowConstIterator rowIt = matrix.begin(); rowIt != matrix.end(); ++rowIt)
+            {
+                const int cid = rowIt.index();
+                for (MatrixDerivColConstIterator colIt = rowIt.begin(); colIt != rowIt.end(); ++colIt)
+                {
+                    const unsigned int dof = colIt.index();
+                    const Deriv n = colIt.val();
+
+                    for (unsigned int r = 0; r < Deriv::size(); ++r)
+                    {
+                        dest->add(cid, offset + dof * Deriv::size() + r, n[r]);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        msg_error() << "Cannot copy matrix into destination: source does not exist";
+    }
+    offset += this->getMatrixSize();
+}
+
+template <class DataTypes>
 void MechanicalObject<DataTypes>::addToBaseVector(linearalgebra::BaseVector* dest, sofa::core::ConstVecId src, unsigned int &offset)
 {
     applyPredicateIfCoordOrDeriv(src.type, [this, &dest, &offset, &src](auto vtype)
     {
         using StateType = core::StateType_t<DataTypes, vtype>; //Coord or Deriv
-        auto vSrc = getReadAccessor<vtype>(src);
+        auto vSrc = this->getReadAccessor<vtype>(src);
         const unsigned int stateTypeDim = sofa::defaulttype::DataTypeInfo<StateType>::size();
 
         for (unsigned int i = 0; i < vSrc.size(); i++)
@@ -880,7 +919,7 @@ void MechanicalObject<DataTypes>::addFromBaseVectorSameSize(sofa::core::VecId de
     applyPredicateIfCoordOrDeriv(dest.type, [this, &dest, &offset, &src](auto vtype)
     {
         using StateType = core::StateType_t<DataTypes, vtype>; //Coord or Deriv
-        auto vDest = getWriteAccessor<vtype>(dest);
+        auto vDest = this->getWriteAccessor<vtype>(dest);
         const unsigned int stateTypeDim = sofa::defaulttype::DataTypeInfo<StateType>::size();
 
         for (unsigned int i = 0; i < vDest.size(); i++)
@@ -903,7 +942,7 @@ void MechanicalObject<DataTypes>::addFromBaseVectorDifferentSize(sofa::core::Vec
     applyPredicateIfCoordOrDeriv(dest.type, [this, &dest, &offset, &src](auto vtype)
     {
         using StateType = core::StateType_t<DataTypes, vtype>; //Coord or Deriv
-        auto vDest = getWriteAccessor<vtype>(dest);
+        auto vDest = this->getWriteAccessor<vtype>(dest);
         const unsigned int stateTypeDim = sofa::defaulttype::DataTypeInfo<StateType>::size();
 
         const unsigned int nbEntries = src->size()/stateTypeDim;
@@ -956,7 +995,7 @@ void MechanicalObject<DataTypes>::init()
 
     if (maxElement != vector_sizes.end())
     {
-        Size maxSize = (*maxElement).second;
+        const Size maxSize = (*maxElement).second;
 
         // Resize the mechanical object size to match the maximum size of argument's vectors
         if (getSize() < maxSize)
@@ -1626,8 +1665,22 @@ void MechanicalObject<DataTypes>::setVecIdProperties(core::TVecId<vtype, vaccess
 {
     if (!properties.label.empty())
     {
-        vec_d->setName(properties.label + core::VecTypeLabels.at(vtype));
-        vec_d->setHelp("VecId: " + v.getName());
+        const std::string newname = properties.label;
+        const std::string oldname = properties.label + core::VecTypeLabels.at(vtype);
+        const auto base = vec_d->getOwner();
+        if(base && !base->findData(oldname))
+        {
+            base->addAlias(vec_d, oldname.c_str());
+
+            // This allows to find the data field in getData() using its new name eg: constraint_dx
+            if(base->findData(newname))
+                msg_error(base) << "Unable to expose a dynamic data field named '" << newname << "' as that name already exists. Please report this issue to https://github.com/sofa-framework/sofa/issues (for more infos see PR: https://github.com/sofa-framework/sofa/pull/3783)";
+            else
+                base->addAlias(vec_d, newname.c_str());
+
+        }
+        vec_d->setName(newname);
+        vec_d->setHelp("VecId: " + oldname);
     }
     if (!properties.group.empty())
     {
@@ -1771,7 +1824,7 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                 // v *= f
                 applyPredicateIfCoordOrDeriv(v.type, [this, &v, f](auto vtype_v)
                 {
-                    auto vv = getWriteAccessor<vtype_v>(v);
+                    auto vv = this->getWriteAccessor<vtype_v>(v);
                     for (unsigned int i = 0; i < vv.size(); ++i)
                         vv[i] *= static_cast<Real>(f);
                 });
@@ -1781,8 +1834,8 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                 // v = b*f
                 applyPredicateIfCoordOrDeriv(v.type, [this, &v, &b, f](auto vtype_v)
                 {
-                    auto vv = getWriteAccessor<vtype_v>(v);
-                    auto vb = getReadAccessor<vtype_v>(b);
+                    auto vv = this->getWriteAccessor<vtype_v>(v);
+                    auto vb = this->getReadAccessor<vtype_v>(b);
                     vv.resize(vb.size());
                     for (unsigned int i = 0; i < vv.size(); ++i)
                         vv[i] = vb[i] * static_cast<Real>(f);
@@ -1803,8 +1856,8 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
             // v = a
             applyPredicateIfCoordOrDeriv(v.type, [this, &v, &a](auto vtype_v)
             {
-                auto vv = getWriteOnlyAccessor<vtype_v>(v);
-                auto va = getReadAccessor<vtype_v>(a);
+                auto vv = this->getWriteOnlyAccessor<vtype_v>(v);
+                auto va = this->getReadAccessor<vtype_v>(a);
                 vv.wref() = va.ref();
             });
         }
@@ -1818,8 +1871,8 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                     const bool isApplied = applyPredicateIfCoordOrDeriv(v.type, b.type,
                     [this, &v, &b](auto vtype_v, auto vtype_b)
                     {
-                        auto vv = getWriteAccessor<vtype_v>(v);
-                        auto vb = getReadAccessor<vtype_b>(b);
+                        auto vv = this->getWriteAccessor<vtype_v>(v);
+                        auto vb = this->getReadAccessor<vtype_b>(b);
 
                         if (vb.size() > vv.size())
                             vv.resize(vb.size());
@@ -1835,8 +1888,8 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                     const bool isApplied = applyPredicateIfCoordOrDeriv(v.type, b.type,
                     [this, &v, &b, f](auto vtype_v, auto vtype_b)
                     {
-                        auto vv = getWriteAccessor<vtype_v>(v);
-                        auto vb = getReadAccessor<vtype_b>(b);
+                        auto vv = this->getWriteAccessor<vtype_v>(v);
+                        auto vb = this->getReadAccessor<vtype_b>(b);
 
                         if (vb.size() > vv.size())
                             vv.resize(vb.size());
@@ -1855,8 +1908,8 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                     const bool isApplied = applyPredicateIfCoordOrDeriv(v.type, a.type,
                     [this, &v, &a](auto vtype_v, auto vtype_a)
                     {
-                        auto vv = getWriteAccessor<vtype_v>(v);
-                        auto va = getReadAccessor<vtype_a>(a);
+                        auto vv = this->getWriteAccessor<vtype_v>(v);
+                        auto va = this->getReadAccessor<vtype_a>(a);
 
                         if (va.size() > vv.size())
                             vv.resize(va.size());
@@ -1871,8 +1924,8 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                     // v = a+v*f
                     applyPredicateIfCoordOrDeriv(v.type, [this, &v, &a, f](auto vtype_v)
                     {
-                        auto vv = getWriteOnlyAccessor<vtype_v>(v);
-                        auto va = getReadAccessor<vtype_v>(a);
+                        auto vv = this->getWriteOnlyAccessor<vtype_v>(v);
+                        auto va = this->getReadAccessor<vtype_v>(a);
 
                         vv.resize(va.size());
                         for (unsigned int i = 0; i < vv.size(); ++i)
@@ -1891,9 +1944,9 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                     const bool isApplied = applyPredicateIfCoordOrDeriv(v.type, b.type,
                     [this, &v, &a, &b](auto vtype_v, auto vtype_b)
                     {
-                        auto vv = getWriteOnlyAccessor<vtype_v>(v);
-                        auto va = getReadAccessor<vtype_v>(a);
-                        auto vb = getReadAccessor<vtype_b>(b);
+                        auto vv = this->getWriteOnlyAccessor<vtype_v>(v);
+                        auto va = this->getReadAccessor<vtype_v>(a);
+                        auto vb = this->getReadAccessor<vtype_b>(b);
 
                         vv.resize(va.size());
 
@@ -1911,9 +1964,9 @@ void MechanicalObject<DataTypes>::vOp(const core::ExecParams* params, core::VecI
                     const bool isApplied = applyPredicateIfCoordOrDeriv(v.type, b.type,
                     [this, &v, &a, &b, f](auto vtype_v, auto vtype_b)
                     {
-                        auto vv = getWriteOnlyAccessor<vtype_v>(v);
-                        auto va = getReadAccessor<vtype_v>(a);
-                        auto vb = getReadAccessor<vtype_b>(b);
+                        auto vv = this->getWriteOnlyAccessor<vtype_v>(v);
+                        auto va = this->getReadAccessor<vtype_v>(a);
+                        auto vb = this->getReadAccessor<vtype_b>(b);
 
                         vv.resize(va.size());
 
@@ -2070,8 +2123,8 @@ SReal MechanicalObject<DataTypes>::vDot(const core::ExecParams*, core::ConstVecI
     {
         error = !applyPredicateIfCoordOrDeriv(a.type, [this, &r, &a, &b](auto vtype)
         {
-            auto va = getReadAccessor<vtype>(a);
-            auto vb = getReadAccessor<vtype>(b);
+            auto va = this->getReadAccessor<vtype>(a);
+            auto vb = this->getReadAccessor<vtype>(b);
             for (unsigned int i = 0; i < va.size(); ++i)
             {
                 r += va[i] * vb[i];
@@ -2129,7 +2182,7 @@ SReal MechanicalObject<DataTypes>::vMax(const core::ExecParams* params, core::Co
 
     const bool isApplied = applyPredicateIfCoordOrDeriv(a.type, [this, &r, &a](auto vtype)
     {
-        auto va = getReadAccessor<vtype>(a);
+        auto va = this->getReadAccessor<vtype>(a);
         for (unsigned int i = 0; i < va.size(); ++i)
         {
             for(unsigned j = 0; j < core::StateTypeSize_v<DataTypes, vtype>; ++j)
@@ -2154,7 +2207,7 @@ Size MechanicalObject<DataTypes>::vSize(const core::ExecParams* params, core::Co
 
     const bool isApplied = applyPredicateIfCoordOrDeriv(v.type, [this, &size, &v](auto vtype)
     {
-        auto va = getReadAccessor<vtype>(v);
+        auto va = this->getReadAccessor<vtype>(v);
         size = va.size() * core::StateTypeSize_v<DataTypes, vtype>;
     });
 
@@ -2247,9 +2300,11 @@ void MechanicalObject<DataTypes>::resetAcc(const core::ExecParams* params, core:
 template <class DataTypes>
 void MechanicalObject<DataTypes>::resetConstraint(const core::ConstraintParams* cParams)
 {
+    //reset the constraint jacobian matrix
     Data<MatrixDeriv>& c_data = *this->write(cParams->j().getId(this));
     sofa::helper::getWriteOnlyAccessor(c_data)->clear();
 
+    //reset the mapping jacobian matrix
     Data<MatrixDeriv>& m_data = *this->write(core::MatrixDerivId::mappingJacobian());
     sofa::helper::getWriteOnlyAccessor(m_data)->clear();
 }
@@ -2287,10 +2342,9 @@ void MechanicalObject<DataTypes>::getConstraintJacobian(const core::ConstraintPa
 template <class DataTypes>
 void MechanicalObject<DataTypes>::buildIdentityBlocksInJacobian(const sofa::type::vector<unsigned int>& list_n, core::MatrixDerivId &mID)
 {
-    const auto N = Deriv::size();
+    static constexpr auto N = Deriv::size();
     Data<MatrixDeriv>* cMatrix= this->write(mID);
 
-    unsigned int columnIndex = 0;
     MatrixDeriv& jacobian = *cMatrix->beginEdit();
 
 
@@ -2304,7 +2358,6 @@ void MechanicalObject<DataTypes>::buildIdentityBlocksInJacobian(const sofa::type
             Deriv d;
             d[j]=1.0;
             rowIterator.setCol(node,  d);
-            columnIndex++;
         }
     }
     cMatrix->endEdit();
@@ -2421,7 +2474,7 @@ SReal MechanicalObject<DataTypes>::getConstraintJacobianTimesVecDeriv(unsigned i
 template <class DataTypes>
 inline void MechanicalObject<DataTypes>::drawIndices(const core::visual::VisualParams* vparams)
 {
-    float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * showIndicesScale.getValue());
+    const float scale = (float)((vparams->sceneBBox().maxBBox() - vparams->sceneBBox().minBBox()).norm() * showIndicesScale.getValue());
 
     std::vector<type::Vec3> positions;
     positions.reserve(d_size.getValue());
@@ -2445,7 +2498,7 @@ inline void MechanicalObject<DataTypes>::drawVectors(const core::visual::VisualP
         type::Vec3 p1 = type::Vec3(getPX(i), getPY(i), getPZ(i));
         type::Vec3 p2 = type::Vec3(getPX(i)+scale*vx, getPY(i)+scale*vy, getPZ(i)+scale*vz);
 
-        float rad = (float)( (p1-p2).norm()/20.0 );
+        const float rad = (float)( (p1-p2).norm()/20.0 );
         switch (drawMode.getValue())
         {
         case 0:
@@ -2546,7 +2599,7 @@ bool MechanicalObject<DataTypes>::pickParticles(const core::ExecParams* /* param
 
             type::Vec<3,Real> vecPoint = (pos-origin) - direction*dist;
             SReal distToRay = vecPoint.norm2();
-            SReal maxr = radius0 + dRadius*dist;
+            const SReal maxr = radius0 + dRadius*dist;
             if (distToRay <= maxr*maxr)
             {
                 particles.insert(std::make_pair(distToRay,std::make_pair(this,i)));

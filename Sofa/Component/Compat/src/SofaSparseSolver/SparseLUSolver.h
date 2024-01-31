@@ -23,13 +23,6 @@
 
 #include <sofa/component/linearsolver/direct/SparseLUSolver.h>
 
-SOFA_DEPRECATED_HEADER("v22.06", "v23.06", "sofa/component/linearsolver/direct/SparseLUSolver.h")
-
-namespace sofa::component::linearsolver
-{
-	template<class TMatrix, class TVector>
-    using SparseLUSolver = sofa::component::linearsolver::direct::SparseLUSolver<TMatrix, TVector>;
-	template<class Real>
-    using SparseLUInvertData = sofa::component::linearsolver::direct::SparseLUInvertData<Real>;
-
-} // namespace sofa::component::linearsolver
+SOFA_PRAGMA_ERROR( \
+    "This header has been DISABLED since v23.12. " \
+    "To fix this error you must use the CSparseSolvers plugins. " )

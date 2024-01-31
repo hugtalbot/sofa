@@ -56,12 +56,12 @@ protected:
 
 public:
     SOFA_CLASS(NewmarkImplicitSolver, sofa::core::behavior::OdeSolver);
-    Data<double> d_rayleighStiffness; ///< Rayleigh damping coefficient related to stiffness
-    Data<double> d_rayleighMass; ///< Rayleigh damping coefficient related to mass
-    Data<double> d_velocityDamping; ///< Velocity decay coefficient (no decay if null)
+    Data<SReal> d_rayleighStiffness; ///< Rayleigh damping coefficient related to stiffness
+    Data<SReal> d_rayleighMass; ///< Rayleigh damping coefficient related to mass
+    Data<SReal> d_velocityDamping; ///< Velocity decay coefficient (no decay if null)
 
-    Data<double> d_gamma; ///< Newmark scheme gamma coefficient
-    Data<double> d_beta; ///< Newmark scheme beta coefficient
+    Data<SReal> d_gamma; ///< Newmark scheme gamma coefficient
+    Data<SReal> d_beta; ///< Newmark scheme beta coefficient
 
     Data<bool> d_threadSafeVisitor; ///< If true, do not use realloc and free visitors in fwdInteractionForceField.
 
@@ -96,8 +96,8 @@ public:
     /// The last column is returned by the getSolutionIntegrationFactor method.
     SReal getIntegrationFactor(int inputDerivative, int outputDerivative) const override
     {
-        const double dt = getContext()->getDt();
-        SReal matrix[3][3] =
+        const auto dt = getContext()->getDt();
+        const SReal matrix[3][3] =
         {
             { 1, dt, 0},
             { 0, 1, 0},
@@ -113,8 +113,8 @@ public:
     /// how much will it affect the output derivative of the given order.
     SReal getSolutionIntegrationFactor(int outputDerivative) const override
     {
-        const double dt = getContext()->getDt();
-        SReal vect[3] = { dt, 1, 1/dt};
+        const auto dt = getContext()->getDt();
+        const SReal vect[3] = { dt, 1, 1/dt};
         if (outputDerivative >= 3)
             return 0;
         else

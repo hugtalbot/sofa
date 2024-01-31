@@ -48,6 +48,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/ResetVisitor.h
     ${SRC_ROOT}/SceneLoaderFactory.h
     ${SRC_ROOT}/Simulation.h
+    ${SRC_ROOT}/SimulationLoop.h
     ${SRC_ROOT}/SolveVisitor.h
     ${SRC_ROOT}/StateChangeVisitor.h
     ${SRC_ROOT}/TopologyChangeVisitor.h
@@ -90,9 +91,10 @@ set(HEADER_FILES
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccFromFVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateConstraint.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateJacobian.h
+    ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateJacobian.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateMatrixDeriv.h
-    ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMBKdxVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMBK_ToMatrixVisitor.h
+    ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMBKdxVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMDxVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAddSeparateGravityVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalApplyConstraintsVisitor.h
@@ -110,6 +112,7 @@ set(HEADER_FILES
     ${SRC_ROOT}/mechanicalvisitor/MechanicalGetMatrixDimensionVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalGetMomentumVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalGetNonDiagonalMassesCountVisitor.h
+    ${SRC_ROOT}/mechanicalvisitor/MechanicalIdentityBlocksInJacobianVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalIntegrateConstraintVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalIntegrationVisitor.h
     ${SRC_ROOT}/mechanicalvisitor/MechanicalMultiVectorFromBaseVectorVisitor.h
@@ -223,9 +226,10 @@ set(SOURCE_FILES
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccFromFVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateConstraint.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateJacobian.cpp
+    ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateJacobian.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAccumulateMatrixDeriv.cpp
-    ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMBKdxVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMBK_ToMatrixVisitor.cpp
+    ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMBKdxVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAddMDxVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalAddSeparateGravityVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalApplyConstraintsVisitor.cpp
@@ -243,6 +247,7 @@ set(SOURCE_FILES
     ${SRC_ROOT}/mechanicalvisitor/MechanicalGetMatrixDimensionVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalGetMomentumVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalGetNonDiagonalMassesCountVisitor.cpp
+    ${SRC_ROOT}/mechanicalvisitor/MechanicalIdentityBlocksInJacobianVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalIntegrateConstraintVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalIntegrationVisitor.cpp
     ${SRC_ROOT}/mechanicalvisitor/MechanicalMultiVectorFromBaseVectorVisitor.cpp

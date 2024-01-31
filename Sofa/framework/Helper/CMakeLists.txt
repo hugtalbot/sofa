@@ -159,7 +159,6 @@ set(SOURCE_FILES
     ${SRC_ROOT}/io/TriangleLoader.cpp
     ${SRC_ROOT}/io/XspLoader.cpp
     ${SRC_ROOT}/kdTree.cpp
-    ${SRC_ROOT}/proximity.cpp
     ${SRC_ROOT}/system/DynamicLibrary.cpp
     ${SRC_ROOT}/system/FileSystem.cpp
     ${SRC_ROOT}/system/Locale.cpp
@@ -199,6 +198,11 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
     list(APPEND SOURCE_FILES  ${SRC_ROOT}/system/FileMonitor_windows.cpp)
 endif()
 
+if (SOFA_TRACY)
+    list(APPEND HEADER_FILES ${SRC_ROOT}/logging/TracyMessageHandler.h)
+    list(APPEND SOURCE_FILES ${SRC_ROOT}/logging/TracyMessageHandler.cpp)
+endif()
+
 sofa_find_package(Sofa.Config REQUIRED)
 sofa_find_package(Sofa.Type REQUIRED)
 sofa_find_package(Sofa.Topology REQUIRED)
@@ -235,6 +239,17 @@ endif()
 
 # Eigen (header only)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+
+# Link the experimental library if the compiler version is less than gcc-9 or clang-9
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
+        target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        target_link_libraries(${PROJECT_NAME} PUBLIC c++fs)
+    endif()
+endif()
 
 # Json (header only) needed by AdvancedTimer
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "$<BUILD_INTERFACE:${JSON_INCLUDE_DIR}>")
