@@ -10,7 +10,7 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'sofa-framework' }}
+    #if: ${{ github.repository_owner == 'sofa-framework' }}
 
     steps:
       - name: Check out code
