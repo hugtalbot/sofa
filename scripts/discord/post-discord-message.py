@@ -32,6 +32,13 @@ else:
         }
     ]
 
+print(data)
+print(message)
+print(bot_name)
+print(embeds_title)
+print(embeds_url)
+print(embeds_description)
+
 # Send message to Discord
 response = requests.post(discord_token, json=data)
 print("Status: "+str(response.status_code)+"\nReason: "+str(response.reason)+"\nText: "+str(response.text))
