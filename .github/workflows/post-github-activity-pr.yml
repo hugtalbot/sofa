@@ -31,7 +31,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_MAIN_WEBHOOK_URL }}
-          MESSAGE: ":new:  PR opened: [#${{github.event.pull_request.number}} ${{github.event.pull_request.title}}](https://github.com/sofa-framework/sofa/pull/${{github.event.pull_request.number}})"
+          MESSAGE: ":new:  PR opened: [#${{github.event.pull_request}} ${{github.event.pull_request.title}}](https://github.com/sofa-framework/sofa/pull/${{github.event.pull_request.number}})"
           BOT_NAME: "SOFA Github bot"
           EMBEDS_TITLE: "#${{github.event.pull_request.number}} ${{github.event.pull_request.title}}"
           EMBEDS_URL: "https://github.com/sofa-framework/sofa/pull/${{github.event.pull_request.number}}"
