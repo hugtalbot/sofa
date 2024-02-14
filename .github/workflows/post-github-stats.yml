@@ -22,20 +22,32 @@ jobs:
 
         working-directory: ${{ github.workspace }}
 
-      - name: Get download stats
-        run: |
-          output=$(python scripts/github_activity/get_downloads.py)
-          echo "DownloadStatsOutput=$output" >> $GITHUB_ENV
-
       - name: Get cloner stats
         run: |
           output=$(python scripts/github_activity/get_cloners.py)
-          echo "ClonerStatsOutput=$output" >> $GITHUB_ENV
+          {
+            echo 'ClonerStatsOutput<<EOF'
+            echo "$output"
+            echo EOF
+          } >> "$GITHUB_ENV"
+
+      - name: Get download stats
+        run: |
+          output=$(python scripts/github_activity/get_downloads.py)
+          {
+            echo 'DownloadStatsOutput<<EOF'
+            echo "$output"
+            echo EOF
+          } >> "$GITHUB_ENV"
 
       - name: Get GitHub stats - PR issues discussions
         run: |
           output=$(python scripts/github_activity/get_repo_stats.py)
-          echo "GitHubStatOutput=$output" >> $GITHUB_ENV
+          {
+            echo 'GitHubStatOutput<<EOF'
+            echo "$output"
+            echo EOF
+          } >> "$GITHUB_ENV"
           
       - name: Send message
         run: |
