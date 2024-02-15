@@ -46,10 +46,10 @@ else:
     print("GITHUB_TOKEN environment variable is missing.")
     sys.exit(1)
 
-if "DISCORD_GITHUB_STATS_WEBHOOK_URL" in os.environ:
-    discord_token = os.environ['DISCORD_GITHUB_STATS_WEBHOOK_URL']
+if "DISCORD_WEBHOOK_URL" in os.environ:
+    discord_token = os.environ['DISCORD_WEBHOOK_URL']
 else:
-    print("DISCORD_GITHUB_STATS_WEBHOOK_URL environment variable is missing.")
+    print("DISCORD_WEBHOOK_URL environment variable is missing.")
     sys.exit(1)
 
 
