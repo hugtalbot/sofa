@@ -29,7 +29,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
-          MESSAGE: "**===============**\n**MONTHLY REPORT** ..................\n\n "
+          MESSAGE: "**MONTHLY REPORT** ..................\n\n "
           BOT_NAME: "Github activity tracking"
           EMBEDS_TITLE: ""
           EMBEDS_URL: ""
