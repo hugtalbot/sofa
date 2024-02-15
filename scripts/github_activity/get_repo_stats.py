@@ -16,10 +16,17 @@ from python_graphql_client import GraphqlClient
 
 client = GraphqlClient(endpoint="https://api.github.com/graphql")
 
+
 if "GITHUB_TOKEN" in os.environ:
     github_token = os.environ['GITHUB_TOKEN']
 else:
     print("GITHUB_TOKEN environment variable is missing.")
+    sys.exit(1)
+
+if "DISCORD_GITHUB_STATS_WEBHOOK_URL" in os.environ:
+    discord_token = os.environ['DISCORD_GITHUB_STATS_WEBHOOK_URL']
+else:
+    print("DISCORD_GITHUB_STATS_WEBHOOK_URL environment variable is missing.")
     sys.exit(1)
 
 
@@ -122,6 +129,15 @@ def wasRecentlyCreated(createdAt):
     return False
 
 
+def postOnDiscord(message):
+    payload = {
+        'content' : message,
+        'username' : 'Github activity tracking',
+        'flags' : 4,
+    }
+    response = requests.post(discord_token, json=payload)
+    print("Status: "+str(response.status_code)+"\nReason: "+str(response.reason)+"\nText: "+str(response.text))
+    return
 
 
 # List of the repository to scan
@@ -262,26 +278,23 @@ for repo in repos:
   recent_pulls_authors = set(recent_pulls_authors)
 
   # Exporting values
-  print("=========================")
-  print("repo: "+str(owner)+", name: "+str(name))
-  print("-------------------------")
-  print(discussions, "discussion topics")
-  print(answers_count, "answered")
-  print(replies_count, "replies")
-  # print(recent_discussions_count, "nb recent discussions")
-  print(recent_discussions_authors, "recent discussion authors")
-  print("-------------------------")
-  print(issues_count, "issues")
-  print(closed_count, "closed")
-  # print(recent_issues_count, "nb recent issues")
-  print(recent_issues_authors, "recent issue authors")
-  print("-------------------------")
-  print(pulls_count, "PRs")
-  print(openPR_count, "open")
-  print(merged_count, "merged")
+  postOnDiscord("repo: "+str(owner)+", name: "+str(name))
+  postOnDiscord("-------------------------")
+  postOnDiscord(discussions, "discussion topics")
+  postOnDiscord(answers_count, "answered")
+  postOnDiscord(replies_count, "replies")
+  postOnDiscord(recent_discussions_authors, "recent discussion authors")
+  postOnDiscord("-------------------------")
+  postOnDiscord(issues_count, "issues")
+  postOnDiscord(closed_count, "closed")
+  postOnDiscord(recent_issues_authors, "recent issue authors")
+  postOnDiscord("-------------------------")
+  postOnDiscord(pulls_count, "PRs")
+  postOnDiscord(openPR_count, "open")
+  postOnDiscord(merged_count, "merged")
   # print(recent_pulls_count, "nb recent PRs")
-  print(recent_pulls_authors, "recent PR authors")
-  print(pulls_first_timer_count, "nb pull 1st timers")
-  print(pulls_first_timers, "1st timers")
-  print("=========================")
+  postOnDiscord(recent_pulls_authors, "recent PR authors")
+  postOnDiscord(pulls_first_timer_count, "nb pull 1st timers")
+  postOnDiscord(pulls_first_timers, "1st timers")
+  postOnDiscord("=========================\n\n")
   
