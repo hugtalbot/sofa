@@ -27,15 +27,18 @@ jobs:
           python scripts/github_activity/get_downloads.py
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get cloner stats
         run: |
           python scripts/github_activity/get_cloners.py
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get GitHub stats - PR issues discussions
         run: |
           python scripts/github_activity/get_repo_stats.py
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
