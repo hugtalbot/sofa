@@ -2,6 +2,7 @@ import requests
 import os
 import sys
 
+
 def get_clone_stats(owner, repo, auth_token):
     headers = {
         "Authorization": f"token {auth_token}"
@@ -21,17 +22,38 @@ def get_clone_stats(owner, repo, auth_token):
     else:
         print(f"Failed to fetch clone statistics. Error: {response.status_code}")
 
+
+# Function posting a message on Discord
+def postOnDiscord(message):
+    payload = {
+        'content' : message,
+        'username' : 'Github activity tracking',
+        'flags' : 4,
+    }
+    response = requests.post(discord_token, json=payload)
+    print("Status: "+str(response.status_code)+"\nReason: "+str(response.reason)+"\nText: "+str(response.text))
+    return
+
+
 # Example usage
 repo_owner = "sofa-framework"
 repo_name = "sofa"
+
+
 if "GITHUB_TOKEN" in os.environ:
     github_token = os.environ['GITHUB_TOKEN']
 else:
     print("GITHUB_TOKEN environment variable is missing.")
     sys.exit(1)
 
+if "DISCORD_GITHUB_STATS_WEBHOOK_URL" in os.environ:
+    discord_token = os.environ['DISCORD_GITHUB_STATS_WEBHOOK_URL']
+else:
+    print("DISCORD_GITHUB_STATS_WEBHOOK_URL environment variable is missing.")
+    sys.exit(1)
+
+
 unique_cloners, total_cloners, sum_unique_cloners, sum_total_cloners= get_clone_stats(repo_owner, repo_name, github_token)
-print(f"Nombre de cloners uniques (API): {unique_cloners}") # to remove
-print(f"Nombre total de cloners  (API): {total_cloners}") # to remove
-print(f"Nombre de cloners uniques (sum): {sum_unique_cloners}")
-print(f"Nombre total de cloners (sum): {sum_total_cloners}")
+postOnDiscord("Nombre de cloners uniques (sum): {sum_unique_cloners}")
+postOnDiscord("Nombre total de cloners (sum): {sum_total_cloners}")
+postOnDiscord("=========================\n\n")

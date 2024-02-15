@@ -22,42 +22,14 @@ jobs:
 
         working-directory: ${{ github.workspace }}
 
-      - name: Get cloner stats
-        run: |
-          output=$(python scripts/github_activity/get_cloners.py)
-          {
-            echo 'ClonerStatsOutput<<EOF'
-            echo "$output"
-            echo EOF
-          } >> "$GITHUB_ENV"
-
       - name: Get download stats
         run: |
-          output=$(python scripts/github_activity/get_downloads.py)
-          {
-            echo 'DownloadStatsOutput<<EOF'
-            echo "$output"
-            echo EOF
-          } >> "$GITHUB_ENV"
+          python scripts/github_activity/get_downloads.py
+
+      - name: Get cloner stats
+        run: |
+          python scripts/github_activity/get_cloners.py
 
       - name: Get GitHub stats - PR issues discussions
         run: |
-          output=$(python scripts/github_activity/get_repo_stats.py)
-          {
-            echo 'GitHubStatOutput<<EOF'
-            echo "$output"
-            echo EOF
-          } >> "$GITHUB_ENV"
-          
-      - name: Send message
-        run: |
-          python scripts/discord/post-discord-message.py
-
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
-          MESSAGE: "${DownloadStatsOutput}\n${ClonerStatsOutput}\n${GitHubStatOutput}"
-          BOT_NAME: "Gitub Stats Bot"
-          EMBEDS_TITLE: ""
-          EMBEDS_URL: ""
-          EMBEDS_DESCRIPTION: ""
-
+          python scripts/github_activity/get_repo_stats.py
