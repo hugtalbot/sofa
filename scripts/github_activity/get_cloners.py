@@ -2,7 +2,6 @@ import requests
 import os
 import sys
 
-
 def get_clone_stats(owner, repo, auth_token):
     headers = {
         "Authorization": f"token {auth_token}"

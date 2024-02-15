@@ -10,7 +10,7 @@
 
 import os
 import sys
-import json
+import requests
 from datetime import datetime, timedelta, date
 from python_graphql_client import GraphqlClient
 
