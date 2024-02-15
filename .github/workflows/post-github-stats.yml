@@ -48,7 +48,7 @@ jobs:
           python scripts/github_activity/get_cloners.py
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_REQUEST }}
 
       - name: Get GitHub stats - PR issues discussions
         if: github.event.schedule != '0 0 15 * *'
@@ -56,4 +56,4 @@ jobs:
           python scripts/github_activity/get_repo_stats.py
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_REQUEST }}

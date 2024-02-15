@@ -15,8 +15,6 @@ def get_clone_stats(owner, repo, auth_token):
         sum_unique_cloners = sum(stats['uniques'] for stats in data['clones'])
         total_cloners = data['count']
         sum_total_cloners = sum(stats['count'] for stats in data['clones'])
-        #print(data)
-        #print(sum_unique_cloners)
         return unique_cloners, total_cloners, sum_unique_cloners, sum_total_cloners
     else:
         print(f"Failed to fetch clone statistics. Error: {response.status_code}")
