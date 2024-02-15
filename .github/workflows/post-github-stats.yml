@@ -22,7 +22,21 @@ jobs:
 
         working-directory: ${{ github.workspace }}
 
+      - name: Run script post-discord-message.py
+        if: github.event.schedule != '0 0 15 * *'
+        run: |
+          python scripts/discord/post-discord-message.py
+        working-directory: ${{ github.workspace }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_GITHUB_STATS_WEBHOOK_URL }}
+          MESSAGE: "**===============**\n**MONTHLY REPORT** ..................\n\n "
+          BOT_NAME: "Github activity tracking"
+          EMBEDS_TITLE: ""
+          EMBEDS_URL: ""
+          EMBEDS_DESCRIPTION: ""
+
       - name: Get download stats
+        if: github.event.schedule != '0 0 15 * *'
         run: |
           python scripts/github_activity/get_downloads.py
         env:
@@ -37,6 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get GitHub stats - PR issues discussions
+        if: github.event.schedule != '0 0 15 * *'
         run: |
           python scripts/github_activity/get_repo_stats.py
         env:
