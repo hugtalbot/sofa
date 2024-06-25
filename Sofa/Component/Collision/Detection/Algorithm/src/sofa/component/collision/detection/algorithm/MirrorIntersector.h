@@ -67,13 +67,13 @@ public:
         return intersector->name() + std::string("<SWAP>");
     }
 
-    SOFA_ATTRIBUTE_DEPRECATED__CORE_INTERSECTION_AS_PARAMETER()
+    SOFA_ATTRIBUTE_DISABLED__CORE_INTERSECTION_AS_PARAMETER()
     bool canIntersect(core::CollisionElementIterator elem1, core::CollisionElementIterator elem2) override
     {
         assert(intersector != nullptr);
         return intersector->canIntersect(elem2, elem1);
     }
-    SOFA_ATTRIBUTE_DEPRECATED__CORE_INTERSECTION_AS_PARAMETER()
+    SOFA_ATTRIBUTE_DISABLED__CORE_INTERSECTION_AS_PARAMETER()
     int intersect(core::CollisionElementIterator elem1, core::CollisionElementIterator elem2, core::collision::DetectionOutputVector* contacts) override
     {
         assert(intersector != nullptr);
