@@ -47,7 +47,6 @@ DeformableOnRigidFrameMapping<TIn, TInRoot, TOut>::DeformableOnRigidFrameMapping
     globalToLocalCoords.setParent(&d_globalToLocalCoords);
     m_rootAngularForceScaleFactor.setParent(&d_rootAngularForceScaleFactor);
     m_rootLinearForceScaleFactor.setParent(&d_rootLinearForceScaleFactor);
-
 }
 
 template <class TIn, class TInRoot, class TOut>

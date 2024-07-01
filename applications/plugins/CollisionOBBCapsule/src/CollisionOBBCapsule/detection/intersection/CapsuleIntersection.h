@@ -81,7 +81,8 @@ public:
     }
 
     template <class Elem1, class Elem2>
-    bool testIntersection(Elem1& e1, Elem2& e2) {
+    bool testIntersection(Elem1& e1, Elem2& e2, const core::collision::Intersection* currentIntersection)
+    {
         return BaseIntTool::testIntersection(e1, e2, intersection->getAlarmDistance());
     }
 

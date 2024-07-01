@@ -37,8 +37,8 @@ TubularMapping<TIn, TOut>::TubularMapping ( )
     m_nbPointsOnEachCircle.setParent(&d_nbPointsOnEachCircle);
     m_radius.setParent(&d_radius);
     m_peak.setParent(&d_peak);
-
 }
+
 template <class TIn, class TOut>
 void TubularMapping<TIn, TOut>::init()
 {

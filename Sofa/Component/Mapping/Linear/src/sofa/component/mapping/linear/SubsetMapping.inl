@@ -47,7 +47,6 @@ SubsetMapping<TIn, TOut>::SubsetMapping()
     f_handleTopologyChange.setParent(&d_handleTopologyChange);
     f_ignoreNotFound.setParent(&d_ignoreNotFound);
     f_resizeToModel.setParent(&d_resizeToModel);
-
 }
 
 template <class TIn, class TOut>

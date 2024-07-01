@@ -55,7 +55,6 @@ SkinningMapping<TIn, TOut>::SkinningMapping ()
     weight.setParent(&d_weight);
     showFromIndex.setParent(&d_showFromIndex);
     showWeights.setParent(&d_showWeights);
-
 }
 
 

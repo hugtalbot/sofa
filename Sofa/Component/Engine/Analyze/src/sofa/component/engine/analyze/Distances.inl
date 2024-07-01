@@ -58,7 +58,7 @@ Distances< DataTypes >::Distances ( sofa::component::topology::container::dynami
     d_hexaContainerPath(initData(&d_hexaContainerPath, "hexaContainerPath", "path to the grid used to compute the distances")),
     hexaContainer ( hexaTopoContainer )
 {
-    this->addAlias(&d_fileDistance, "d_fileDistance");
+    this->addAlias(&d_fileDistance, "fileDistance");
     d_zonesFramePair.setDisplayed(false); // GUI can not display map.
 
     this->f_printLog.setValue(true);
