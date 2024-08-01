@@ -43,6 +43,7 @@ def make_query_discussions(owner, name, after_cursor=None):
             nodes {
               title
               authorAssociation
+              closed
               createdAt
               author {
                 login
@@ -155,12 +156,13 @@ for repo in repos:
   discussions = []
   replies_count = 0
   answers_count = 0
+  closed_topic_count = 0
   recent_discussions_count = 0
   recent_discussions_authors = []
 
   issues = []
   issues_count = 0
-  closed_count = 0
+  closed_issue_count = 0
   recent_issues_count = 0
   recent_issues_authors = []
 
@@ -196,6 +198,10 @@ for repo in repos:
         if str(node["answer"]) != "None" :
           answers_count += 1
 
+        # Count the number of closed discussions
+        if node["closed"] :
+          closed_topic_count += 1
+
         # Filter all first timers, and make sure their first time was not double counted
         if wasRecentlyCreated(str(node["createdAt"])) == True:
           recent_discussions_count += 1
@@ -224,7 +230,7 @@ for repo in repos:
       for node in data["data"]["repository"]["issues"]["nodes"]:
         # Count closed ones
         if str(node["closed"]) == "True" :
-          closed_count += 1
+          closed_issue_count += 1
 
         # Count recent and save authors
         if wasRecentlyCreated(str(node["createdAt"])) == True:
@@ -278,6 +284,6 @@ for repo in repos:
   recent_pulls_authors = set(recent_pulls_authors)
 
   # Exporting values
-  postOnDiscord("Organization: "+str(owner)+", Repository: "+str(name)+"\n-------------------------\n"+str(discussions)+" discussion topics\n"+str(answers_count)+" answered\n"+str(replies_count)+" replies\n"+str(recent_discussions_authors)+" recent discussion authors\n-------------------------\n")
-  postOnDiscord(str(issues_count)+" issues\n"+str(closed_count)+" closed\n"+str(recent_issues_authors)+" recent issue authors\n-------------------------")
+  postOnDiscord("Organization: "+str(owner)+", Repository: "+str(name)+"\n-------------------------\n"+str(discussions)+" discussion topics\n"+str(answers_count)+" answered\n"+str(closed_topic_count)+" closed\n"+str(replies_count)+" replies\n"+str(recent_discussions_authors)+" recent discussion authors\n-------------------------\n")
+  postOnDiscord(str(issues_count)+" issues\n"+str(closed_issue_count)+" closed\n"+str(recent_issues_authors)+" recent issue authors\n-------------------------")
   postOnDiscord(str(pulls_count)+" PRs\n"+str(openPR_count)+" open\n"+str(merged_count)+" merged\n"+str(recent_pulls_authors)+" recent PR authors\n"+str(pulls_first_timer_count)+" nb pull 1st timers\n"+str(pulls_first_timers)+" 1st timers\n=========================\n\n")
