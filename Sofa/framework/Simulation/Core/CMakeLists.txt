@@ -55,7 +55,6 @@ set(HEADER_FILES
     ${SRC_ROOT}/TopologyChangeVisitor.h
     ${SRC_ROOT}/UpdateBoundingBoxVisitor.h
     ${SRC_ROOT}/UpdateContextVisitor.h
-    ${SRC_ROOT}/UpdateInternalDataVisitor.h
     ${SRC_ROOT}/UpdateLinksVisitor.h
     ${SRC_ROOT}/UpdateMappingEndEvent.h
     ${SRC_ROOT}/UpdateMappingVisitor.h
@@ -192,7 +191,6 @@ set(SOURCE_FILES
     ${SRC_ROOT}/TopologyChangeVisitor.cpp
     ${SRC_ROOT}/UpdateBoundingBoxVisitor.cpp
     ${SRC_ROOT}/UpdateContextVisitor.cpp
-    ${SRC_ROOT}/UpdateInternalDataVisitor.cpp
     ${SRC_ROOT}/UpdateLinksVisitor.cpp
     ${SRC_ROOT}/UpdateMappingEndEvent.cpp
     ${SRC_ROOT}/UpdateMappingVisitor.cpp
