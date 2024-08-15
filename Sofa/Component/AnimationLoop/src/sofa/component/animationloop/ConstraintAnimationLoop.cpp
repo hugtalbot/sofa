@@ -30,7 +30,6 @@
 #include <sofa/simulation/PropagateEventVisitor.h>
 #include <sofa/simulation/BehaviorUpdatePositionVisitor.h>
 #include <sofa/simulation/SolveVisitor.h>
-#include <sofa/simulation/UpdateInternalDataVisitor.h>
 #include <sofa/simulation/MechanicalOperations.h>
 #include <sofa/simulation/UpdateMappingVisitor.h>
 #include <sofa/simulation/UpdateContextVisitor.h>
@@ -506,14 +505,12 @@ void ConstraintAnimationLoop::step ( const core::ExecParams* params, SReal dt )
     BehaviorUpdatePositionVisitor beh(params , node->getDt());
     node->execute ( beh );
 
-    UpdateInternalDataVisitor uid(params);
-    node->execute ( uid );
-
 
     if (simulationTime>0.1)
         d_activateSubGraph.setValue(true);
     else
         d_activateSubGraph.setValue(false);
+
 
     time = 0.0;
     SReal totaltime = 0.0;

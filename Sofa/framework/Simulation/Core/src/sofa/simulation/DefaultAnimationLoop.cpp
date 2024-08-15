@@ -28,7 +28,6 @@
 #include <sofa/simulation/UpdateMappingVisitor.h>
 #include <sofa/simulation/PropagateEventVisitor.h>
 #include <sofa/simulation/BehaviorUpdatePositionVisitor.h>
-#include <sofa/simulation/UpdateInternalDataVisitor.h>
 #include <sofa/simulation/AnimateBeginEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
 #include <sofa/simulation/UpdateMappingEndEvent.h>
@@ -120,12 +119,6 @@ void DefaultAnimationLoop::behaviorUpdatePosition(const core::ExecParams* params
     SCOPED_TIMER("BehaviorUpdatePositionVisitor");
     BehaviorUpdatePositionVisitor beh(params, dt);
     m_node->execute(beh);
-}
-
-void DefaultAnimationLoop::updateInternalData(const core::ExecParams* params) const
-{
-    SCOPED_TIMER("UpdateInternalDataVisitor");
-    m_node->execute<UpdateInternalDataVisitor>(params);
 }
 
 void DefaultAnimationLoop::updateSimulationContext(const core::ExecParams* params, const SReal dt, const SReal startTime) const
@@ -274,7 +267,6 @@ void DefaultAnimationLoop::animate(const core::ExecParams* params, SReal dt) con
     mparams.setDt(dt);
 
     behaviorUpdatePosition(params, dt);
-    updateInternalData(params);
 
     collisionDetection(params);
 

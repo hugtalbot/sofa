@@ -29,7 +29,6 @@
 #include <sofa/core/behavior/MultiVec.h>
 
 #include <sofa/helper/ScopedAdvancedTimer.h>
-#include <sofa/simulation/UpdateInternalDataVisitor.h>
 #include <sofa/simulation/BehaviorUpdatePositionVisitor.h>
 #include <sofa/simulation/MechanicalOperations.h>
 #include <sofa/simulation/VectorOperations.h>
@@ -218,20 +217,6 @@ void FreeMotionAnimationLoop::step(const sofa::core::ExecParams* params, SReal d
         BehaviorUpdatePositionVisitor beh(params, dt);
         node->execute(&beh);
     }
-
-    dmsg_info() << "updatePos performed - updateInternal called" ;
-
-    UpdateInternalDataVisitor iud(params);
-
-    dmsg_info() << "updateInternal called" ;
-
-    {
-        SCOPED_TIMER("updateInternalData");
-        node->execute(&iud);
-    }
-
-    dmsg_info() << "updateInternal performed - beginVisitor called" ;
-
 
     // MechanicalBeginIntegrationVisitor
     MechanicalBeginIntegrationVisitor beginVisitor(params, dt);

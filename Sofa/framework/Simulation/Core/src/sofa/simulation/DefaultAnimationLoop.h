@@ -68,7 +68,6 @@ protected :
     simulation::Node* m_node { nullptr };
 
     void behaviorUpdatePosition(const sofa::core::ExecParams* params, SReal dt) const;
-    void updateInternalData(const sofa::core::ExecParams* params) const;
     void beginIntegration(const sofa::core::ExecParams* params, SReal dt) const;
     void propagateIntegrateBeginEvent(const sofa::core::ExecParams* params) const;
     void accumulateMatrixDeriv(sofa::core::ConstraintParams cparams) const;
