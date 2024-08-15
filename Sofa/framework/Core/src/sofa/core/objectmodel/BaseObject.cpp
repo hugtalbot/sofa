@@ -273,57 +273,6 @@ void BaseObject::reinit()
 {
 }
 
-void BaseObject::updateInternal()
-{
-    const auto& mapTrackedData = m_internalDataTracker.getMapTrackedData();
-    for( auto const& it : mapTrackedData )
-    {
-        it.first->updateIfDirty();
-    }
-
-    if(m_internalDataTracker.hasChanged())
-    {
-        doUpdateInternal();
-        m_internalDataTracker.clean();
-    }
-}
-
-void BaseObject::trackInternalData(const objectmodel::BaseData& data)
-{
-    m_internalDataTracker.trackData(data);
-}
-
-void BaseObject::cleanTracker()
-{
-    m_internalDataTracker.clean();
-}
-
-bool BaseObject::hasDataChanged(const objectmodel::BaseData& data)
-{
-    bool dataFoundinTracker = false;
-    const auto& mapTrackedData = m_internalDataTracker.getMapTrackedData();
-    const std::string & dataName = data.getName();
-
-    for( auto const& it : mapTrackedData )
-    {
-        if(it.first->getName()==dataName)
-        {
-            dataFoundinTracker=true;
-            break;
-        }
-    }
-    if(!dataFoundinTracker)
-    {
-        msg_error()<< "Data " << dataName << " is not tracked";
-        return false;
-    }
-
-    return m_internalDataTracker.hasChanged(data);
-}
-
-void BaseObject::doUpdateInternal()
-{ }
-
 void BaseObject::storeResetState()
 { }
 

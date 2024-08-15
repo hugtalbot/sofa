@@ -97,9 +97,6 @@ public:
     /// Update method called when variables used in precomputation are modified.
     virtual void reinit();
 
-    /// Update method called when variables (used to compute other internal variables) are modified
-    void updateInternal();
-
     /// Save the initial state for later uses in reset()
     virtual void storeResetState();
 
@@ -188,29 +185,12 @@ public:
     /// Return the full path name of this object
     virtual std::string getPathName() const override;
 
-    /// @name internalupdate
-    ///   Methods related to tracking of data and the internal update
-    /// @{
-private:
-    /// Tracker for all component Data linked to internal variables
-    sofa::core::DataTracker m_internalDataTracker;
 
-protected:
-    /// Method called to add the Data to the DataTracker (listing the Data to track)
-    void trackInternalData(const BaseData &data);
-    void cleanTracker();
-
-    /// Method called to know if a tracked Data has changed
-    bool hasDataChanged(const BaseData &data);
-    ///@}
-    ///
-
+    /// Links associated to all SOFA objects
     SingleLink<BaseObject, BaseContext, BaseLink::FLAG_DOUBLELINK> l_context;
     LinkSlaves l_slaves;
     SingleLink<BaseObject, BaseObject, BaseLink::FLAG_DOUBLELINK> l_master;
 
-    /// Implementation of the internal update
-    virtual void doUpdateInternal();
 
     /// This method insures that context is never nullptr (using BaseContext::getDefault() instead)
     /// and that all slaves of an object share its context
