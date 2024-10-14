@@ -7,7 +7,6 @@ on:
 jobs:
   watch-star:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'sofa-framework' }}
 
     steps:
       - name: Check out code
