@@ -14,10 +14,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt install pipx
-          pipx install python-graphql-client
-          pipx install python-dateutil
-          pipx install requests
+          python -m venv vm-env
+          vm-env/bin/pip install some-python-library
+          vm-env/bin/pip install python-graphql-client
+          vm-env/bin/pip install python-dateutil
+          vm-env/bin/pip install requests
+          echo "Ca marche papy"
         working-directory: ${{ github.workspace }}
 
       # Star/watch related event
