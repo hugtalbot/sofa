@@ -7,18 +7,20 @@ on:
 jobs:
   watch-star:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'sofa-framework' }}
 
     steps:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip' # caching pip dependencies
         run: |
-          apt install pipx
-          pipx install python-graphql-client
-          pipx install python-dateutil
-          pipx install requests
+          pip install python-graphql-client
+          pip install python-dateutil
+          pip install requests
         working-directory: ${{ github.workspace }}
 
       # Star/watch related event
