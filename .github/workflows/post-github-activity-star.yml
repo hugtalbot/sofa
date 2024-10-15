@@ -18,11 +18,11 @@ jobs:
           python-version: '3.12'
           cache: 'pip' # caching pip dependencies
           
-       - name: Install pip packages
-         run: |
-          pip install python-graphql-client
-          pip install python-dateutil
-          pip install requests
+      - name: Install pip packages
+        run: |
+         pip install python-graphql-client
+         pip install python-dateutil
+         pip install requests
         working-directory: ${{ github.workspace }}
 
       # Star/watch related event
