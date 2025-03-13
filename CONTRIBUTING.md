@@ -1,5 +1,5 @@
 # Welcome
-
+coucou
 Welcome to the SOFA Community! Here is a brief summary of how it is structured:
 
 - SOFA Users: people using SOFA by writing scenes or using the SOFA API.
