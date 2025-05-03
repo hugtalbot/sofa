@@ -30,14 +30,14 @@ namespace sofa::component::mechanicalload
 
 template <class DataTypes>
 NodalLinearDampingForceField<DataTypes>::NodalLinearDampingForceField()
-    : d_dampingCoefficientVector(initData(&d_dampingCoefficientVector, "dampingCoefficientVector", "Vector of velocity damping coefficients (by cinematic dof and by node)"))
+    : d_dampingCoefficients(initData(&d_dampingCoefficients, "dampingCoefficients", "Vector of velocity damping coefficients (by cinematic dof and by node)"))
     , d_dampingCoefficient(initData(&d_dampingCoefficient, "dampingCoefficient", "Node-constant and isotropic damping coefficient"))
 {
     sofa::core::objectmodel::Base::addUpdateCallback(
-        "updateFromDampingCoefficientVector", {&d_dampingCoefficientVector},
+        "updateFromDampingCoefficientVector", {&d_dampingCoefficients},
         [this](const core::DataTracker&)
         {
-            msg_info() << "call back update: from dampingCoefficientVector";
+            msg_info() << "call back update: from dampingCoefficients";
             return updateFromDampingCoefficientVector();
         },
         {});
@@ -56,22 +56,22 @@ template <class DataTypes>
 sofa::core::objectmodel::ComponentState
 NodalLinearDampingForceField<DataTypes>::updateFromDampingCoefficientVector()
 {
-    // Check if the dampingCoefficientVector has a null size
-    VecDeriv dampingCoefficients = d_dampingCoefficientVector.getValue();
+    // Check if the dampingCoefficients has a null size
+    VecDeriv dampingCoefficients = d_dampingCoefficients.getValue();
     const unsigned int sizeCoefs = dampingCoefficients.size();
     if (sizeCoefs == 0)
     {
-        msg_error() << "Size of the \'dampingCoefficientVector\' vector is null";
+        msg_error() << "Size of the \'dampingCoefficients\' vector is null";
         return sofa::core::objectmodel::ComponentState::Invalid;
     }
 
     // Recover mstate size
     const unsigned int sizeMState = this->mstate->getSize();
 
-    // If the sizes of the dampingCoefficientVector and the mechanical state mismatch
+    // If the sizes of the dampingCoefficients and the mechanical state mismatch
     if (sizeCoefs != sizeMState && sizeCoefs != 1)
     {
-        msg_error() << "Size of the \'dampingCoefficientVector\' vector does not fit the associated MechanicalObject size";
+        msg_error() << "Size of the \'dampingCoefficients\' vector does not fit the associated MechanicalObject size";
         return sofa::core::objectmodel::ComponentState::Invalid;
     }
 
@@ -79,7 +79,7 @@ NodalLinearDampingForceField<DataTypes>::updateFromDampingCoefficientVector()
     if (sizeCoefs == 1)
     {
         sofa::helper::WriteAccessor<Data<VecDeriv> > accessorCoefficient =
-            this->d_dampingCoefficientVector;
+            this->d_dampingCoefficients;
         Deriv constantCoef = accessorCoefficient[0];
         accessorCoefficient.resize(sizeMState);
 
@@ -87,7 +87,7 @@ NodalLinearDampingForceField<DataTypes>::updateFromDampingCoefficientVector()
         {
             if (constantCoef[j] < 0.)
             {
-                msg_error() << "Negative entry given in the constant \'dampingCoefficientVector\'";
+                msg_error() << "Negative entry given in the constant \'dampingCoefficients\'";
                 return sofa::core::objectmodel::ComponentState::Invalid;
             }
         }
@@ -106,14 +106,14 @@ NodalLinearDampingForceField<DataTypes>::updateFromDampingCoefficientVector()
                 if (dampingCoefficients[i][j] < 0.)
                 {
                     msg_error() << "Negative value at the " << i
-                                << "th entry of the \'dampingCoefficientVector\' vector";
+                                << "th entry of the \'dampingCoefficients\' vector";
                     return sofa::core::objectmodel::ComponentState::Invalid;
                 }
             }
         }
     }
 
-    msg_info() << "Update from dampingCoefficientVector successfully done";
+    msg_info() << "Update from dampingCoefficients successfully done";
     isConstantIsotropic = false;
     return sofa::core::objectmodel::ComponentState::Valid;
 }
@@ -142,18 +142,18 @@ void NodalLinearDampingForceField<DataTypes>::init()
     Inherit::init();
 
     // Case no input is given
-    if (!d_dampingCoefficient.isSet() && !d_dampingCoefficientVector.isSet())
+    if (!d_dampingCoefficient.isSet() && !d_dampingCoefficients.isSet())
     {
         msg_error() << "One damping coefficient should be specified (either "
-                       "\'dampingCoefficientVector\' or \'dampingCoefficient\')";
+                       "\'dampingCoefficients\' or \'dampingCoefficient\')";
         this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Invalid);
         return;
     }
 
     // Too many input damping information
-    if (d_dampingCoefficient.isSet() && d_dampingCoefficientVector.isSet())
+    if (d_dampingCoefficient.isSet() && d_dampingCoefficients.isSet())
     {
-        msg_warning() << "Too many input damping information: either using \'dampingCoefficientVector\' or \'dampingCoefficient\' should be specified \ndampingCoefficient will be used";
+        msg_warning() << "Too many input damping information: either using \'dampingCoefficients\' or \'dampingCoefficient\' should be specified \ndampingCoefficient will be used";
     }
 
     this->d_componentState.setValue(sofa::core::objectmodel::ComponentState::Valid);
@@ -184,7 +184,7 @@ void NodalLinearDampingForceField<DataTypes>::addForce(const core::MechanicalPar
     }
     else
     {
-        const auto coefs = sofa::helper::getReadAccessor(d_dampingCoefficientVector);
+        const auto coefs = sofa::helper::getReadAccessor(d_dampingCoefficients);
 
         if (!coefs.empty())
         {
@@ -232,7 +232,7 @@ void NodalLinearDampingForceField<DataTypes>::addDForce(const core::MechanicalPa
     }
     else
     {
-        const auto& coefs = d_dampingCoefficientVector.getValue();
+        const auto& coefs = d_dampingCoefficients.getValue();
         std::size_t nbDampingCoeff = coefs.size();
 
         if (nbDampingCoeff && bfactor)
@@ -284,7 +284,7 @@ void NodalLinearDampingForceField<DataTypes>::addBToMatrix(sofa::linearalgebra::
     }
     else
     {
-        const auto& coefs = d_dampingCoefficientVector.getValue();
+        const auto& coefs = d_dampingCoefficients.getValue();
         const std::size_t nbDampingCoeff = coefs.size();
 
         if (nbDampingCoeff && bFact)
@@ -330,7 +330,7 @@ void NodalLinearDampingForceField<DataTypes>::buildDampingMatrix(
     }
     else
     {
-        const auto& coefs = d_dampingCoefficientVector.getValue();
+        const auto& coefs = d_dampingCoefficients.getValue();
         const std::size_t nbDampingCoeff = coefs.size();
 
         if (nbDampingCoeff)
