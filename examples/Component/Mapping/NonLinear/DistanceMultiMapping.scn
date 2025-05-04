@@ -33,7 +33,7 @@
         <EdgeSetGeometryAlgorithms drawEdges="true" />
         <FixedProjectiveConstraint indices="0" />
         <DiagonalMass  name="mass" totalMass="1e-2"/>
-        <NodalLinearDampingForceField template="Vec3" name="uniformVelocityDampingFF0" dampingCoefficient="0.005"/>
+        <NodalLinearDampingForceField template="Vec3" name="uniformVelocityDampingFF0" dampingCoefficients="0.005 0.005 0.005"/>
         <Node name="extensionsNode" >
             <MechanicalObject template="Vec1" name="extensionsDOF" />
             <DistanceMapping name="distanceMapping" topology="@../topology" input="@../defoDOF" output="@extensionsDOF" geometricStiffness="0" applyRestPosition="true" computeDistance="true"/>

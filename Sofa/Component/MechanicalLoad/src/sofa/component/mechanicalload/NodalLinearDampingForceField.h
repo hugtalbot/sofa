@@ -45,19 +45,13 @@ public:
     typedef core::objectmodel::Data<VecDeriv> DataVecDeriv;
 
     /// Vector of velocity damping coefficients (by cinematic dof and by node)
-    Data< VecDeriv > d_dampingCoefficientVector;
-
-    /// Node-constant and isotropic damping coefficient
-    Data< Real > d_dampingCoefficient;
+    Data< VecDeriv > d_dampingCoefficients;
 
 protected:
 
     NodalLinearDampingForceField();
 
-    sofa::core::objectmodel::ComponentState updateFromDampingCoefficientVector();
-    sofa::core::objectmodel::ComponentState updateFromSingleDampingCoefficient();
-
-    bool isConstantIsotropic;
+    sofa::core::objectmodel::ComponentState updateFromDampingCoefficients();
 
 public:
 
@@ -73,16 +67,17 @@ public:
     void buildDampingMatrix(core::behavior::DampingMatrix* matrix) override;
 
     SReal getPotentialEnergy(const core::MechanicalParams* params, const DataVecCoord& x) const override;
+
+    using Inherit::addKToMatrix;
 };
 
-
 #if !defined(SOFA_COMPONENT_FORCEFIELD_NODALLINEARDAMPINGFORCEFIELD_CPP)
-extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Vec3Types>;
-extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Vec2Types>;
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Vec1Types>;
+extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Vec2Types>;
+extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Vec3Types>;
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Vec6Types>;
-extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Rigid3Types>;
 extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Rigid2Types>;
+extern template class SOFA_COMPONENT_MECHANICALLOAD_API NodalLinearDampingForceField<defaulttype::Rigid3Types>;
 #endif
 
 } // namespace sofa::component::mechanicalload
