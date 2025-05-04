@@ -55,35 +55,7 @@ struct NodalLinearDampingForceField_test : public ForceField_test<_NodalLinearDa
 
     NodalLinearDampingForceField_test():
         Inherited::ForceField_test(std::string(SOFA_COMPONENT_MECHANICALLOAD_TEST_SCENES_DIR) + "/" + "NodalLinearDampingForceField.scn")
-    {
-//        // potential energy is not implemented and won't be tested
-//        //this->flags &= ~Inherited::TEST_POTENTIAL_ENERGY;
-
-//        // Set vectors, using DataTypes::set to cope with tests in dimension 2
-//        //Position
-//        x.resize(3);
-//        DataTypes::set( x[0], 0,0,0);
-//        DataTypes::set( x[1], 1,0,0);
-//        DataTypes::set( x[2], 1,1,0);
-
-//        //Velocity
-//        v.resize(3);
-//        DataTypes::set( v[0], 0,0,0);
-//        DataTypes::set( v[1], 0,0,0);
-//        DataTypes::set( v[2], 0,0,0);
-
-//        //Force
-//        f.resize(3);
-//        Vec3 f0(0,0,0.1);
-//        DataTypes::set( f[0],  f0[0], f0[1], f0[2]);
-//        DataTypes::set( f[1],  f0[0], f0[1], f0[2]);
-//        DataTypes::set( f[2],  f0[0], f0[1], f0[2]);
-
-//        // Set the properties of the force field
-//        sofa::type::vector<Index> indices = {0};
-//        Inherited::force->d_triangleList.setValue(indices);
-//        Inherited::force->d_pressure=Coord(0,0,0.6);
-    }
+    {}
 
     void test_requiredInputs()
     {
@@ -92,21 +64,57 @@ struct NodalLinearDampingForceField_test : public ForceField_test<_NodalLinearDa
         ASSERT_FALSE(this->force->isComponentStateValid());
     }
 
+    void test_setInvalidCoeficients()
+    {
+        EXPECT_MSG_EMIT(Error);
+        this->force->findData("dampingCoefficients")->read("2.0 -3.0 4.0");
+        sofa::simulation::node::initRoot(Inherited::node.get());
+        ASSERT_FALSE(this->force->isComponentStateValid());
+    }
+
     void test_setCoeficientsSizeSameAsMState()
     {
-        this->force->findData("dampingCoefficient")->read("1.0");
+        this->force->findData("dampingCoefficients")->read("2.0 3.0 4.0");
         sofa::simulation::node::initRoot(Inherited::node.get());
 
         ASSERT_TRUE(this->force->isComponentStateValid());
         ASSERT_EQ(this->dof->getSize(), this->force->d_dampingCoefficients.getValue().size());
+        auto size = this->dof->getSize();
+
+        auto coefficients = helper::getReadAccessor(this->force->d_dampingCoefficients);
+        for(auto i = 0; i < size ; ++i )
+        {
+            auto d = coefficients[i];
+            decltype(d) v{2.0,3.0,4.0};
+            ASSERT_EQ(d, v);
+        }
+    }
+
+    void test_setCoeficientsReproduceLastValue()
+    {
+        this->force->findData("dampingCoefficients")->read("2.0 3.0 4.0 5.0 6.0 7.0");
+        sofa::simulation::node::initRoot(Inherited::node.get());
+
+        ASSERT_TRUE(this->force->isComponentStateValid());
+        ASSERT_EQ(this->dof->getSize(), this->force->d_dampingCoefficients.getValue().size());
+        auto size = this->dof->getSize();
+
+        auto coefficients = helper::getReadAccessor(this->force->d_dampingCoefficients);
+        for(auto i = 1; i < size ; ++i )
+        {
+            auto d = coefficients[i];
+            decltype(d) v{5.0,6.0,7.0};
+            ASSERT_EQ(d, v);
+        }
     }
 
     void test_setConstantDamping()
     {
-        this->force->findData("dampingCoefficient")->read("1.0");
-        this->force->init();
+        this->force->findData("printLog")->read("1");
+        this->force->findData("dampingCoefficients")->read("2.0 3.0 4.0");
+        sofa::simulation::node::initRoot(Inherited::node.get());
 
-        type::vector<Vec3> ones = {{1.0,1.0,1.0}};
+        type::vector<Vec3> ones = {{2.0,3.0,4.0}};
         type::vector<Vec3> res = this->force->d_dampingCoefficients.getValue();
         ASSERT_EQ(res, ones);
     }
@@ -147,7 +155,12 @@ TYPED_TEST( NodalLinearDampingForceField_test , requiredInput)
     this->test_requiredInputs();
 }
 
-TYPED_TEST( NodalLinearDampingForceField_test , setDamping)
+TYPED_TEST( NodalLinearDampingForceField_test , test_setInvalidCoeficients)
+{
+    this->test_setInvalidCoeficients();
+}
+
+TYPED_TEST( NodalLinearDampingForceField_test , setConstantDamping)
 {
     this->test_setConstantDamping();
 }
@@ -155,6 +168,11 @@ TYPED_TEST( NodalLinearDampingForceField_test , setDamping)
 TYPED_TEST( NodalLinearDampingForceField_test , setCoeficientsSizeSameAsMState)
 {
     this->test_setCoeficientsSizeSameAsMState();
+}
+
+TYPED_TEST( NodalLinearDampingForceField_test , setCoeficientsReproduceLastValue)
+{
+    this->test_setCoeficientsReproduceLastValue();
 }
 
 }// namespace sofa

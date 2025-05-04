@@ -47,17 +47,11 @@ public:
     /// Vector of velocity damping coefficients (by cinematic dof and by node)
     Data< VecDeriv > d_dampingCoefficients;
 
-    /// Node-constant and isotropic damping coefficient
-    Data< Real > d_dampingCoefficient;
-
 protected:
 
     NodalLinearDampingForceField();
 
-    sofa::core::objectmodel::ComponentState updateFromDampingCoefficientVector();
-    sofa::core::objectmodel::ComponentState updateFromSingleDampingCoefficient();
-
-    bool isConstantIsotropic;
+    sofa::core::objectmodel::ComponentState updateFromDampingCoefficients();
 
 public:
 
