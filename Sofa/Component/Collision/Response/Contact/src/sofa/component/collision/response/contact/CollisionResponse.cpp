@@ -67,27 +67,27 @@ sofa::helper::OptionsGroup CollisionResponse::initializeResponseOptions(sofa::co
 
 void CollisionResponse::init()
 {
-
     Inherit1::init();
+
+    msg_info() << "Collision response is: " << d_response.getValue();
 
     if(!d_response.isSet())
     {
-        msg_error() << "No response method has been set. Default response=\"PenalityContactForceField\"";
-        setDefaultResponseType("PenalityContactForceField");
+        msg_error() << "No response method has been set";
         return;
     }
 
     if (d_response.getValue().size() == 0)
     {
-        msg_error() << "Response method is empty and may have been wrongly set. Option list is: " << initializeResponseOptions(getContext());
+        msg_error() << "Response method is wrongly set (possibly empty). Option list is: " << initializeResponseOptions(getContext());
         d_response.setValue(initializeResponseOptions(getContext()));
     }
     else
     {
         sofa::helper::OptionsGroup responseOptions = initializeResponseOptions(getContext());
-        if(!responseOptions.isInOptionsList(d_response.getValue().getSelectedItem()))
+        if(responseOptions.isInOptionsList(d_response.getValue().getSelectedItem()) < 0)
         {
-            msg_error() << "response method is not a valid response method. Response can be among the list: " << responseOptions.getItemNames();
+            msg_error() << "response method is not a valid response method. Response can be among the list: " << responseOptions;
         }
         else
         {

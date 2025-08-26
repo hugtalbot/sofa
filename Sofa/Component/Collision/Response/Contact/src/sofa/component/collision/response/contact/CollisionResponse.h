@@ -52,6 +52,10 @@ public :
         {
             context->addObject(obj);
             sofa::helper::OptionsGroup options = initializeResponseOptions(context);
+
+            const std::string responseName = arg->getAttribute("response");
+            options.setSelectedItem(responseName);
+
             obj->d_response.setValue(options);
         }
 
