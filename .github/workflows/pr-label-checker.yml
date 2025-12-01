@@ -158,7 +158,7 @@ jobs:
               status: "completed",
               conclusion: ${{ steps.check_status_labels.outputs.conclusion }},
               output: {
-                title: ${{ steps.check_status_labels.outputs.messaqe }},
-                summary: ${{ steps.check_status_labels.outputs.messaqe }}
+                title: ${{ steps.check_status_labels.outputs.message }},
+                summary: ${{ steps.check_status_labels.outputs.message }}
               }
             });
