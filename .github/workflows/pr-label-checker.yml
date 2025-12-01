@@ -87,8 +87,10 @@ jobs:
                 repo: context.repo.repo,
                 body: comment
               });
+
               // Set flag to TRUE
-              echo "no_status_label=true" >> $GITHUB_OUTPUT
+              core.setOutput('no_status_label', 'true');
+
             } else if (matchingLabelsCount > 1) {
               const comment = ':warning: :warning: :warning:<br>@'+context.payload.pull_request.user.login+' your PR includes **too many status labels** :label:<br> Make sure to keep only one (wip, to review or ready).<br>:warning: :warning: :warning:';
               github.rest.issues.createComment({
@@ -101,7 +103,7 @@ jobs:
             }
 
             // Print all PR labels in log
-            // console.log('Labels:', labels.join(', '));
+            console.log('Labels:', labels.join(', '));
 
       - name: Add status label if none given
         if: ${{ always() }} && ${{ steps.check_status_labels.outputs.no_status_label == 'true' }}
