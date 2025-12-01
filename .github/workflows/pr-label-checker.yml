@@ -109,7 +109,7 @@ jobs:
               core.setOutput('conclusion', 'failure');
               core.setOutput('message', 'Too many status labels!');
               
-              echo "::error title=Too many status labels!::Too many status labels!"
+              echo "::error title=Too many status labels!::Too many status labels!";
               core.setFailed("Too many status labels!");
 
             }
