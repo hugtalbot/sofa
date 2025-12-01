@@ -11,6 +11,7 @@
     The following authors contributed to the design and implementation
     of the core SOFA APIs, as well as base features and applications :
 
+        TEST
         Yinoussa Adagolodgo
         Michael Adam
         Jeremie Allard
