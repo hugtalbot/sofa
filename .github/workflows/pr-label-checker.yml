@@ -122,10 +122,9 @@ jobs:
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.pull_request.number }}
           LABELS: "pr: status to review"
-      
+
       - name: Modify the status check message
         if: ${{ steps.check_status_labels.outputs.edit_runCheck == 'true' }}
-        uses: actions/github-script@v7
         run: |
           echo "::error title=${{ steps.check_status_labels.outputs.message }}::${{ steps.check_status_labels.outputs.message }}"
 
