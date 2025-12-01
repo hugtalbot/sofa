@@ -58,8 +58,10 @@ jobs:
                 body: comment
               });
               
-              // Set flag too_many_status_labels
-              core.setOutput('no_descriptive_label', 'true');
+              // Prepare editing the runCheck
+              core.setOutput('edit_runCheck', 'true');
+              core.setOutput('conclusion', 'failure');
+              core.setOutput('message', 'No descriptive label given!');
             }
 
             // Status labels -------------------------------------------------------
@@ -86,8 +88,12 @@ jobs:
                 body: comment
               });
 
-              // Set flag no_status_label
+              // Prepare editing the runCheck and adding a label
+              core.setOutput('edit_runCheck', 'true');
               core.setOutput('no_status_label', 'true');
+              core.setOutput('conclusion', 'neutral');
+              core.setOutput('message', 'Missing status label: PR is now set to review');
+
 
             } else if (matchingLabelsCount > 1) {
               const comment = ':warning: :warning: :warning:<br>@'+context.payload.pull_request.user.login+' your PR includes **too many status labels** :label:<br> Make sure to **select only one** (wip, to review or ready).<br>:warning: :warning: :warning:';
@@ -98,8 +104,10 @@ jobs:
                 body: comment
               });
 
-              // Set flag too_many_status_labels
-              core.setOutput('too_many_status_labels', 'true');
+              // Prepare editing the runCheck
+              core.setOutput('edit_runCheck', 'true');
+              core.setOutput('conclusion', 'failure');
+              core.setOutput('message', 'Too many status labels!');
             }
 
             // Print all PR labels in log
@@ -109,23 +117,48 @@ jobs:
         if: ${{ steps.check_status_labels.outputs.no_status_label == 'true' }}
         run: |
           gh pr edit "$NUMBER" --add-label "$LABELS"
-          echo "Missing status label: PR is now set to review"
-          exit 1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.pull_request.number }}
           LABELS: "pr: status to review"
       
-      - name: Error if too many status check
-        if: ${{ steps.check_status_labels.outputs.too_many_status_labels == 'true' }}
-        run: |
-          echo "::error::Too many status labels!"
-          exit 1
+      - name: Modify the status check message
+        if: ${{ steps.check_status_labels.outputs.edit_runCheck == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // The current job’s check run is the one whose name = job name
+            const jobName = process.env.GITHUB_JOB;
+            const displayName = "Check labels";
 
-      - name: Error if too many status check
-        if: ${{ steps.check_status_labels.outputs.no_descriptive_label == 'true' }}
-        run: |
-          echo "Missing descriptive label!"
-          exit 1
+            // Fetch check runs for this commit
+            const checks = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request.head.sha,
+            });
 
+            // Find check run whose name matches the job display name
+            const checkRun = checks.data.check_runs.find(
+              c => c.name === displayName
+            );
+
+            if (!checkRun) {
+              core.setFailed("Could not find check run for current job");
+              return;
+            }
+
+            // Update the current check run
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: checkRun.id,
+              name: displayName,
+              status: "completed",
+              conclusion: ${{ steps.check_status_labels.outputs.conclusion }},
+              output: {
+                title: ${{ steps.check_status_labels.outputs.messaqe }},
+                summary: ${{ steps.check_status_labels.outputs.messaqe }}
+              }
+            });
