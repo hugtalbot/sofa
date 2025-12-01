@@ -120,7 +120,7 @@ jobs:
       - name: Error if too many status check
         if: ${{ steps.check_status_labels.outputs.too_many_status_labels == 'true' }}
         run: |
-          echo "Too many status labels!"
+          echo "::error::Too many status labels!"
           exit 1
 
       - name: Error if too many status check
