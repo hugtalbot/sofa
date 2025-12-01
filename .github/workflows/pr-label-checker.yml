@@ -16,11 +16,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Delay for 10 Seconds
-        run: |
-          echo "Waiting for 10 seconds in case other labels get changed"
-          sleep 10
-
       - name: Check descriptive labels
         uses: actions/github-script@v5
         with:
@@ -85,7 +80,7 @@ jobs:
 
             // If no descriptive label is set, add a comment in the PR and make the action check fail
             if (matchingLabelsCount === 0) {
-              const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does not include any **status** label :label:<br> Make sure to add one (wip, to review or ready).<br>:warning: :warning: :warning:';
+              const comment = '@'+context.payload.pull_request.user.login+' your PR does not include any **status** label :label: The label \"pr: status to review\" is added automatically.';
               github.rest.issues.createComment({
                 issue_number: prNumber,
                 owner: context.repo.owner,
@@ -95,14 +90,14 @@ jobs:
               // Set flag to TRUE
               echo "no_status_label=true" >> $GITHUB_OUTPUT
             } else if (matchingLabelsCount > 1) {
-              const comment = ':warning: :warning: :warning:<br>@'+context.repo.owner+' your PR does includes **too many status labels** :label:<br> Make sure to keep only one (wip, to review or ready).<br>:warning: :warning: :warning:';
+              const comment = ':warning: :warning: :warning:<br>@'+context.payload.pull_request.user.login+' your PR includes **too many status labels** :label:<br> Make sure to keep only one (wip, to review or ready).<br>:warning: :warning: :warning:';
               github.rest.issues.createComment({
                 issue_number: prNumber,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 body: comment
               });
-              core.setFailed('Too many status PR labels')
+              core.setFailed('Too many status PR labels');
             }
 
             // Print all PR labels in log
