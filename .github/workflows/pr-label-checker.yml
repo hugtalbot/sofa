@@ -20,7 +20,8 @@ jobs:
           echo "Waiting for 10 seconds in case other labels get changed"
           sleep 10
 
-      - name: Check descriptive labels
+      - name: Check status labels
+        id: check_status_labels
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -29,6 +30,7 @@ jobs:
             const prNumber = context.payload.pull_request.number;
             const labels = context.payload.pull_request.labels.map(label => label.name);
 
+            // Descriptive labels -------------------------------------------------------
             // Define an array of descriptive labels
             const descriptiveLabels = [
               'deprecated',
@@ -55,20 +57,12 @@ jobs:
                 repo: context.repo.repo,
                 body: comment
               });
-              core.setFailed('Invalid PR label');
+              
+              // Set flag too_many_status_labels
+              core.setOutput('no_descriptive_label', 'true');
             }
 
-      - name: Check status labels
-        id: check_status_labels
-        if: ${{ always() }}
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            // Get PR info: id and labels
-            const prNumber = context.payload.pull_request.number;
-            const labels = context.payload.pull_request.labels.map(label => label.name);
-
+            // Status labels -------------------------------------------------------
             // Array of possible labels defining the status of the PR
             const statusLabels = [
               'pr: status wip',
@@ -92,7 +86,7 @@ jobs:
                 body: comment
               });
 
-              // Set flag to TRUE
+              // Set flag no_status_label
               core.setOutput('no_status_label', 'true');
 
             } else if (matchingLabelsCount > 1) {
@@ -103,18 +97,35 @@ jobs:
                 repo: context.repo.repo,
                 body: comment
               });
-              core.summary.addRaw('Too many status PR labels', true);
-              core.setFailed('Too many status PR labels');
+
+              // Set flag too_many_status_labels
+              core.setOutput('too_many_status_labels', 'true');
             }
 
             // Print all PR labels in log
             console.log('Labels:', labels.join(', '));
 
       - name: Add status label if none given
-        if: ${{ always() }} && ${{ steps.check_status_labels.outputs.no_status_label == 'true' }}
-        run: gh pr edit "$NUMBER" --add-label "$LABELS"
+        if: ${{ steps.check_status_labels.outputs.no_status_label == 'true' }}
+        run: |
+          gh pr edit "$NUMBER" --add-label "$LABELS"
+          echo "Missing status label: PR is now set to review"
+          exit 1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.pull_request.number }}
           LABELS: "pr: status to review"
+      
+      - name: Error if too many status check
+        if: ${{ steps.check_status_labels.outputs.too_many_status_labels == 'true' }}
+        run: |
+          echo "Too many status labels!"
+          exit 1
+
+      - name: Error if too many status check
+        if: ${{ steps.check_status_labels.outputs.no_descriptive_label == 'true' }}
+        run: |
+          echo "Missing descriptive label!"
+          exit 1
+
