@@ -103,6 +103,7 @@ jobs:
                 repo: context.repo.repo,
                 body: comment
               });
+              core.summary.addRaw('Too many status PR labels', true);
               core.setFailed('Too many status PR labels');
             }
 
