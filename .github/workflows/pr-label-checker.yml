@@ -131,8 +131,8 @@ jobs:
             // The current job’s check run is the one whose name = job name
             const jobName = process.env.GITHUB_JOB;
             const displayName = "Check labels";
-            const conclusion = ${{ steps.check_status_labels.outputs.conclusion }};
-            const message = ${{ steps.check_status_labels.outputs.message }};
+            const conclusion = ""+${{ steps.check_status_labels.outputs.conclusion }};
+            const message = ""+${{ steps.check_status_labels.outputs.message }};
 
             // Fetch check runs for this commit
             const checks = await github.rest.checks.listForRef({
