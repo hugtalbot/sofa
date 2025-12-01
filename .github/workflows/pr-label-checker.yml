@@ -108,8 +108,10 @@ jobs:
               core.setOutput('edit_runCheck', 'true');
               core.setOutput('conclusion', 'failure');
               core.setOutput('message', 'Too many status labels!');
-              core.error("Too many status labels!");
+              
+              echo "::error title=Too many status labels!::Too many status labels!"
               core.setFailed("Too many status labels!");
+
             }
 
             // Print all PR labels in log
