@@ -58,7 +58,7 @@ jobs:
               });
               core.setFailed('Invalid PR label');
             }
-            
+
       - name: Check status labels
         if: ${{ always() }}
         id: check_status_labels
