@@ -91,7 +91,7 @@ jobs:
               core.setOutput('no_status_label', 'true');
 
             } else if (matchingLabelsCount > 1) {
-              const comment = ':warning: :warning: :warning:<br>@'+context.payload.pull_request.user.login+' your PR includes **too many status labels** :label:<br> Make sure to keep only one (wip, to review or ready).<br>:warning: :warning: :warning:';
+              const comment = ':warning: :warning: :warning:<br>@'+context.payload.pull_request.user.login+' your PR includes **too many status labels** :label:<br> Make sure to **select only one** (wip, to review or ready).<br>:warning: :warning: :warning:';
               github.rest.issues.createComment({
                 issue_number: prNumber,
                 owner: context.repo.owner,
