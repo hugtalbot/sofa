@@ -65,7 +65,7 @@ CCDTightInclusionIntersection::CCDTightInclusionIntersection()
 , d_tolerance(initData(&d_tolerance, 1e-10_sreal,"tolerance","tolerance used by the tight inclusion CCD algorithm"))
 , d_maxIterations(initData(&d_maxIterations,(long) 1000,"maxIterations","maxIterations used by the tight inclusion CCD algorithm"))
 {
-
+    d_alarmDistance.setRequired(false);
 }
 
 void CCDTightInclusionIntersection::init()
